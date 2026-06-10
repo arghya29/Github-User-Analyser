@@ -1,0 +1,19 @@
+# This file defines code owners for the repository
+# GitHub will auto-request reviews from these people when PRs touch their code
+
+# All changes require review
+* @your-github-username
+
+# API changes
+/pages/api/ @your-github-username
+
+# Component changes  
+/components/ @your-github-username
+
+# Styling changes
+/styles/ @your-github-username
+
+# Configuration files
+*.json @your-github-username
+*.js @your-github-username
+*.md @your-github-username
