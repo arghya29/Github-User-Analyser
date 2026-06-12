@@ -60,7 +60,7 @@ export default function Home() {
         setRepos(response.data.repos)
       }
     } catch (error: unknown) {
-      const err = error as AxiosError;
+      const err = error as AxiosError<{ error: string }>;
       setError(err.response?.data?.error || 'Failed to fetch user data')
     } finally {
       setLoading(false)
