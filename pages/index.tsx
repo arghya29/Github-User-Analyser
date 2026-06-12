@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Head from 'next/head'
-import axios from 'axios'
+import axios, { type AxiosError } from 'axios'
 import SearchBar from '@/components/SearchBar'
 import UserCard from '@/components/UserCard'
 import RepositoryCard from '@/components/RepositoryCard'
@@ -59,7 +59,8 @@ export default function Home() {
         setUser(response.data.user)
         setRepos(response.data.repos)
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ error: string }>;
       setError(err.response?.data?.error || 'Failed to fetch user data')
     } finally {
       setLoading(false)

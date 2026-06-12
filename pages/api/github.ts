@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import axios from 'axios'
+import axios, { type AxiosError } from 'axios'
 
 interface GitHubUser {
   login: string
@@ -73,7 +73,9 @@ export default async function handler(
       user: userResponse.data,
       repos: reposResponse.data,
     })
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as AxiosError;
+    
     if (error.response?.status === 404) {
       return res.status(404).json({
         user: {} as GitHubUser,
