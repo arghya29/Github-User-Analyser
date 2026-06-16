@@ -4,9 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    target-branch: "dev"
     open-pull-requests-limit: 10
     reviewers:
-      - "your-github-username"
+      - "arghya29"
     labels:
       - "dependencies"
       - "npm"
