@@ -162,22 +162,19 @@ No environment variables are required for basic functionality. The GitHub API is
 
 We love contributions! Whether you're fixing bugs, adding features, or improving documentation, here's how to get started:
 
-### Getting Started
+1. **Fork** the repository and create your branch: `git checkout -b feature/your-feature`
+2. **Test** your changes: run `npm run dev` to verify the app works as expected, then `npm run lint` to check code quality.
+3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
+4. **Push** to the branch: `git push origin feature/your-feature`
+5. **Open a Pull Request** against our `dev` branch.
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally
-3. **Create a new branch** for your feature: `git checkout -b feature/amazing-feature`
-4. **Make your changes** and test thoroughly
-5. **Commit your changes**: `git commit -m 'Add amazing feature'`
-6. **Push to your fork**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request** with a clear description
+PRs that don't pass `npm run lint` won't be merged, so make sure that check is clean before submitting. Refer to our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) for further details.
 
 ### Before You Contribute
 
-- Read our [Contributing Guidelines](CONTRIBUTING.md)
-- Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
 - Check existing issues to avoid duplicates
-- For major changes, open an issue first to discuss
+- For major changes, open an issue first to discuss what you'd like to change
+- Make sure your branch is up to date with `dev` before opening a PR
 
 ### Types of Contributions
 
@@ -198,7 +195,7 @@ npm start        # Run production build
 
 ## License
 
-MIT License - feel free to use this project for personal or commercial purposes.
+Licensed under the [Apache License, Version 2.0](LICENSE). You're free to use, modify, and distribute this project for personal or commercial purposes, provided you comply with the terms of the license (including preserving copyright/notice information and documenting any significant changes).
 
 ## Support
 
