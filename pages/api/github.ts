@@ -48,25 +48,25 @@ export default async function handler(
     })
   }
 
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+  }
+
+  if (process.env.GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+  }
+
   try {
     // Fetch user data
     const userResponse = await axios.get(
       `https://api.github.com/users/${username}`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      }
+      { headers }
     )
 
     // Fetch user repositories
     const reposResponse = await axios.get(
       `https://api.github.com/users/${username}/repos?sort=stars&order=desc&per_page=6`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      }
+      { headers }
     )
 
     return res.status(200).json({
