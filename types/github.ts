@@ -23,6 +23,14 @@ export interface Repository {
   forks_count: number
   language: string
   updated_at: string
+  watchers_count?: number
+  open_issues_count?: number
+  languages?: LanguageBytes[]
+}
+
+export interface LanguageBytes {
+  name: string
+  bytes: number
 }
 
 export interface ContributionDay {
@@ -39,10 +47,28 @@ export interface ContributionsData {
   weeks: ContributionWeek[]
 }
 
+export interface EngagementStats {
+  totalCommitContributions: number
+  totalIssueContributions: number
+  totalPullRequestContributions: number
+  totalPullRequestReviewContributions: number
+}
+
+export interface ProductivityStats {
+  currentStreak: number
+  longestStreak: number
+  mostProductiveDay: { date: string; count: number } | null
+  weekdayCount: number
+  weekendCount: number
+  monthlyTotals: { month: string; count: number }[]
+}
+
 export interface UserData {
   user: GitHubUser
   repos: Repository[]
   contributions: ContributionsData | null
+  engagement: EngagementStats | null
+  productivity: ProductivityStats | null
   error?: string
   errorType?: 'not_found' | 'rate_limited' | 'unknown'
 }

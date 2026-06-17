@@ -42,7 +42,7 @@ export default function RepositoryCard({ repo }: RepositoryCardProps) {
       )}
 
       {/* Stats */}
-      <div className="flex gap-6 text-sm text-gray-400">
+      <div className="flex flex-wrap gap-4 text-sm text-gray-400">
         <div className="flex items-center gap-1">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
@@ -55,6 +55,22 @@ export default function RepositoryCard({ repo }: RepositoryCardProps) {
           </svg>
           {repo.forks_count}
         </div>
+        {typeof repo.watchers_count === 'number' && (
+          <div className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+            </svg>
+            {repo.watchers_count}
+          </div>
+        )}
+        {typeof repo.open_issues_count === 'number' && (
+          <div className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg>
+            {repo.open_issues_count}
+          </div>
+        )}
         <div className="ml-auto text-xs">Updated {lastUpdated}</div>
       </div>
     </a>

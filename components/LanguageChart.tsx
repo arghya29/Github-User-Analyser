@@ -3,21 +3,23 @@ import { getLanguageColor } from '@/lib/languageColors'
 
 interface LanguageChartProps {
   data: { name: string; value: number }[]
+  mode?: 'bytes' | 'count'
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ChartTooltip({ active, payload }: any) {
+function ChartTooltip({ active, payload, mode }: any) {
   if (!active || !payload || !payload.length) return null
   const entry = payload[0]
+  const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
   return (
     <div className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm text-white shadow-lg">
-      <span className="font-semibold">{entry.name}</span>: {entry.value}{' '}
-      {entry.value === 1 ? 'repo' : 'repos'}
+      <span className="font-semibold">{entry.name}</span>: {entry.value}
+      {suffix}
     </div>
   )
 }
 
-export default function LanguageChart({ data }: LanguageChartProps) {
+export default function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
   if (data.length === 0) {
     return (
       <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full flex items-center justify-center">
@@ -47,7 +49,7 @@ export default function LanguageChart({ data }: LanguageChartProps) {
                 <Cell key={entry.name} fill={getLanguageColor(entry.name)} />
               ))}
             </Pie>
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={<ChartTooltip mode={mode} />} />
           </PieChart>
         </ResponsiveContainer>
       </div>
