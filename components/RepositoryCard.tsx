@@ -1,12 +1,5 @@
-interface Repository {
-  name: string
-  description: string
-  html_url: string
-  stargazers_count: number
-  forks_count: number
-  language: string
-  updated_at: string
-}
+import type { Repository } from '@/types/github'
+import { getLanguageColorClass } from '@/lib/languageColors'
 
 interface RepositoryCardProps {
   repo: Repository
@@ -19,24 +12,7 @@ export default function RepositoryCard({ repo }: RepositoryCardProps) {
     day: 'numeric',
   })
 
-  const languageColors: { [key: string]: string } = {
-    JavaScript: 'bg-yellow-500',
-    TypeScript: 'bg-blue-600',
-    Python: 'bg-blue-400',
-    Java: 'bg-red-600',
-    Go: 'bg-cyan-500',
-    Rust: 'bg-orange-700',
-    'C++': 'bg-blue-800',
-    C: 'bg-gray-600',
-    CSS: 'bg-pink-500',
-    HTML: 'bg-red-500',
-    Shell: 'bg-gray-700',
-    Ruby: 'bg-red-700',
-  }
-
-  const langColor = repo.language
-    ? languageColors[repo.language] || 'bg-gray-500'
-    : 'bg-gray-400'
+  const langColor = getLanguageColorClass(repo.language)
 
   return (
     <a

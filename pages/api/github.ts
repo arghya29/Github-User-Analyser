@@ -1,37 +1,63 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { type AxiosError } from 'axios'
+import type { UserData, ContributionsData } from '@/types/github'
 
-interface GitHubUser {
-  login: string
-  name: string
-  bio: string
-  avatar_url: string
-  public_repos: number
-  followers: number
-  following: number
-  created_at: string
-  updated_at: string
-  location: string
-  blog: string
-  twitter_username: string
-  company: string
-  html_url: string
-}
+async function fetchContributions(
+  username: string
+): Promise<ContributionsData | null> {
+  // GitHub's contribution calendar is only exposed via the GraphQL API,
+  // which always requires authentication (even for public data).
+  // Without a token we simply skip this and let the UI degrade gracefully.
+  if (!process.env.GITHUB_TOKEN) return null
 
-interface Repository {
-  name: string
-  description: string
-  html_url: string
-  stargazers_count: number
-  forks_count: number
-  language: string
-  updated_at: string
-}
+  const query = `
+    query($username: String!) {
+      user(login: $username) {
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks {
+              contributionDays {
+                contributionCount
+                date
+              }
+            }
+          }
+        }
+      }
+    }
+  `
 
-interface UserData {
-  user: GitHubUser
-  repos: Repository[]
-  error?: string
+  try {
+    const response = await axios.post(
+      'https://api.github.com/graphql',
+      { query, variables: { username } },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    const calendar =
+      response.data?.data?.user?.contributionsCollection?.contributionCalendar
+
+    if (!calendar) return null
+
+    return {
+      totalContributions: calendar.totalContributions,
+      weeks: calendar.weeks.map((week: { contributionDays: { contributionCount: number; date: string }[] }) => ({
+        contributionDays: week.contributionDays.map((day) => ({
+          date: day.date,
+          count: day.contributionCount,
+        })),
+      })),
+    }
+  } catch {
+    // Activity heatmap is a bonus feature — never let it break the main response
+    return null
+  }
 }
 
 export default async function handler(
@@ -41,10 +67,12 @@ export default async function handler(
   const { username } = req.query
 
   if (!username || typeof username !== 'string') {
-    return res.status(400).json({ 
-      user: {} as GitHubUser, 
+    return res.status(400).json({
+      user: {} as UserData['user'],
       repos: [],
-      error: 'Username is required' 
+      contributions: null,
+      error: 'Username is required',
+      errorType: 'unknown',
     })
   }
 
@@ -57,36 +85,49 @@ export default async function handler(
   }
 
   try {
-    // Fetch user data
-    const userResponse = await axios.get(
-      `https://api.github.com/users/${username}`,
-      { headers }
-    )
-
-    // Fetch user repositories
-    const reposResponse = await axios.get(
-      `https://api.github.com/users/${username}/repos?sort=stars&order=desc&per_page=6`,
-      { headers }
-    )
+    const [userResponse, reposResponse, contributions] = await Promise.all([
+      axios.get(`https://api.github.com/users/${username}`, { headers }),
+      axios.get(
+        `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+        { headers }
+      ),
+      fetchContributions(username),
+    ])
 
     return res.status(200).json({
       user: userResponse.data,
       repos: reposResponse.data,
+      contributions,
     })
   } catch (err: unknown) {
-    const error = err as AxiosError;
-    
+    const error = err as AxiosError
+
     if (error.response?.status === 404) {
       return res.status(404).json({
-        user: {} as GitHubUser,
+        user: {} as UserData['user'],
         repos: [],
+        contributions: null,
         error: 'User not found',
+        errorType: 'not_found',
       })
     }
+
+    if (error.response?.status === 403) {
+      return res.status(403).json({
+        user: {} as UserData['user'],
+        repos: [],
+        contributions: null,
+        error: 'GitHub API rate limit reached. Please try again in a few minutes.',
+        errorType: 'rate_limited',
+      })
+    }
+
     return res.status(500).json({
-      user: {} as GitHubUser,
+      user: {} as UserData['user'],
       repos: [],
+      contributions: null,
       error: 'Failed to fetch GitHub data',
+      errorType: 'unknown',
     })
   }
 }
