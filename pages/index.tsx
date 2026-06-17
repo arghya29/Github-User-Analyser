@@ -9,7 +9,22 @@ import LanguageChart from '@/components/LanguageChart'
 import ActivityHeatmap from '@/components/ActivityHeatmap'
 import SortFilterBar from '@/components/SortFilterBar'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
-import type { GitHubUser, Repository, ContributionsData, SortOption } from '@/types/github'
+import EngagementStats from '@/components/EngagementStats'
+import ProductivityPanel from '@/components/ProductivityPanel'
+import AchievementsPanel from '@/components/AchievementsPanel'
+import type {
+  GitHubUser,
+  Repository,
+  ContributionsData,
+  EngagementStats as EngagementStatsType,
+  ProductivityStats,
+  SortOption,
+} from '@/types/github'
+import {
+  aggregateLanguagesByBytes,
+  aggregateLanguagesByCount,
+  hasByteLanguageData,
+} from '@/lib/repoStats'
 
 const HISTORY_KEY = 'github-analyzer-history'
 const MAX_HISTORY = 5
@@ -18,6 +33,8 @@ export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null)
   const [repos, setRepos] = useState<Repository[]>([])
   const [contributions, setContributions] = useState<ContributionsData | null>(null)
+  const [engagement, setEngagement] = useState<EngagementStatsType | null>(null)
+  const [productivity, setProductivity] = useState<ProductivityStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<'not_found' | 'rate_limited' | 'unknown' | null>(null)
@@ -65,6 +82,8 @@ export default function Home() {
     setUser(null)
     setRepos([])
     setContributions(null)
+    setEngagement(null)
+    setProductivity(null)
     setLanguageFilter(null)
 
     try {
@@ -77,6 +96,8 @@ export default function Home() {
         setUser(response.data.user)
         setRepos(response.data.repos)
         setContributions(response.data.contributions)
+        setEngagement(response.data.engagement)
+        setProductivity(response.data.productivity)
         addToHistory(username)
       }
     } catch (err: unknown) {
@@ -88,22 +109,18 @@ export default function Home() {
     }
   }
 
-  // Language counts across ALL repos, used for both the pie chart and filter pills
-  const languageCounts = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const repo of repos) {
-      if (!repo.language) continue
-      counts.set(repo.language, (counts.get(repo.language) || 0) + 1)
-    }
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-  }, [repos])
+  // Language counts across ALL repos — always available, used for filter pills
+  const languageCounts = useMemo(() => aggregateLanguagesByCount(repos), [repos])
 
-  const pieData = useMemo(
-    () => languageCounts.map(({ name, count }) => ({ name, value: count })),
-    [languageCounts]
-  )
+  // Byte-accurate distribution when available (GraphQL path), otherwise fall
+  // back to repo-count based percentages so the chart still renders.
+  const byteDistribution = useMemo(() => aggregateLanguagesByBytes(repos), [repos])
+  const usingByteData = useMemo(() => hasByteLanguageData(repos), [repos])
+
+  const pieData = useMemo(() => {
+    if (usingByteData) return byteDistribution
+    return languageCounts.map(({ name, count }) => ({ name, value: count }))
+  }, [usingByteData, byteDistribution, languageCounts])
 
   const displayedRepos = useMemo(() => {
     let filtered = repos
@@ -127,6 +144,8 @@ export default function Home() {
     rate_limited: 'bg-amber-900/20 border-amber-500 text-amber-400',
     unknown: 'bg-red-900/20 border-red-500 text-red-400',
   }
+
+  const hasExtendedData = contributions !== null && engagement !== null && productivity !== null
 
   return (
     <>
@@ -174,7 +193,7 @@ export default function Home() {
 
               {/* Charts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                <LanguageChart data={pieData} />
+                <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
                 {contributions ? (
                   <ActivityHeatmap data={contributions} />
                 ) : (
@@ -185,6 +204,26 @@ export default function Home() {
                   </div>
                 )}
               </div>
+
+              {/* Engagement, productivity, achievements — all need the GraphQL token path */}
+              {hasExtendedData ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                  <EngagementStats data={engagement} />
+                  <ProductivityPanel data={productivity} />
+                  <AchievementsPanel
+                    totalContributions={contributions.totalContributions}
+                    currentStreak={productivity.currentStreak}
+                    totalPullRequests={engagement.totalPullRequestContributions}
+                  />
+                </div>
+              ) : (
+                <div className="mt-6 bg-slate-700/50 border border-slate-600 rounded-lg p-6 text-center">
+                  <p className="text-gray-400 text-sm">
+                    Engagement, productivity, and achievement stats require a GITHUB_TOKEN to be
+                    configured on the server.
+                  </p>
+                </div>
+              )}
 
               {/* Repositories */}
               <div className="mt-12">
