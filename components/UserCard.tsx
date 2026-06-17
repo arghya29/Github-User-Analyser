@@ -1,19 +1,4 @@
-interface GitHubUser {
-  login: string
-  name: string
-  bio: string
-  avatar_url: string
-  public_repos: number
-  followers: number
-  following: number
-  created_at: string
-  updated_at: string
-  location: string
-  blog: string
-  twitter_username: string
-  company: string
-  html_url: string
-}
+import type { GitHubUser } from '@/types/github'
 
 interface UserCardProps {
   user: GitHubUser

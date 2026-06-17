@@ -14,7 +14,7 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
       <div className="flex gap-2">
         <input
           type="text"
