@@ -246,6 +246,7 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
         {/* ── Header ── */}
         <View style={styles.header}>
           {avatarDataUrl && (
+            // eslint-disable-next-line jsx-a11y/alt-text
             <Image style={styles.avatar} src={avatarDataUrl} />
           )}
           <View style={styles.headerRight}>
@@ -433,10 +434,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const avatarDataUrl = await avatarToDataUrl(userData.user.avatar_url)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buffer = await renderToBuffer(
+    const element =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       React.createElement(ResumeDocument, { userData, avatarDataUrl }) as any
-    )
+    const buffer = await renderToBuffer(element)
 
     const safeLogin = userData.user.login.replace(/[^a-zA-Z0-9_-]/g, '')
     res.setHeader('Content-Type', 'application/pdf')

@@ -17,6 +17,7 @@ export default function UserCard({ user }: UserCardProps) {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={user.avatar_url}
               alt={user.login}
