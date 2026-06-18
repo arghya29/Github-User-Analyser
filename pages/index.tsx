@@ -13,6 +13,7 @@ import EngagementStats from '@/components/EngagementStats'
 import ProductivityPanel from '@/components/ProductivityPanel'
 import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
+import ExportPanel from '@/components/ExportPanel'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
 import CompareResult from '@/components/CompareResult'
@@ -335,6 +336,13 @@ export default function Home() {
                         repos={repos}
                         totalContributions={contributions?.totalContributions ?? null}
                         productivity={productivity}
+                      />
+                    </div>
+
+                    {/* Export & Share */}
+                    <div className="mt-6">
+                      <ExportPanel
+                        userData={{ user, repos, contributions, engagement, productivity }}
                       />
                     </div>
 
