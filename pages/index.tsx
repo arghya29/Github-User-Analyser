@@ -13,6 +13,7 @@ import EngagementStats from '@/components/EngagementStats'
 import ProductivityPanel from '@/components/ProductivityPanel'
 import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
+import ExportPanel from '@/components/ExportPanel'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
 import CompareResult from '@/components/CompareResult'
@@ -293,8 +294,21 @@ export default function Home() {
                   <>
                     <UserCard user={user} />
 
-                    {/* Charts */}
+                    {/* AI Insights + Export & Share — at the top for quick access */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+                      <AiInsightPanel
+                        user={user}
+                        repos={repos}
+                        totalContributions={contributions?.totalContributions ?? null}
+                        productivity={productivity}
+                      />
+                      <ExportPanel
+                        userData={{ user, repos, contributions, engagement, productivity }}
+                      />
+                    </div>
+
+                    {/* Charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                       <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
                       {contributions ? (
                         <ActivityHeatmap data={contributions} />
@@ -327,16 +341,6 @@ export default function Home() {
                         </p>
                       </div>
                     )}
-
-                    {/* AI Insights */}
-                    <div className="mt-6">
-                      <AiInsightPanel
-                        user={user}
-                        repos={repos}
-                        totalContributions={contributions?.totalContributions ?? null}
-                        productivity={productivity}
-                      />
-                    </div>
 
                     {/* Repositories */}
                     <div className="mt-12">

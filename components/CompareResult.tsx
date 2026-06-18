@@ -89,6 +89,7 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-8 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3 min-w-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={userA.user.avatar_url}
             alt={userA.user.login}
@@ -103,6 +104,7 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userB.user.login}
           </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={userB.user.avatar_url}
             alt={userB.user.login}
