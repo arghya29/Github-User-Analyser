@@ -30,6 +30,8 @@ interface GraphQLRepoNode {
   primaryLanguage: { name: string } | null
   watchers: { totalCount: number }
   issues: { totalCount: number }
+  closedIssues: { totalCount: number }
+  licenseInfo: { spdxId: string | null } | null
   languages: { edges: GraphQLLanguageEdge[] } | null
 }
 
@@ -111,6 +113,8 @@ const GRAPHQL_QUERY = `
           primaryLanguage { name }
           watchers { totalCount }
           issues(states: OPEN) { totalCount }
+          closedIssues: issues(states: CLOSED) { totalCount }
+          licenseInfo { spdxId }
           languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
             edges {
               size
@@ -134,6 +138,8 @@ function mapGraphQLRepo(node: GraphQLRepoNode): Repository {
     updated_at: node.updatedAt,
     watchers_count: node.watchers?.totalCount,
     open_issues_count: node.issues?.totalCount,
+    closed_issues_count: node.closedIssues?.totalCount,
+    license: node.licenseInfo?.spdxId || null,
     languages: (node.languages?.edges || []).map((edge) => ({
       name: edge.node.name,
       bytes: edge.size,

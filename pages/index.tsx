@@ -12,6 +12,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton'
 import EngagementStats from '@/components/EngagementStats'
 import ProductivityPanel from '@/components/ProductivityPanel'
 import AchievementsPanel from '@/components/AchievementsPanel'
+import AiInsightPanel from '@/components/AiInsightPanel'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
 import CompareResult from '@/components/CompareResult'
@@ -326,6 +327,16 @@ export default function Home() {
                         </p>
                       </div>
                     )}
+
+                    {/* AI Insights */}
+                    <div className="mt-6">
+                      <AiInsightPanel
+                        user={user}
+                        repos={repos}
+                        totalContributions={contributions?.totalContributions ?? null}
+                        productivity={productivity}
+                      />
+                    </div>
 
                     {/* Repositories */}
                     <div className="mt-12">
