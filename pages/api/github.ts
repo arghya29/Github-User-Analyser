@@ -8,6 +8,9 @@ import type {
   EngagementStats,
 } from '@/types/github'
 import { computeProductivityStats } from '@/lib/contributionStats'
+import { getCached, setCached } from '@/lib/cache'
+
+const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 class GraphQLNotFoundError extends Error {}
 class GraphQLOtherError extends Error {}
@@ -231,6 +234,12 @@ export default async function handler(
     })
   }
 
+  const cacheKey = `github-profile:${username.toLowerCase()}`
+  const cached = getCached<UserData>(cacheKey)
+  if (cached) {
+    return res.status(200).json(cached)
+  }
+
   // Preferred path: one GraphQL call gets profile + engagement + contribution
   // calendar + repos (with watchers/open issues/language bytes) in one shot.
   // GraphQL always requires auth, so this only runs when a token is configured.
@@ -238,14 +247,10 @@ export default async function handler(
     try {
       const { user, repos, contributions, engagement } = await fetchViaGraphQL(username)
       const productivity = computeProductivityStats(contributions.weeks)
+      const result: UserData = { user, repos, contributions, engagement, productivity }
 
-      return res.status(200).json({
-        user,
-        repos,
-        contributions,
-        engagement,
-        productivity,
-      })
+      setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
+      return res.status(200).json(result)
     } catch (err) {
       if (err instanceof GraphQLNotFoundError) {
         return res.status(404).json({
@@ -281,13 +286,16 @@ export default async function handler(
       ),
     ])
 
-    return res.status(200).json({
+    const result: UserData = {
       user: userResponse.data,
       repos: reposResponse.data,
       contributions: null,
       engagement: null,
       productivity: null,
-    })
+    }
+
+    setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
+    return res.status(200).json(result)
   } catch (err: unknown) {
     const error = err as AxiosError
 

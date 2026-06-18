@@ -12,7 +12,7 @@ function ChartTooltip({ active, payload, mode }: any) {
   const entry = payload[0]
   const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-sm text-white shadow-lg">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">
       <span className="font-semibold">{entry.name}</span>: {entry.value}
       {suffix}
     </div>
@@ -22,15 +22,15 @@ function ChartTooltip({ active, payload, mode }: any) {
 export default function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
   if (data.length === 0) {
     return (
-      <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full flex items-center justify-center">
-        <p className="text-gray-400 text-sm">No language data available</p>
+      <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No language data available</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full">
-      <h3 className="text-lg font-bold text-white mb-4">Language Distribution</h3>
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Language Distribution</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -55,7 +55,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
       </div>
       <div className="flex flex-wrap gap-3 mt-2 justify-center">
         {data.map((entry) => (
-          <div key={entry.name} className="flex items-center gap-1.5 text-xs text-gray-300">
+          <div key={entry.name} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
             <span
               className="w-2.5 h-2.5 rounded-full inline-block"
               style={{ backgroundColor: getLanguageColor(entry.name) }}

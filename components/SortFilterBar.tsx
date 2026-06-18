@@ -27,7 +27,7 @@ export default function SortFilterBar({
       <select
         value={sortBy}
         onChange={(e) => onSortChange(e.target.value as SortOption)}
-        className="px-4 py-2 bg-slate-700 text-white text-sm rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {Object.entries(SORT_LABELS).map(([value, label]) => (
           <option key={value} value={value}>
@@ -43,7 +43,7 @@ export default function SortFilterBar({
             className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
               activeLanguage === null
                 ? 'bg-blue-600 border-blue-600 text-white'
-                : 'bg-slate-700 border-slate-600 text-gray-300 hover:border-blue-500'
+                : 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-blue-500'
             }`}
           >
             All
@@ -55,7 +55,7 @@ export default function SortFilterBar({
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border transition-colors ${
                 activeLanguage === name
                   ? 'bg-blue-600 border-blue-600 text-white'
-                  : 'bg-slate-700 border-slate-600 text-gray-300 hover:border-blue-500'
+                  : 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:border-blue-500'
               }`}
             >
               <span

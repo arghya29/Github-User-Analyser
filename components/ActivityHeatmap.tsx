@@ -5,11 +5,11 @@ interface ActivityHeatmapProps {
 }
 
 const LEVEL_COLORS = [
-  'bg-slate-700/60', // 0 contributions
-  'bg-blue-900',
-  'bg-blue-700',
-  'bg-blue-500',
-  'bg-blue-400',
+  'bg-gray-200 dark:bg-slate-700/60', // 0 contributions
+  'bg-blue-200 dark:bg-blue-900',
+  'bg-blue-400 dark:bg-blue-700',
+  'bg-blue-600 dark:bg-blue-500',
+  'bg-blue-700 dark:bg-blue-400',
 ]
 
 function levelFor(count: number, max: number): number {
@@ -32,7 +32,6 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const allCounts = weeks.flatMap((w) => w.contributionDays.map((d) => d.count))
   const maxCount = Math.max(...allCounts, 1)
 
-  // Figure out which weeks deserve a month label (first week a new month appears)
   let lastMonth = ''
   const monthMarkers = weeks.map((week) => {
     const firstDay = week.contributionDays[0]
@@ -46,10 +45,10 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   })
 
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full overflow-x-auto">
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full overflow-x-auto">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-white">Activity</h3>
-        <span className="text-sm text-gray-400">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity</h3>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {totalContributions.toLocaleString()} contributions in the last year
         </span>
       </div>
@@ -57,7 +56,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       <div className="inline-flex gap-[3px] min-w-full">
         {weeks.map((week, weekIdx) => (
           <div key={weekIdx} className="flex flex-col gap-[3px]">
-            <div className="h-3 text-[10px] text-gray-500 leading-3 whitespace-nowrap">
+            <div className="h-3 text-[10px] text-gray-400 dark:text-gray-500 leading-3 whitespace-nowrap">
               {monthMarkers[weekIdx]}
             </div>
             {week.contributionDays.map((day) => {
@@ -76,7 +75,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         ))}
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 mt-4 text-[11px] text-gray-400">
+      <div className="flex items-center justify-end gap-1.5 mt-4 text-[11px] text-gray-400 dark:text-gray-400">
         <span>Less</span>
         {LEVEL_COLORS.map((color, i) => (
           <span key={i} className={`w-3 h-3 rounded-sm ${color}`} />
