@@ -1,5 +1,6 @@
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
+import HealthScoreBadge from '@/components/HealthScoreBadge'
 
 interface RepositoryCardProps {
   repo: Repository
@@ -28,10 +29,13 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
       }}
       className="block bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/70 cursor-pointer"
     >
-      {/* Repo Name */}
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-500 transition-colors">
-        {repo.name}
-      </h3>
+      {/* Repo Name + Health Score */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">
+          {repo.name}
+        </h3>
+        <HealthScoreBadge repo={repo} />
+      </div>
 
       {/* Description */}
       {repo.description && (

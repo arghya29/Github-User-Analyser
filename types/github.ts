@@ -25,6 +25,8 @@ export interface Repository {
   updated_at: string
   watchers_count?: number
   open_issues_count?: number
+  closed_issues_count?: number
+  license?: string | null
   languages?: LanguageBytes[]
 }
 
