@@ -13,7 +13,7 @@ export default function UserCard({ user }: UserCardProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-8 backdrop-blur">
+      <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-8 backdrop-blur">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
@@ -27,58 +27,58 @@ export default function UserCard({ user }: UserCardProps) {
           {/* User Info */}
           <div className="flex-1">
             <div className="mb-4">
-              <h2 className="text-3xl font-bold text-white mb-1">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {user.name || user.login}
               </h2>
-              <p className="text-blue-400 text-lg">@{user.login}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-lg">@{user.login}</p>
             </div>
 
             {user.bio && (
-              <p className="text-gray-300 mb-4 text-lg">{user.bio}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">{user.bio}</p>
             )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-600/50 rounded p-4 text-center">
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.public_repos}
                 </div>
-                <div className="text-sm text-gray-400">Repositories</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Repositories</div>
               </div>
-              <div className="bg-slate-600/50 rounded p-4 text-center">
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.followers}
                 </div>
-                <div className="text-sm text-gray-400">Followers</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
               </div>
-              <div className="bg-slate-600/50 rounded p-4 text-center">
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.following}
                 </div>
-                <div className="text-sm text-gray-400">Following</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
               </div>
             </div>
 
             {/* Details */}
-            <div className="space-y-2 text-sm text-gray-300">
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               {user.company && (
                 <p>
-                  <span className="text-gray-500">Company:</span> {user.company}
+                  <span className="text-gray-500 dark:text-gray-500">Company:</span> {user.company}
                 </p>
               )}
               {user.location && (
                 <p>
-                  <span className="text-gray-500">Location:</span> {user.location}
+                  <span className="text-gray-500 dark:text-gray-500">Location:</span> {user.location}
                 </p>
               )}
               {user.blog && (
                 <p>
-                  <span className="text-gray-500">Website:</span>{' '}
+                  <span className="text-gray-500 dark:text-gray-500">Website:</span>{' '}
                   <a
                     href={user.blog}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     {user.blog}
                   </a>
@@ -86,19 +86,19 @@ export default function UserCard({ user }: UserCardProps) {
               )}
               {user.twitter_username && (
                 <p>
-                  <span className="text-gray-500">Twitter:</span>{' '}
+                  <span className="text-gray-500 dark:text-gray-500">Twitter:</span>{' '}
                   <a
                     href={`https://twitter.com/${user.twitter_username}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     @{user.twitter_username}
                   </a>
                 </p>
               )}
               <p>
-                <span className="text-gray-500">Joined:</span> {joinDate}
+                <span className="text-gray-500 dark:text-gray-500">Joined:</span> {joinDate}
               </p>
             </div>
 

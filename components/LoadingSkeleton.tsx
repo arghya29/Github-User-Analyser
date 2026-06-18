@@ -5,7 +5,7 @@ function ShimmerBlock({ className }: { className: string }) {
 export function UserCardSkeleton() {
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-8">
+      <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-8">
         <div className="flex flex-col md:flex-row gap-8">
           <ShimmerBlock className="w-32 h-32 rounded-full flex-shrink-0" />
           <div className="flex-1 space-y-4">
@@ -26,7 +26,7 @@ export function UserCardSkeleton() {
 
 export function RepoCardSkeleton() {
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 space-y-4">
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 space-y-4">
       <ShimmerBlock className="h-6 w-2/3" />
       <ShimmerBlock className="h-4 w-full" />
       <ShimmerBlock className="h-4 w-1/3" />
@@ -40,7 +40,7 @@ export function RepoCardSkeleton() {
 
 export function ChartSkeleton() {
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full">
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
       <ShimmerBlock className="h-5 w-40 mb-4" />
       <ShimmerBlock className="h-56 w-full" />
     </div>

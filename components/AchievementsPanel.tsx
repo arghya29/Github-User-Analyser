@@ -27,15 +27,15 @@ function AchievementTrack({ label, value, milestones, unit }: Track) {
   return (
     <div>
       <div className="flex justify-between items-baseline mb-1">
-        <span className="text-sm text-gray-300">{label}</span>
-        <span className="text-xs text-gray-500">
+        <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">
           {completedCount}/{totalCount} milestones
         </span>
       </div>
-      <div className="h-2 w-full rounded-full bg-slate-600 overflow-hidden mb-1">
+      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-slate-600 overflow-hidden mb-1">
         <div className="bg-blue-500 h-full transition-all" style={{ width: `${progress}%` }} />
       </div>
-      <div className="text-xs text-gray-400">
+      <div className="text-xs text-gray-500 dark:text-gray-400">
         {next !== null
           ? `${value.toLocaleString()} / ${next.toLocaleString()} ${unit}`
           : `${value.toLocaleString()} ${unit} — all milestones reached`}
@@ -50,8 +50,8 @@ export default function AchievementsPanel({
   totalPullRequests,
 }: AchievementsPanelProps) {
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-6 h-full">
-      <h3 className="text-lg font-bold text-white mb-4">Achievements</h3>
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Achievements</h3>
       <div className="space-y-5">
         <AchievementTrack
           label="Total contributions"
