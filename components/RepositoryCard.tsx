@@ -17,25 +17,11 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   const langColor = getLanguageColorClass(repo.language)
 
   return (
-    <div
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick()
-        }
-      }}
-      className="block bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/70 cursor-pointer"
-    >
-      {/* Repo Name + Health Score */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">
-          {repo.name}
-        </h3>
-        <HealthScoreBadge repo={repo} />
-      </div>
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors">
+      {/* Repo Name */}
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+        {repo.name}
+      </h3>
 
       {/* Description */}
       {repo.description && (
@@ -85,8 +71,16 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
         <div className="ml-auto text-xs">Updated {lastUpdated}</div>
       </div>
 
-      <div className="mt-3 text-xs text-blue-600 dark:text-blue-400">
-        Click to preview README →
+      {/* Action buttons */}
+      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-600 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex-1 text-xs font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+        >
+          📖 Preview README →
+        </button>
+        <HealthScoreBadge repo={repo} />
       </div>
     </div>
   )

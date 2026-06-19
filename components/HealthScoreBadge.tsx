@@ -6,11 +6,11 @@ interface HealthScoreBadgeProps {
   repo: Repository
 }
 
-const LABEL_COLORS: Record<string, string> = {
-  Excellent: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-  Good: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  Fair: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-  'Needs attention': 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+const TEXT_COLORS: Record<string, string> = {
+  Excellent: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50',
+  Good: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50',
+  Fair: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50',
+  'Needs attention': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50',
 }
 
 export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
@@ -18,45 +18,57 @@ export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
   const { score, label, breakdown } = computeHealthScore(repo)
 
   return (
-    <div className="relative inline-block">
+    <div className="relative flex-1">
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setShowBreakdown((s) => !s)
-        }}
-        onMouseEnter={() => setShowBreakdown(true)}
-        onMouseLeave={() => setShowBreakdown(false)}
-        className={`text-xs font-medium px-2 py-0.5 rounded-full ${LABEL_COLORS[label]}`}
+        onClick={() => setShowBreakdown((s) => !s)}
+        className={`w-full text-xs font-medium px-3 py-2 rounded-lg border transition-colors ${TEXT_COLORS[label]}`}
       >
-        {label} · {score}
+        ❤️ Health Score: {label} ({score}) →
       </button>
 
       {showBreakdown && (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="absolute z-10 bottom-full left-0 mb-2 w-56 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-3 text-xs text-gray-600 dark:text-gray-300"
-        >
-          <p className="font-semibold text-gray-900 dark:text-white mb-2">Health score breakdown</p>
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span>Recency</span>
-              <span>{breakdown.recency}/40</span>
+        <>
+          {/* Click-away overlay so the popover can be dismissed by clicking outside it */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setShowBreakdown(false)}
+          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute z-20 bottom-full right-0 mb-2 w-56 max-w-[90vw] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-3 text-xs text-gray-600 dark:text-gray-300"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-semibold text-gray-900 dark:text-white">Health score breakdown</p>
+              <button
+                type="button"
+                onClick={() => setShowBreakdown(false)}
+                aria-label="Close"
+                className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 leading-none"
+              >
+                ×
+              </button>
             </div>
-            <div className="flex justify-between">
-              <span>Issue resolution</span>
-              <span>{breakdown.issueHealth}/30</span>
-            </div>
-            <div className="flex justify-between">
-              <span>License</span>
-              <span>{breakdown.license}/15</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Description</span>
-              <span>{breakdown.documentation}/15</span>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span>Recency</span>
+                <span>{breakdown.recency}/40</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Issue resolution</span>
+                <span>{breakdown.issueHealth}/30</span>
+              </div>
+              <div className="flex justify-between">
+                <span>License</span>
+                <span>{breakdown.license}/15</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Description</span>
+                <span>{breakdown.documentation}/15</span>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
