@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!package-lock.json"
+    - "!node_modules/**"
+    - "!.next/**"
+    - "!out/**"
+    - "!*.lock"
+
+  path_instructions:
+    - path: "pages/api/**"
+      instructions: |
+        This is a Next.js API route project that uses the GitHub REST and GraphQL APIs.
+        Review these files carefully for:
+        - Proper error handling for GitHub API failures (404, 403 rate limit, 500)
+        - Environment variables accessed safely (GITHUB_TOKEN, GEMINI_API_KEY) with graceful fallback when missing
+        - No secrets or tokens hardcoded or logged
+        - Correct HTTP status codes returned for each error type
+        - Cache TTL values that are appropriate for the data type (profile data shorter, README/badge longer)
+        - Input validation on all query parameters before use
+
+    - path: "pages/api/ai-insight.ts"
+      instructions: |
+        This route calls the Gemini API for AI-generated bio and roast content.
+        Check that:
+        - The GEMINI_API_KEY environment variable is guarded before use and returns a 503 if missing
+        - The prompt does not allow prompt injection from user-supplied data (bio, repo names)
+        - Rate limit errors (429) from Gemini are returned with a friendly message
+        - maxOutputTokens is kept reasonable to avoid cost overruns
+
+    - path: "lib/**"
+      instructions: |
+        These are pure utility/helper files (stats computation, color maps, cache, theme context).
+        Check for:
+        - Pure functions staying pure — no side effects in computeProductivityStats, computeHealthScore, etc.
+        - Edge cases: empty arrays, zero contributions, repos with no language, missing optional fields
+        - The in-memory cache (lib/cache.ts) correctly handling TTL expiry and not growing unboundedly
+
+    - path: "components/**"
+      instructions: |
+        This is a Next.js + TypeScript + Tailwind CSS project.
+        Review component files for:
+        - All interactive elements (buttons, cards) having accessible labels and keyboard support
+        - Dark mode classes (dark:) present alongside every light-mode Tailwind class
+        - No hardcoded pixel values where Tailwind utilities exist
+        - eslint-disable-next-line comments only used where genuinely necessary, not to silence real issues
+        - No prop drilling more than 2 levels deep without considering a context alternative
+        - Loading and error states handled for any async operations
+
+    - path: "types/**"
+      instructions: |
+        Shared TypeScript type definitions used across the entire codebase.
+        Ensure all fields that may be absent from the GitHub API response are typed as optional (?) or null,
+        not assumed to always be present.
+
+chat:
+  auto_reply: true
