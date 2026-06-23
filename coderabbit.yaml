@@ -4,12 +4,25 @@ language: "en-US"
 early_access: false
 
 reviews:
-  profile: "chill"
-  request_changes_workflow: false
+  profile: "assertive"
+  request_changes_workflow: true
   high_level_summary: true
-  poem: false
   review_status: true
-  collapse_walkthrough: false
+  commit_status: true
+  fail_commit_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: true
+  suggested_reviewers: true
+  auto_assign_reviewers: true
+  poem: false
+  in_progress_fortune: false
+  abort_on_close: true
 
   auto_review:
     enabled: true
@@ -68,5 +81,12 @@ reviews:
         Ensure all fields that may be absent from the GitHub API response are typed as optional (?) or null,
         not assumed to always be present.
 
+base_branches:
+  - "dev"
+  - "main"
+ 
+anti_slop:
+  enabled: true
+ 
 chat:
   auto_reply: true
