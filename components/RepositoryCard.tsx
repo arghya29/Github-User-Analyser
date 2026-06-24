@@ -25,7 +25,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
       onClick={() => setExpanded(!expanded)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpanded(!expanded) }}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); setExpanded((prev) => !prev); } }}
       aria-expanded={expanded}
     >
       {/* Repo Name */}
