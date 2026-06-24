@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
 import HealthScoreBadge from '@/components/HealthScoreBadge'
@@ -8,6 +9,8 @@ interface RepositoryCardProps {
 }
 
 export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
+  const [expanded, setExpanded] = useState(false)
+
   const lastUpdated = new Date(repo.updated_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -17,7 +20,14 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   const langColor = getLanguageColorClass(repo.language)
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors">
+    <div
+      className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+      onClick={() => setExpanded(!expanded)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpanded(!expanded) }}
+      aria-expanded={expanded}
+    >
       {/* Repo Name */}
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
         {repo.name}
@@ -71,17 +81,32 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
         <div className="ml-auto text-xs">Updated {lastUpdated}</div>
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-600 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onClick}
-          className="flex-1 text-xs font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+      {/* Expanded action panel */}
+      {expanded && (
+        <div
+          className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-600 flex flex-wrap items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
         >
-          📖 Preview README →
-        </button>
-        <HealthScoreBadge repo={repo} />
-      </div>
+          <button
+            type="button"
+            onClick={onClick}
+            className="flex-1 min-w-[120px] text-xs font-medium px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+          >
+            Preview README
+          </button>
+          <div className="flex-1 min-w-[120px]">
+            <HealthScoreBadge repo={repo} />
+          </div>
+          <a
+            href={repo.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 min-w-[120px] text-xs font-medium px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-600 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-500 hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors text-center"
+          >
+            Open in GitHub
+          </a>
+        </div>
+      )}
     </div>
   )
 }
