@@ -8,8 +8,10 @@ interface LanguageChartProps {
 }
 
 // How many languages to show in the single legend row before the rest
-// collapse behind a "see more" toggle.
-const MAX_INLINE_LANGUAGES = 6
+// collapse behind a "see more" toggle. Kept low (4) because the chart sits in
+// a half-width grid column on desktop and a narrow viewport on mobile, so more
+// than ~4 language names cannot fit on one line without clipping.
+const MAX_INLINE_LANGUAGES = 4
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltip({ active, payload, mode }: any) {
@@ -73,17 +75,17 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
 
       {/* Single-row legend (descending). Extra languages collapse behind "see more". */}
       <div className="flex items-center gap-2 mt-2">
-        <div className="flex items-center gap-3 overflow-x-auto min-w-0 flex-1 justify-center">
+        <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
           {inline.map((entry) => (
             <div
               key={entry.name}
               className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap shrink-0"
             >
               <span
-                className="w-2.5 h-2.5 rounded-full inline-block"
+                className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                 style={{ backgroundColor: getLanguageColor(entry.name) }}
               />
-              {entry.name}
+              <span className="truncate">{entry.name}</span>
             </div>
           ))}
         </div>
