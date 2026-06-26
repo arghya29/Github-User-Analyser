@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { getLanguageColor } from '@/lib/languageColors'
 
@@ -33,7 +33,7 @@ function valueLabel(value: number, mode: 'bytes' | 'count'): string {
 
 export default function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
   const [showAll, setShowAll] = useState(false)
-
+  const panelId = useId()
   if (data.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center">
@@ -94,7 +94,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
             type="button"
             onClick={() => setShowAll((v) => !v)}
             aria-expanded={showAll}
-            aria-controls="lang-overflow-panel"
+            aria-controls={panelId}
             className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {showAll ? 'See less' : `+${overflowCount} more`}
@@ -104,7 +104,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
 
       {/* Expanded box listing every language, sorted descending. */}
       {showAll && overflowCount > 0 && (
-        <div id="lang-overflow-panel" className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
+        <div id={panelId} className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {sorted.map((entry) => (
               <div
