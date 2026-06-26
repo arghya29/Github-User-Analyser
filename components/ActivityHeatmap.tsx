@@ -45,7 +45,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   })
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full overflow-x-auto">
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity</h3>
         <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -53,26 +53,33 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         </span>
       </div>
 
-      <div className="inline-flex gap-[3px] min-w-full">
-        {weeks.map((week, weekIdx) => (
-          <div key={weekIdx} className="flex flex-col gap-[3px]">
-            <div className="h-3 text-[10px] text-gray-400 dark:text-gray-500 leading-3 whitespace-nowrap">
-              {monthMarkers[weekIdx]}
+      <div
+        className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        tabIndex={0}
+        role="region"
+        aria-label="Activity contributions heatmap"
+      >
+        <div className="inline-flex gap-[3px] min-w-full">
+          {weeks.map((week, weekIdx) => (
+            <div key={weekIdx} className="flex flex-col gap-[3px]">
+              <div className="h-3 text-[10px] text-gray-400 dark:text-gray-500 leading-3 whitespace-nowrap">
+                {monthMarkers[weekIdx]}
+              </div>
+              {week.contributionDays.map((day) => {
+                const level = levelFor(day.count, maxCount)
+                return (
+                  <div
+                    key={day.date}
+                    title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${new Date(
+                      day.date
+                    ).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                    className={`w-3 h-3 rounded-sm ${LEVEL_COLORS[level]}`}
+                  />
+                )
+              })}
             </div>
-            {week.contributionDays.map((day) => {
-              const level = levelFor(day.count, maxCount)
-              return (
-                <div
-                  key={day.date}
-                  title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${new Date(
-                    day.date
-                  ).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                  className={`w-3 h-3 rounded-sm ${LEVEL_COLORS[level]}`}
-                />
-              )
-            })}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-1.5 mt-4 text-[11px] text-gray-400 dark:text-gray-400">
