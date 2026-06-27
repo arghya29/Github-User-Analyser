@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { getCached, setCached } from '@/lib/cache'
+import { computeCurrentStreak } from '@/lib/contributionStats'
 
 const BADGE_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour — badges are embedded in READMEs so cache aggressively
 
@@ -53,17 +54,14 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     if (!user) return null
 
     const calendar = user.contributionsCollection.contributionCalendar
-    const days = calendar.weeks
-      .flatMap((w: { contributionDays: { contributionCount: number; date: string }[] }) =>
-        w.contributionDays.map((d) => d.contributionCount)
-      )
-      .reverse()
+    // Flatten to chronological { date, count } days so we can reuse the shared
+    // streak helper (which skips a zero-count today instead of resetting to 0).
+    const days = calendar.weeks.flatMap(
+      (w: { contributionDays: { contributionCount: number; date: string }[] }) =>
+        w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
+    )
 
-    let currentStreak = 0
-    for (const count of days) {
-      if (count > 0) currentStreak++
-      else break
-    }
+    const currentStreak = computeCurrentStreak(days)
 
     return {
       name: user.name || user.login,
