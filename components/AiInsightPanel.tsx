@@ -63,14 +63,19 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
           weekendPct,
         }),
       })
-      const data = await response.json()
-      if (data.error) {
+      const data = await response.json().catch(() => null)
+      const text = typeof data?.text === 'string' ? data.text.trim() : ''
+      if (!response.ok || !data) {
+        setError(data?.error || 'Failed to generate AI insight — please try again')
+      } else if (data.error) {
         setError(data.error)
+      } else if (!text) {
+        setError('Failed to generate AI insight — please try again')
       } else {
-        setText(data.text)
+        setText(text)
       }
     } catch {
-      setError('Failed to generate AI insight')
+      setError('Failed to generate AI insight — please try again')
     } finally {
       setLoading(false)
     }

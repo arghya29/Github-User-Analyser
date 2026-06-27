@@ -82,7 +82,15 @@ export default async function handler(
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: body.type === 'roast' ? 0.9 : 0.6,
-          maxOutputTokens: 300,
+          // Raised from 300 → 1024: gemini-2.5-flash-lite can run internal
+          // reasoning/thinking that counts against maxOutputTokens. A 300-token
+          // budget can be fully consumed by reasoning, leaving the visible text
+          // field empty. 1024 gives ample room for both reasoning and output.
+          maxOutputTokens: 1024,
+          // Disable thinking for this short-output use case: the bio/roast
+          // prompts are deterministic enough that chain-of-thought reasoning
+          // adds latency and token cost without improving the result quality.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       },
       {
@@ -93,7 +101,16 @@ export default async function handler(
       }
     )
 
-    const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text as string | undefined
+    const candidate = response.data?.candidates?.[0]
+    const text = candidate?.content?.parts?.[0]?.text as string | undefined
+    const finishReason = candidate?.finishReason as string | undefined
+
+    // If the model stopped because it hit the token limit, the visible text
+    // may be empty or truncated. Treat this as a retryable failure rather than
+    // a silent 500 so the client gets a clear message.
+    if (finishReason === 'MAX_TOKENS' && !text) {
+      return res.status(500).json({ text: null, error: 'AI response was cut off — please try again' })
+    }
 
     if (!text) {
       return res.status(500).json({ text: null, error: 'AI did not return a response' })
@@ -102,8 +119,12 @@ export default async function handler(
     return res.status(200).json({ text: text.trim() })
   } catch (err: unknown) {
     const error = err as AxiosError
-    if (error.response?.status === 429) {
+    const status = error.response?.status
+    if (status === 429) {
       return res.status(429).json({ text: null, error: 'AI quota reached for now — try again in a minute' })
+    }
+    if (status === 503) {
+      return res.status(503).json({ text: null, error: 'AI service is temporarily overloaded — try again in a moment' })
     }
     return res.status(500).json({ text: null, error: 'Failed to generate AI insight' })
   }
