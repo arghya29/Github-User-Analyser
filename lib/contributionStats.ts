@@ -9,6 +9,12 @@ import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/typ
  *
  * Shared by the Productivity panel and the README badge so the two can't
  * drift out of sync.
+ *
+ * @param days Contribution days in chronological order, oldest first; the last
+ *   element is treated as the most recent day. Passing unsorted data will
+ *   silently produce a wrong streak, so callers must sort before calling.
+ * @returns The number of consecutive non-zero days ending at the most recent
+ *   day, skipping a zero-count current (in-progress) day.
  */
 export function computeCurrentStreak(days: ContributionDay[]): number {
   if (days.length === 0) return 0
