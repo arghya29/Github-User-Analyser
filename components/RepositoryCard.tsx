@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
 import HealthScoreBadge from '@/components/HealthScoreBadge'
@@ -10,6 +10,7 @@ interface RepositoryCardProps {
 
 export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   const [showActionBox, setShowActionBox] = useState(false)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   const lastUpdated = new Date(repo.updated_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -18,6 +19,44 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   })
 
   const langColor = getLanguageColorClass(repo.language)
+
+  const closeModal = useCallback(() => setShowActionBox(false), [])
+
+  useEffect(() => {
+    if (!showActionBox) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeModal()
+        return
+      }
+      if (e.key !== 'Tab') return
+
+      const dialog = dialogRef.current
+      if (!dialog) return
+      const focusable = dialog.querySelectorAll<HTMLElement>(
+        'button, a[href], [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    const firstBtn = dialogRef.current?.querySelector<HTMLElement>('button')
+    firstBtn?.focus()
+
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showActionBox, closeModal])
 
   return (
     <>
@@ -91,13 +130,20 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
       {showActionBox && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowActionBox(false)}
+          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`repo-dialog-${repo.name}`}
         >
           <div
+            ref={dialogRef}
             className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl w-full max-w-sm p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+            <h3
+              id={`repo-dialog-${repo.name}`}
+              className="text-lg font-bold text-gray-900 dark:text-white mb-1"
+            >
               {repo.name}
             </h3>
             {repo.description && (
@@ -109,7 +155,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => { setShowActionBox(false); onClick() }}
+                onClick={() => { closeModal(); onClick() }}
                 className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 📖 Preview README
@@ -131,7 +177,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
             <button
               type="button"
-              onClick={() => setShowActionBox(false)}
+              onClick={closeModal}
               className="mt-4 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               Close
