@@ -1,18 +1,43 @@
-import type { ContributionWeek, ProductivityStats } from '@/types/github'
+import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/types/github'
+
+/**
+ * Computes the current contribution streak from a chronologically-ordered
+ * list of days (oldest first). An in-progress today with zero contributions
+ * does NOT reset the streak: GitHub treats today as not-yet-broken until you
+ * commit, so we skip a trailing zero-count today and count back from
+ * yesterday. Only a gap on a day before today ends the streak.
+ *
+ * Shared by the Productivity panel and the README badge so the two can't
+ * drift out of sync.
+ */
+export function computeCurrentStreak(days: ContributionDay[]): number {
+  if (days.length === 0) return 0
+
+  // Start from the most recent day. If it's today-with-no-contributions-yet
+  // (a trailing zero), skip it so an active streak isn't wiped before the
+  // user commits today.
+  let startIndex = days.length - 1
+  if (days[startIndex].count === 0) {
+    startIndex--
+  }
+
+  let streak = 0
+  for (let i = startIndex; i >= 0; i--) {
+    if (days[i].count > 0) {
+      streak++
+    } else {
+      break
+    }
+  }
+  return streak
+}
 
 export function computeProductivityStats(weeks: ContributionWeek[]): ProductivityStats {
   const days = weeks
     .flatMap((w) => w.contributionDays)
     .sort((a, b) => a.date.localeCompare(b.date))
 
-  let currentStreak = 0
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (days[i].count > 0) {
-      currentStreak++
-    } else {
-      break
-    }
-  }
+  const currentStreak = computeCurrentStreak(days)
 
   let longestStreak = 0
   let running = 0
