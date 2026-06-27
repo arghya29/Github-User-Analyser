@@ -13,11 +13,16 @@ import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/typ
 export function computeCurrentStreak(days: ContributionDay[]): number {
   if (days.length === 0) return 0
 
-  // Start from the most recent day. If it's today-with-no-contributions-yet
-  // (a trailing zero), skip it so an active streak isn't wiped before the
-  // user commits today.
+  // Today's UTC date (YYYY-MM-DD) — GitHub contribution dates are UTC.
+  const today = new Date().toISOString().slice(0, 10)
+
+  // Start from the most recent day. If the final day is today and it has no
+  // contributions yet (a trailing zero for *today* specifically), skip it so
+  // an active streak isn't wiped before the user commits today. A trailing
+  // zero on any earlier day is a genuine gap and must NOT be skipped — that
+  // would report a streak that has actually ended.
   let startIndex = days.length - 1
-  if (days[startIndex].count === 0) {
+  if (days[startIndex].count === 0 && days[startIndex].date === today) {
     startIndex--
   }
 
@@ -32,6 +37,16 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
   return streak
 }
 
+/**
+ * Aggregates a user's contribution calendar into the Productivity panel stats:
+ * current streak (via {@link computeCurrentStreak}), longest streak, most
+ * productive single day, weekday vs weekend totals, and per-month totals.
+ *
+ * Input weeks are flattened and sorted chronologically (oldest first) up front,
+ * so all downstream calculations — including the chronological ordering of
+ * `monthlyTotals` — rely on that single sort. All date math is done in UTC to
+ * match GitHub's contribution dates.
+ */
 export function computeProductivityStats(weeks: ContributionWeek[]): ProductivityStats {
   const days = weeks
     .flatMap((w) => w.contributionDays)
