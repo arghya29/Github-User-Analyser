@@ -256,7 +256,7 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
             <View style={styles.contactRow}>
               {user.location ? (
                 <View style={styles.contactItem}>
-                  <Text style={styles.contactText}>📍 {user.location}</Text>
+                  <Text style={styles.contactText}>{user.location}</Text>
                 </View>
               ) : null}
               {user.blog ? (
