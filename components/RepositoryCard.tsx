@@ -133,7 +133,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
-          aria-labelledby={`repo-dialog-${repo.name}`}
+          aria-labelledby={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
         >
           <div
             ref={dialogRef}
@@ -141,7 +141,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <h3
-              id={`repo-dialog-${repo.name}`}
+              id={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
               className="text-lg font-bold text-gray-900 dark:text-white mb-1"
             >
               {repo.name}
