@@ -112,7 +112,11 @@ github-user-analyzer/
 │   ├── api/
 │   │   ├── github.ts          # Main GitHub data route (GraphQL + REST fallback)
 │   │   ├── readme.ts          # Fetches & decodes a repo's README
-│   │   └── ai-insight.ts      # Gemini-powered bio/roast generator
+│   │   ├── ai-insight.ts      # Gemini-powered bio/roast generator
+│   │   ├── badge/
+│   │   │   └── [username].ts  # SVG contribution badge for README embedding
+│   │   └── export/
+│   │       └── pdf.tsx        # PDF resume export route
 │   ├── _app.tsx               # App wrapper (wraps pages in ThemeProvider)
 │   ├── _document.tsx          # HTML document wrapper (theme flash-prevention script)
 │   └── index.tsx              # Main page
@@ -130,10 +134,12 @@ github-user-analyzer/
 │   ├── ProductivityPanel.tsx
 │   ├── AchievementsPanel.tsx
 │   ├── AiInsightPanel.tsx
+│   ├── ExportPanel.tsx
 │   ├── CompareForm.tsx
 │   ├── CompareResult.tsx
 │   ├── ThemeToggle.tsx
 │   ├── Footer.tsx
+│   ├── Loading.tsx
 │   └── LoadingSkeleton.tsx
 ├── lib/
 │   ├── cache.ts                # In-memory TTL cache for API routes
