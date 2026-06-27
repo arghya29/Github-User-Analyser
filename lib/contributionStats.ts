@@ -13,16 +13,27 @@ import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/typ
 export function computeCurrentStreak(days: ContributionDay[]): number {
   if (days.length === 0) return 0
 
-  // Today's UTC date (YYYY-MM-DD) — GitHub contribution dates are UTC.
-  const today = new Date().toISOString().slice(0, 10)
+  const lastDay = days[days.length - 1]
 
-  // Start from the most recent day. If the final day is today and it has no
-  // contributions yet (a trailing zero for *today* specifically), skip it so
-  // an active streak isn't wiped before the user commits today. A trailing
-  // zero on any earlier day is a genuine gap and must NOT be skipped — that
-  // would report a streak that has actually ended.
+  // Decide whether the final day is "today's" in-progress day. GitHub's
+  // contributionCalendar is timezone-aware but returns bare YYYY-MM-DD dates
+  // with no timezone, and the account's timezone isn't exposed by the API — so
+  // we can't read it directly. What we DO know: a live calendar always ends on
+  // the current day in the account's timezone, and every timezone (UTC-12..+14)
+  // puts that day within one calendar day of the current UTC date. So we treat
+  // the final day as the current in-progress day when it falls within ±1 day of
+  // UTC today (correct for any account timezone) and skip it only when it has no
+  // contributions yet. A trailing zero more than a day in the past is a genuine
+  // gap (e.g. stale/historical data) and is NOT skipped — that would report a
+  // streak that has actually ended.
+  const MS_PER_DAY = 24 * 60 * 60 * 1000
+  const todayUtcMs = Date.parse(new Date().toISOString().slice(0, 10))
+  const lastDayMs = Date.parse(lastDay.date)
+  const isCurrentDay =
+    Number.isFinite(lastDayMs) && Math.abs(todayUtcMs - lastDayMs) <= MS_PER_DAY
+
   let startIndex = days.length - 1
-  if (days[startIndex].count === 0 && days[startIndex].date === today) {
+  if (lastDay.count === 0 && isCurrentDay) {
     startIndex--
   }
 
