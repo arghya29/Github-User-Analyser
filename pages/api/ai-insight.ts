@@ -105,11 +105,13 @@ export default async function handler(
     const text = candidate?.content?.parts?.[0]?.text as string | undefined
     const finishReason = candidate?.finishReason as string | undefined
 
-    // If the model stopped because it hit the token limit, the visible text
-    // may be empty or truncated. Treat this as a retryable failure rather than
-    // a silent 500 so the client gets a clear message.
-    if (finishReason === 'MAX_TOKENS' && !text) {
-      return res.status(500).json({ text: null, error: 'AI response was cut off — please try again' })
+    // If the model stopped because it hit the token limit, treat it as a failure
+    // regardless of whether partial text exists, to avoid returning truncated output.
+    if (finishReason === 'MAX_TOKENS') {
+      return res.status(500).json({
+        text: null,
+        error: 'AI response was truncated because it reached the maximum token limit. Please try again.',
+      })
     }
 
     if (!text) {
