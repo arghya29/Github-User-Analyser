@@ -85,10 +85,6 @@ export default function SortFilterBar({
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-<<<<<<< Updated upstream
-              aria-haspopup="listbox"
-=======
->>>>>>> Stashed changes
               aria-expanded={isOpen}
               className={`flex items-center justify-between gap-3 px-4 py-2.5 sm:py-2 text-sm rounded-lg border transition-all w-full sm:w-auto min-w-[200px] ${
                 isOpen || activeLanguages.length > 0
@@ -109,45 +105,6 @@ export default function SortFilterBar({
             </button>
 
             {isOpen && (
-<<<<<<< Updated upstream
-              <div
-                role="listbox"
-                aria-multiselectable="true"
-                className="absolute left-0 mt-2 w-full sm:w-64 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-2 max-h-72 overflow-y-auto"
-              >
-                <div className="px-4 py-1.5 mb-1 border-b border-gray-100 dark:border-slate-700">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
-                    Filter by Language
-                  </span>
-                </div>
-                {languages.map(({ name, count }) => (
-                  <label
-                    key={name}
-                    className="flex items-center gap-3 px-4 py-2.5 sm:py-2 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors group"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={activeLanguages.includes(name)}
-                      onChange={() => toggleLanguage(name)}
-                      className="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full inline-block shrink-0"
-                        style={{ backgroundColor: getLanguageColor(name) }}
-                        aria-hidden="true"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-200 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                        {name}
-                      </span>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 tabular-nums">
-                      {count}
-                    </span>
-                  </label>
-                ))}
-              </div>
-=======
               <fieldset className="absolute left-0 mt-2 w-full sm:w-64 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-2 max-h-72 overflow-y-auto">
                 <legend className="px-4 py-1.5 mb-1 border-b border-gray-100 dark:border-slate-700 w-full">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
@@ -183,7 +140,6 @@ export default function SortFilterBar({
                   ))}
                 </div>
               </fieldset>
->>>>>>> Stashed changes
             )}
           </div>
         )}
