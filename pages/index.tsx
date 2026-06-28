@@ -59,7 +59,7 @@ export default function Home() {
   const [errorType, setErrorType] = useState<ErrorType | null>(null)
   const [history, setHistory] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<SortOption>('stars')
-  const [languageFilter, setLanguageFilter] = useState<string | null>(null)
+  const [languageFilter, setLanguageFilter] = useState<string[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
 
   // --- Compare mode state ---
@@ -110,7 +110,7 @@ export default function Home() {
     setContributions(null)
     setEngagement(null)
     setProductivity(null)
-    setLanguageFilter(null)
+    setLanguageFilter([])
     setSelectedRepo(null)
 
     try {
@@ -190,8 +190,8 @@ export default function Home() {
 
   const displayedRepos = useMemo(() => {
     let filtered = repos
-    if (languageFilter) {
-      filtered = repos.filter((repo) => repo.language === languageFilter)
+    if (languageFilter.length > 0) {
+      filtered = repos.filter((repo) => repo.language && languageFilter.includes(repo.language))
     }
 
     const sorted = [...filtered]
@@ -354,8 +354,8 @@ export default function Home() {
                             sortBy={sortBy}
                             onSortChange={setSortBy}
                             languages={languageCounts}
-                            activeLanguage={languageFilter}
-                            onLanguageChange={setLanguageFilter}
+                            activeLanguages={languageFilter}
+                            onLanguagesChange={setLanguageFilter}
                           />
                           {displayedRepos.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
