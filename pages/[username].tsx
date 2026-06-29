@@ -88,9 +88,9 @@ export default function UserProfilePage() {
             <div className="flex items-center justify-between mb-8">
               <Link
                 href="/"
-                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity"
               >
-                ← New search
+                GitHub User Analyzer
               </Link>
               <ThemeToggle />
             </div>

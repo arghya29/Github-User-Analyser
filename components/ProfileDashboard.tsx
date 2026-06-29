@@ -31,8 +31,7 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
   const { user, repos, contributions, engagement, productivity } = data
 
   const [sortBy, setSortBy] = useState<SortOption>('stars')
-  // single-select language filter — matches SortFilterBar: activeLanguage: string | null
-  const [languageFilter, setLanguageFilter] = useState<string | null>(null)
+  const [languageFilter, setLanguageFilter] = useState<string[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
 
   // Language counts across ALL repos — always available, used for filter pills
@@ -49,10 +48,10 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
   }, [usingByteData, byteDistribution, languageCounts])
 
   const displayedRepos = useMemo(() => {
-    // single-select: filter to repos whose primary language matches the selection
-    const filtered = languageFilter
-      ? repos.filter((repo) => repo.language === languageFilter)
-      : repos
+    let filtered = repos
+    if (languageFilter.length > 0) {
+      filtered = repos.filter((repo) => repo.language && languageFilter.includes(repo.language))
+    }
 
     const sorted = [...filtered]
     if (sortBy === 'stars') {
@@ -88,8 +87,8 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
         ) : (
           <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Activity heatmap unavailable. This requires a GITHUB_TOKEN to be configured on the
-              server.
+              Activity heatmap unavailable. This data requires server-side GraphQL access (a
+              configured GITHUB_TOKEN) or may be temporarily unavailable.
             </p>
           </div>
         )}
@@ -109,8 +108,8 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       ) : (
         <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Engagement, productivity, and achievement stats require a GITHUB_TOKEN to be configured
-            on the server.
+            Engagement, productivity, and achievement stats require server-side GraphQL access (a
+            configured GITHUB_TOKEN) or are temporarily unavailable.
           </p>
         </div>
       )}
@@ -125,8 +124,8 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
               sortBy={sortBy}
               onSortChange={setSortBy}
               languages={languageCounts}
-              activeLanguage={languageFilter}
-              onLanguageChange={setLanguageFilter}
+              activeLanguages={languageFilter}
+              onLanguagesChange={setLanguageFilter}
             />
             {displayedRepos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

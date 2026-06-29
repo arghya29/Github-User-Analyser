@@ -11,7 +11,11 @@ export function loadHistory(): string[] {
     const saved = window.localStorage.getItem(HISTORY_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) {
+        // Keep only strings — a corrupt value like [42] would otherwise crash
+        // recordSearch()'s .toLowerCase() on the next search.
+        return parsed.filter((item): item is string => typeof item === 'string')
+      }
     }
   } catch {
     // localStorage unavailable or corrupt — just skip history

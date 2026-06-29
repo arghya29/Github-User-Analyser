@@ -7,6 +7,13 @@ import type { UserData } from '@/types/github'
  * mode) and the /[username] profile route so both fetch identically.
  */
 export async function fetchUserData(username: string): Promise<UserData> {
-  const response = await axios.get(`/api/github?username=${encodeURIComponent(username)}`)
+  // The API returns its typed `{ error, errorType }` payload with a non-2xx
+  // status (404 not-found, 403 rate-limited, 500 failure). Resolve every status
+  // so callers can branch on `data.error` instead of catching a thrown response
+  // — this is what lets compare mode surface per-user error messages.
+  const response = await axios.get<UserData>(
+    `/api/github?username=${encodeURIComponent(username)}`,
+    { validateStatus: () => true }
+  )
   return response.data
 }
