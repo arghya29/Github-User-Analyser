@@ -12,9 +12,12 @@ export function loadHistory(): string[] {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed)) {
-        // Keep only strings — a corrupt value like [42] would otherwise crash
-        // recordSearch()'s .toLowerCase() on the next search.
-        return parsed.filter((item): item is string => typeof item === 'string')
+        // Keep only strings (a corrupt value like [42] would otherwise crash
+        // recordSearch()'s .toLowerCase()) and re-apply the MAX_HISTORY cap so a
+        // user-edited, overlong stored value can't leak an oversized list to the UI.
+        return parsed
+          .filter((item): item is string => typeof item === 'string')
+          .slice(0, MAX_HISTORY)
       }
     }
   } catch {
