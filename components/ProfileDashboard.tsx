@@ -68,11 +68,11 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
 
   return (
     <>
-      {rateLimit && (
-        <div className="flex justify-end mb-3">
-          <RateLimitBadge rateLimit={rateLimit} />
-        </div>
-      )}
+      {/* Fixed-height slot so the badge appearing/disappearing never shifts the
+          dashboard layout. */}
+      <div className="flex justify-end mb-3 min-h-[1.75rem]">
+        {rateLimit && <RateLimitBadge rateLimit={rateLimit} />}
+      </div>
       <UserCard user={user} />
 
       {/* AI Insights + Export & Share — at the top for quick access */}
