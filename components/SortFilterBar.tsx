@@ -87,15 +87,20 @@ export default function SortFilterBar({
               type="button"
               aria-expanded={isOpen}
               aria-label="Filter by Language"
+              aria-describedby="language-filter-value"
               aria-controls="language-filter-popup"
-              aria-haspopup="dialog"
               className={`flex items-center justify-between gap-3 px-4 py-2.5 sm:py-2 text-sm rounded-lg border transition-all w-full sm:w-auto min-w-[200px] ${
                 isOpen || activeLanguages.length > 0
                   ? 'bg-white dark:bg-slate-700 border-blue-500 text-gray-900 dark:text-white shadow-sm ring-1 ring-blue-500'
                   : 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500'
               }`}
             >
-              <span className="truncate font-medium">{getButtonLabel()}</span>
+              <span
+                id="language-filter-value"
+                className="truncate font-medium"
+              >
+                {getButtonLabel()}
+              </span>
               <svg
                 className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 fill="none"
