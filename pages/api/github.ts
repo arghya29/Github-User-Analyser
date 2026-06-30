@@ -43,6 +43,7 @@ interface GraphQLPinnedRepoNode {
   forkCount: number
   updatedAt: string
   primaryLanguage: { name: string } | null
+  owner: { login: string } | null
 }
 
 interface GraphQLContributionDay {
@@ -146,6 +147,7 @@ const GRAPHQL_QUERY = `
             forkCount
             updatedAt
             primaryLanguage { name }
+            owner { login }
           }
         }
       }
@@ -182,6 +184,7 @@ function mapGraphQLPinnedRepo(node: GraphQLPinnedRepoNode): Repository {
     forks_count: node.forkCount,
     language: node.primaryLanguage?.name || '',
     updated_at: node.updatedAt,
+    owner_login: node.owner?.login,
   }
 }
 

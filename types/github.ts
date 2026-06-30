@@ -28,6 +28,7 @@ export interface Repository {
   closed_issues_count?: number
   license?: string | null
   languages?: LanguageBytes[]
+  owner_login?: string
 }
 
 export interface LanguageBytes {

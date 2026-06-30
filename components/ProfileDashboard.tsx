@@ -153,7 +153,7 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       {selectedRepo && (
         <RepoReadmeModal
           repo={selectedRepo}
-          owner={user.login}
+          owner={selectedRepo.owner_login ?? user.login}
           onClose={() => setSelectedRepo(null)}
         />
       )}
