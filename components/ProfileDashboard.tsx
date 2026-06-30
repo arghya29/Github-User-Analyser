@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import UserCard from '@/components/UserCard'
 import RepositoryCard from '@/components/RepositoryCard'
 import LanguageChart from '@/components/LanguageChart'
@@ -34,6 +34,12 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
   const [sortBy, setSortBy] = useState<SortOption>('stars')
   const [languageFilter, setLanguageFilter] = useState<string[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
+  const [repoQuery, setRepoQuery] = useState('')
+
+  // Clear the repo name search when navigating to a different profile.
+  useEffect(() => {
+    setRepoQuery('')
+  }, [user.login])
 
   // Language counts across ALL repos — always available, used for filter pills
   const languageCounts = useMemo(() => aggregateLanguagesByCount(repos), [repos])
@@ -54,6 +60,11 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       filtered = repos.filter((repo) => repo.language && languageFilter.includes(repo.language))
     }
 
+    const q = repoQuery.trim().toLowerCase()
+    if (q) {
+      filtered = filtered.filter((repo) => repo.name.toLowerCase().includes(q))
+    }
+
     const sorted = [...filtered]
     if (sortBy === 'stars') {
       sorted.sort((a, b) => b.stargazers_count - a.stargazers_count)
@@ -63,7 +74,7 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     }
     return sorted
-  }, [repos, sortBy, languageFilter])
+  }, [repos, sortBy, languageFilter, repoQuery])
 
   return (
     <>
@@ -130,6 +141,8 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
               languages={languageCounts}
               activeLanguages={languageFilter}
               onLanguagesChange={setLanguageFilter}
+              repoQuery={repoQuery}
+              onRepoQueryChange={setRepoQuery}
             />
             {displayedRepos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
