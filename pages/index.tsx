@@ -14,6 +14,9 @@ import type { UserData } from '@/types/github'
 
 type Mode = 'search' | 'compare'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+const SITE_DESCRIPTION = 'Analyze GitHub users and view their repositories'
+
 export default function Home() {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('search')
@@ -87,9 +90,26 @@ export default function Home() {
     <>
       <Head>
         <title>GitHub User Analyzer</title>
-        <meta name="description" content="Analyze GitHub users and view their repositories" />
+        <meta name="description" content={SITE_DESCRIPTION} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="GitHub User Analyzer" />
+        <meta property="og:title" content="GitHub User Analyzer" />
+        <meta property="og:description" content={SITE_DESCRIPTION} />
+        <meta property="og:image" content={`${SITE_URL}/og-default.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="GitHub User Analyzer" />
+        <meta property="og:url" content={SITE_URL || '/'} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="GitHub User Analyzer" />
+        <meta name="twitter:description" content={SITE_DESCRIPTION} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-default.png`} />
       </Head>
 
       <div className="flex flex-col min-h-screen">

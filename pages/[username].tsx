@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -22,7 +23,18 @@ const errorStyles: Record<ErrorType, string> = {
     'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
 }
 
-export default function UserProfilePage() {
+interface OgMeta {
+  title: string
+  description: string
+  url: string
+  image: string
+}
+
+interface UserProfilePageProps {
+  og: OgMeta
+}
+
+export default function UserProfilePage({ og }: UserProfilePageProps) {
   const router = useRouter()
   const usernameParam = router.query.username
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
@@ -75,10 +87,27 @@ export default function UserProfilePage() {
   return (
     <>
       <Head>
-        <title>{username ? `${username} · GitHub User Analyzer` : 'GitHub User Analyzer'}</title>
-        <meta name="description" content="Analyze GitHub users and view their repositories" />
+        <title>{og.title}</title>
+        <meta name="description" content={og.description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:site_name" content="GitHub User Analyzer" />
+        <meta property="og:title" content={og.title} />
+        <meta property="og:description" content={og.description} />
+        <meta property="og:image" content={og.image} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="GitHub User Analyzer" />
+        <meta property="og:url" content={og.url} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={og.title} />
+        <meta name="twitter:description" content={og.description} />
+        <meta name="twitter:image" content={og.image} />
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -117,4 +146,35 @@ export default function UserProfilePage() {
       </div>
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = async ({
+  params,
+  req,
+}) => {
+  const raw = params?.username
+  const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
+
+  // Build an absolute base URL from the request so OG image/url are canonical.
+  const forwardedProto = req.headers['x-forwarded-proto']
+  const proto =
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(',')[0] || 'http'
+  const host = req.headers.host ?? ''
+  const baseUrl = host ? `${proto}://${host}` : ''
+
+  // Per-profile tags are derived from the login (already in the route), so the
+  // page renders with no extra latency. The static default image is shared.
+  const title = username ? `${username} · GitHub User Analyzer` : 'GitHub User Analyzer'
+  const description = username
+    ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyzer.`
+    : 'Analyze GitHub users and view their repositories'
+
+  const og: OgMeta = {
+    title,
+    description,
+    url: baseUrl ? `${baseUrl}/${encodeURIComponent(username)}` : `/${username}`,
+    image: baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png',
+  }
+
+  return { props: { og } }
 }
