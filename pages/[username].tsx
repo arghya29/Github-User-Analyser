@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
+import { resolveBaseUrl } from '@/lib/siteUrl'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -155,19 +156,7 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
   const raw = params?.username
   const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
 
-  // Prefer the configured canonical site URL; otherwise derive it from forwarded/
-  // request headers (handles reverse proxies) so og:image/og:url stay canonical
-  // and consistent with the home page.
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
-  const forwardedProto = req.headers['x-forwarded-proto']
-  const forwardedHost = req.headers['x-forwarded-host']
-  const proto =
-    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(',')[0] || 'https'
-  const host =
-    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)?.split(',')[0] ||
-    req.headers.host ||
-    ''
-  const baseUrl = configuredSiteUrl || (host ? `${proto}://${host}` : '')
+  const baseUrl = resolveBaseUrl(req)
 
   // Per-profile tags are derived from the login (already in the route), so the
   // page renders with no extra latency. The static default image is shared.

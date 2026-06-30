@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import type { GetServerSideProps } from 'next'
+import { resolveBaseUrl } from '@/lib/siteUrl'
 import Head from 'next/head'
 import SearchBar from '@/components/SearchBar'
 import SearchHistory from '@/components/SearchHistory'
@@ -14,10 +16,13 @@ import type { UserData } from '@/types/github'
 
 type Mode = 'search' | 'compare'
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
 const SITE_DESCRIPTION = 'Analyze GitHub users and view their repositories'
 
-export default function Home() {
+interface HomePageProps {
+  baseUrl: string
+}
+
+export default function Home({ baseUrl }: HomePageProps) {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('search')
 
@@ -99,17 +104,17 @@ export default function Home() {
         <meta property="og:site_name" content="GitHub User Analyzer" />
         <meta property="og:title" content="GitHub User Analyzer" />
         <meta property="og:description" content={SITE_DESCRIPTION} />
-        <meta property="og:image" content={`${SITE_URL}/og-default.png`} />
+        <meta property="og:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="GitHub User Analyzer" />
-        <meta property="og:url" content={SITE_URL || '/'} />
+        <meta property="og:url" content={baseUrl || '/'} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="GitHub User Analyzer" />
         <meta name="twitter:description" content={SITE_DESCRIPTION} />
-        <meta name="twitter:image" content={`${SITE_URL}/og-default.png`} />
+        <meta name="twitter:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -213,4 +218,8 @@ export default function Home() {
       </div>
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async ({ req }) => {
+  return { props: { baseUrl: resolveBaseUrl(req) } }
 }
