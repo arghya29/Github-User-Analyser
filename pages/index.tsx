@@ -1,66 +1,34 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import type { GetServerSideProps } from 'next'
+import { resolveBaseUrl } from '@/lib/siteUrl'
 import Head from 'next/head'
-import axios, { type AxiosError } from 'axios'
 import SearchBar from '@/components/SearchBar'
 import SearchHistory from '@/components/SearchHistory'
-import UserCard from '@/components/UserCard'
-import RepositoryCard from '@/components/RepositoryCard'
-import LanguageChart from '@/components/LanguageChart'
-import ActivityHeatmap from '@/components/ActivityHeatmap'
-import SortFilterBar from '@/components/SortFilterBar'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
-import EngagementStats from '@/components/EngagementStats'
-import ProductivityPanel from '@/components/ProductivityPanel'
-import AchievementsPanel from '@/components/AchievementsPanel'
-import AiInsightPanel from '@/components/AiInsightPanel'
-import ExportPanel from '@/components/ExportPanel'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
 import CompareResult from '@/components/CompareResult'
-import RepoReadmeModal from '@/components/RepoReadmeModal'
 import Footer from '@/components/Footer'
-import type {
-  GitHubUser,
-  Repository,
-  ContributionsData,
-  EngagementStats as EngagementStatsType,
-  ProductivityStats,
-  SortOption,
-  UserData,
-} from '@/types/github'
-import {
-  aggregateLanguagesByBytes,
-  aggregateLanguagesByCount,
-  hasByteLanguageData,
-} from '@/lib/repoStats'
+import { fetchUserData } from '@/lib/github'
+import { loadHistory, clearHistory as clearStoredHistory } from '@/lib/searchHistory'
+import type { UserData } from '@/types/github'
 
-const HISTORY_KEY = 'github-analyzer-history'
-const MAX_HISTORY = 5
-
-type ErrorType = 'not_found' | 'rate_limited' | 'unknown'
 type Mode = 'search' | 'compare'
 
-async function fetchUserData(username: string): Promise<UserData> {
-  const response = await axios.get(`/api/github?username=${username}`)
-  return response.data
+const SITE_DESCRIPTION = 'Analyze GitHub users and view their repositories'
+
+interface HomePageProps {
+  baseUrl: string
 }
 
-export default function Home() {
+export default function Home({ baseUrl }: HomePageProps) {
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>('search')
 
-  // --- Single-user search state ---
-  const [user, setUser] = useState<GitHubUser | null>(null)
-  const [repos, setRepos] = useState<Repository[]>([])
-  const [contributions, setContributions] = useState<ContributionsData | null>(null)
-  const [engagement, setEngagement] = useState<EngagementStatsType | null>(null)
-  const [productivity, setProductivity] = useState<ProductivityStats | null>(null)
-  const [loading, setLoading] = useState(false)
+  // --- Single-user search state (search navigates to /[username]) ---
   const [error, setError] = useState('')
-  const [errorType, setErrorType] = useState<ErrorType | null>(null)
   const [history, setHistory] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState<SortOption>('stars')
-  const [languageFilter, setLanguageFilter] = useState<string[]>([])
-  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
 
   // --- Compare mode state ---
   const [compareLoading, setCompareLoading] = useState(false)
@@ -70,71 +38,20 @@ export default function Home() {
 
   // Load search history once on mount
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(HISTORY_KEY)
-      if (saved) setHistory(JSON.parse(saved))
-    } catch {
-      // localStorage unavailable (e.g. private browsing) — just skip history
-    }
+    setHistory(loadHistory())
   }, [])
 
-  const saveHistory = (next: string[]) => {
-    setHistory(next)
-    try {
-      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
-    } catch {
-      // ignore write failures
-    }
-  }
-
-  const addToHistory = (username: string) => {
-    const deduped = [username, ...history.filter((h) => h.toLowerCase() !== username.toLowerCase())]
-    saveHistory(deduped.slice(0, MAX_HISTORY))
-  }
-
-  const clearHistory = () => saveHistory([])
-
-  const handleSearch = async (rawUsername: string) => {
+  const handleSearch = (rawUsername: string) => {
     const username = rawUsername.trim()
     if (!username) {
       setError('Please enter a username')
-      setErrorType('unknown')
       return
     }
-
-    setLoading(true)
     setError('')
-    setErrorType(null)
-    setUser(null)
-    setRepos([])
-    setContributions(null)
-    setEngagement(null)
-    setProductivity(null)
-    setLanguageFilter([])
-    setSelectedRepo(null)
-
-    try {
-      const data = await fetchUserData(username)
-
-      if (data.error) {
-        setError(data.error)
-        setErrorType(data.errorType || 'unknown')
-      } else {
-        setUser(data.user)
-        setRepos(data.repos)
-        setContributions(data.contributions)
-        setEngagement(data.engagement)
-        setProductivity(data.productivity)
-        addToHistory(username)
-      }
-    } catch (err: unknown) {
-      const error = err as AxiosError<{ error: string; errorType?: ErrorType }>
-      setError(error.response?.data?.error || 'Failed to fetch user data')
-      setErrorType(error.response?.data?.errorType || 'unknown')
-    } finally {
-      setLoading(false)
-    }
+    router.push(`/${encodeURIComponent(username)}`)
   }
+
+  const clearHistory = () => setHistory(clearStoredHistory())
 
   const handleCompare = async (rawA: string, rawB: string) => {
     const usernameA = rawA.trim()
@@ -171,56 +88,33 @@ export default function Home() {
   const switchMode = (next: Mode) => {
     setMode(next)
     setError('')
-    setErrorType(null)
     setCompareError('')
   }
-
-  // Language counts across ALL repos — always available, used for filter pills
-  const languageCounts = useMemo(() => aggregateLanguagesByCount(repos), [repos])
-
-  // Byte-accurate distribution when available (GraphQL path), otherwise fall
-  // back to repo-count based percentages so the chart still renders.
-  const byteDistribution = useMemo(() => aggregateLanguagesByBytes(repos), [repos])
-  const usingByteData = useMemo(() => hasByteLanguageData(repos), [repos])
-
-  const pieData = useMemo(() => {
-    if (usingByteData) return byteDistribution
-    return languageCounts.map(({ name, count }) => ({ name, value: count }))
-  }, [usingByteData, byteDistribution, languageCounts])
-
-  const displayedRepos = useMemo(() => {
-    let filtered = repos
-    if (languageFilter.length > 0) {
-      filtered = repos.filter((repo) => repo.language && languageFilter.includes(repo.language))
-    }
-
-    const sorted = [...filtered]
-    if (sortBy === 'stars') {
-      sorted.sort((a, b) => b.stargazers_count - a.stargazers_count)
-    } else if (sortBy === 'forks') {
-      sorted.sort((a, b) => b.forks_count - a.forks_count)
-    } else {
-      sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    }
-    return sorted
-  }, [repos, sortBy, languageFilter])
-
-  const errorStyles: Record<ErrorType, string> = {
-    not_found: 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-    rate_limited:
-      'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-500 text-amber-600 dark:text-amber-400',
-    unknown: 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-  }
-
-  const hasExtendedData = contributions !== null && engagement !== null && productivity !== null
 
   return (
     <>
       <Head>
         <title>GitHub User Analyzer</title>
-        <meta name="description" content="Analyze GitHub users and view their repositories" />
+        <meta name="description" content={SITE_DESCRIPTION} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="GitHub User Analyzer" />
+        <meta property="og:title" content="GitHub User Analyzer" />
+        <meta property="og:description" content={SITE_DESCRIPTION} />
+        <meta property="og:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="GitHub User Analyzer" />
+        <meta property="og:url" content={baseUrl || '/'} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="GitHub User Analyzer" />
+        <meta name="twitter:description" content={SITE_DESCRIPTION} />
+        <meta name="twitter:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -269,117 +163,19 @@ export default function Home() {
 
             {mode === 'search' ? (
               <>
-                {/* Search Bar */}
-                <SearchBar onSearch={handleSearch} loading={loading} />
+                {/* Search Bar — submitting navigates to /[username] */}
+                <SearchBar onSearch={handleSearch} loading={false} />
                 <SearchHistory history={history} onSelect={handleSearch} onClear={clearHistory} />
 
-                {/* Error Message */}
+                {/* Error Message (validation) */}
                 {error && (
-                  <div
-                    className={`mt-6 max-w-2xl mx-auto p-4 border rounded-lg ${errorStyles[errorType || 'unknown']}`}
-                  >
+                  <div className="mt-6 max-w-2xl mx-auto p-4 border rounded-lg bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400">
                     {error}
                   </div>
                 )}
 
-                {/* Loading */}
-                {loading && (
-                  <div className="mt-12">
-                    <LoadingSkeleton />
-                  </div>
-                )}
-
-                {/* User Profile */}
-                {user && !loading && (
-                  <>
-                    <UserCard user={user} />
-
-                    {/* AI Insights + Export & Share — at the top for quick access */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                      <AiInsightPanel
-                        user={user}
-                        repos={repos}
-                        totalContributions={contributions?.totalContributions ?? null}
-                        productivity={productivity}
-                      />
-                      <ExportPanel
-                        userData={{ user, repos, contributions, engagement, productivity }}
-                      />
-                    </div>
-
-                    {/* Charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                      <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
-                      {contributions ? (
-                        <ActivityHeatmap data={contributions} />
-                      ) : (
-                        <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
-                          <p className="text-gray-500 dark:text-gray-400 text-sm">
-                            Activity heatmap unavailable. This requires a GITHUB_TOKEN to be configured on
-                            the server.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Engagement, productivity, achievements — all need the GraphQL token path */}
-                    {hasExtendedData ? (
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                        <EngagementStats data={engagement} />
-                        <ProductivityPanel data={productivity} />
-                        <AchievementsPanel
-                          totalContributions={contributions.totalContributions}
-                          currentStreak={productivity.currentStreak}
-                          totalPullRequests={engagement.totalPullRequestContributions}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">
-                          Engagement, productivity, and achievement stats require a GITHUB_TOKEN to be
-                          configured on the server.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Repositories */}
-                    <div className="mt-12">
-                      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                        Top Repositories
-                      </h2>
-
-                      {repos.length > 0 ? (
-                        <>
-                          <SortFilterBar
-                            sortBy={sortBy}
-                            onSortChange={setSortBy}
-                            languages={languageCounts}
-                            activeLanguages={languageFilter}
-                            onLanguagesChange={setLanguageFilter}
-                          />
-                          {displayedRepos.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                              {displayedRepos.map((repo) => (
-                                <RepositoryCard
-                                  key={repo.name}
-                                  repo={repo}
-                                  onClick={() => setSelectedRepo(repo)}
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-gray-500 dark:text-gray-400">No repositories match this filter</p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-gray-500 dark:text-gray-400">No repositories found</p>
-                      )}
-                    </div>
-                  </>
-                )}
-
                 {/* Initial State Message */}
-                {!user && !loading && !error && (
+                {!error && (
                   <div className="text-center mt-12 text-gray-500 dark:text-gray-400">
                     <p className="text-lg">Search for a GitHub user to get started</p>
                   </div>
@@ -420,10 +216,10 @@ export default function Home() {
 
         <Footer />
       </div>
-
-      {selectedRepo && user && (
-        <RepoReadmeModal repo={selectedRepo} owner={user.login} onClose={() => setSelectedRepo(null)} />
-      )}
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async ({ req }) => {
+  return { props: { baseUrl: resolveBaseUrl(req) } }
 }

@@ -6,6 +6,7 @@ import type {
   Repository,
   ContributionsData,
   EngagementStats,
+  RateLimitInfo,
 } from '@/types/github'
 import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCached, setCached } from '@/lib/cache'
@@ -33,6 +34,17 @@ interface GraphQLRepoNode {
   closedIssues: { totalCount: number }
   licenseInfo: { spdxId: string | null } | null
   languages: { edges: GraphQLLanguageEdge[] } | null
+}
+
+interface GraphQLPinnedRepoNode {
+  name: string
+  description: string | null
+  url: string
+  stargazerCount: number
+  forkCount: number
+  updatedAt: string
+  primaryLanguage: { name: string } | null
+  owner: { login: string } | null
 }
 
 interface GraphQLContributionDay {
@@ -68,10 +80,18 @@ interface GraphQLUserResponse {
     totalCount: number
     nodes: GraphQLRepoNode[]
   }
+  pinnedItems: {
+    nodes: GraphQLPinnedRepoNode[]
+  }
 }
 
 const GRAPHQL_QUERY = `
   query($username: String!) {
+    rateLimit {
+      limit
+      remaining
+      resetAt
+    }
     user(login: $username) {
       login
       name
@@ -123,6 +143,20 @@ const GRAPHQL_QUERY = `
           }
         }
       }
+      pinnedItems(first: 6, types: [REPOSITORY]) {
+        nodes {
+          ... on Repository {
+            name
+            description
+            url
+            stargazerCount
+            forkCount
+            updatedAt
+            primaryLanguage { name }
+            owner { login }
+          }
+        }
+      }
     }
   }
 `
@@ -144,6 +178,19 @@ function mapGraphQLRepo(node: GraphQLRepoNode): Repository {
       name: edge.node.name,
       bytes: edge.size,
     })),
+  }
+}
+
+function mapGraphQLPinnedRepo(node: GraphQLPinnedRepoNode): Repository {
+  return {
+    name: node.name,
+    description: node.description || '',
+    html_url: node.url,
+    stargazers_count: node.stargazerCount,
+    forks_count: node.forkCount,
+    language: node.primaryLanguage?.name || '',
+    updated_at: node.updatedAt,
+    owner_login: node.owner?.login,
   }
 }
 
@@ -171,6 +218,8 @@ async function fetchViaGraphQL(username: string): Promise<{
   repos: Repository[]
   contributions: ContributionsData
   engagement: EngagementStats
+  pinnedRepos: Repository[]
+  rateLimit: RateLimitInfo | undefined
 }> {
   const response = await axios.post(
     'https://api.github.com/graphql',
@@ -198,6 +247,9 @@ async function fetchViaGraphQL(username: string): Promise<{
   }
 
   const repos = (userNode.repositories.nodes || []).map(mapGraphQLRepo)
+  const pinnedRepos = (userNode.pinnedItems?.nodes || [])
+    .filter((node) => node && node.name)
+    .map(mapGraphQLPinnedRepo)
   const user = mapGraphQLUser(userNode)
 
   const calendar = userNode.contributionsCollection.contributionCalendar
@@ -219,7 +271,94 @@ async function fetchViaGraphQL(username: string): Promise<{
       userNode.contributionsCollection.totalPullRequestReviewContributions,
   }
 
-  return { user, repos, contributions, engagement }
+  const rateLimitNode = response.data?.data?.rateLimit as
+    | { limit?: number; remaining?: number; resetAt?: string }
+    | null
+    | undefined
+  const rateLimit: RateLimitInfo | undefined =
+    rateLimitNode &&
+    typeof rateLimitNode.limit === 'number' &&
+    typeof rateLimitNode.remaining === 'number'
+      ? {
+          limit: rateLimitNode.limit,
+          remaining: rateLimitNode.remaining,
+          resetAt: rateLimitNode.resetAt,
+        }
+      : undefined
+
+  return { user, repos, contributions, engagement, pinnedRepos, rateLimit }
+}
+
+/**
+ * Reads GitHub's rate-limit values from REST response headers
+ * (`x-ratelimit-limit` / `-remaining` / `-reset`) and shapes them like the
+ * GraphQL `rateLimit` field. Returns `undefined` when the headers are absent.
+ */
+function parseRestRateLimit(headers: Record<string, unknown>): RateLimitInfo | undefined {
+  const limit = Number(headers['x-ratelimit-limit'])
+  const remaining = Number(headers['x-ratelimit-remaining'])
+  const reset = Number(headers['x-ratelimit-reset'])
+  if (!Number.isFinite(limit) || !Number.isFinite(remaining)) {
+    return undefined
+  }
+  return {
+    limit,
+    remaining,
+    resetAt: Number.isFinite(reset) ? new Date(reset * 1000).toISOString() : undefined,
+  }
+}
+
+/**
+ * Returns whichever snapshot reports the lower remaining quota. The REST
+ * fallback fires two requests in parallel, each decrementing the budget, so the
+ * badge should reflect the most-drained (safest) value rather than over-report.
+ */
+function pickLowerRateLimit(
+  a: RateLimitInfo | undefined,
+  b: RateLimitInfo | undefined
+): RateLimitInfo | undefined {
+  if (!a) return b
+  if (!b) return a
+  return a.remaining <= b.remaining ? a : b
+}
+
+/**
+ * Fetches a fresh rate-limit snapshot from GitHub's dedicated `/rate_limit`
+ * endpoint, which does not itself consume quota. Picks the bucket matching the
+ * path the app uses (GraphQL when a token is configured, otherwise REST core)
+ * and returns `undefined` if it can't be read. Used on cache hits so the badge
+ * stays current without re-fetching the whole profile.
+ */
+async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
+  try {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github.v3+json',
+    }
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+    }
+    // Best-effort only: a short timeout ensures a stalled GitHub request can't
+    // block the otherwise-fast cached profile response.
+    const response = await axios.get('https://api.github.com/rate_limit', {
+      headers,
+      timeout: 2000,
+    })
+    const resources = response.data?.resources as
+      | Record<string, { limit?: number; remaining?: number; reset?: number }>
+      | undefined
+    const bucket = process.env.GITHUB_TOKEN ? resources?.graphql : resources?.core
+    if (!bucket || typeof bucket.limit !== 'number' || typeof bucket.remaining !== 'number') {
+      return undefined
+    }
+    return {
+      limit: bucket.limit,
+      remaining: bucket.remaining,
+      resetAt:
+        typeof bucket.reset === 'number' ? new Date(bucket.reset * 1000).toISOString() : undefined,
+    }
+  } catch {
+    return undefined
+  }
 }
 
 export default async function handler(
@@ -243,7 +382,10 @@ export default async function handler(
   const cacheKey = `github-profile:${username.toLowerCase()}`
   const cached = getCached<UserData>(cacheKey)
   if (cached) {
-    return res.status(200).json(cached)
+    // Rate-limit quota is deliberately not cached (it would go stale), so fetch
+    // a fresh snapshot and merge it in to keep the badge live on cache hits.
+    const rateLimit = await fetchRateLimitSnapshot()
+    return res.status(200).json({ ...cached, rateLimit })
   }
 
   // Preferred path: one GraphQL call gets profile + engagement + contribution
@@ -251,12 +393,14 @@ export default async function handler(
   // GraphQL always requires auth, so this only runs when a token is configured.
   if (process.env.GITHUB_TOKEN) {
     try {
-      const { user, repos, contributions, engagement } = await fetchViaGraphQL(username)
+      const { user, repos, contributions, engagement, pinnedRepos, rateLimit } = await fetchViaGraphQL(username)
       const productivity = computeProductivityStats(contributions.weeks)
-      const result: UserData = { user, repos, contributions, engagement, productivity }
+      const result: UserData = { user, repos, contributions, engagement, productivity, pinnedRepos }
 
+      // Cache the profile WITHOUT the volatile rate-limit value; return the
+      // fresh snapshot from this request to the client.
       setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
-      return res.status(200).json(result)
+      return res.status(200).json({ ...result, rateLimit })
     } catch (err) {
       if (err instanceof GraphQLNotFoundError) {
         return res.status(404).json({
@@ -298,10 +442,17 @@ export default async function handler(
       contributions: null,
       engagement: null,
       productivity: null,
+      pinnedRepos: [],
     }
 
+    // Both REST calls decrement the quota in parallel; keep the lower remaining
+    // so the badge can't over-report. Cache without it; return it fresh.
+    const rateLimit = pickLowerRateLimit(
+      parseRestRateLimit(userResponse.headers as unknown as Record<string, unknown>),
+      parseRestRateLimit(reposResponse.headers as unknown as Record<string, unknown>)
+    )
     setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
-    return res.status(200).json(result)
+    return res.status(200).json({ ...result, rateLimit })
   } catch (err: unknown) {
     const error = err as AxiosError
 

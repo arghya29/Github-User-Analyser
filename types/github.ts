@@ -28,6 +28,7 @@ export interface Repository {
   closed_issues_count?: number
   license?: string | null
   languages?: LanguageBytes[]
+  owner_login?: string
 }
 
 export interface LanguageBytes {
@@ -65,12 +66,20 @@ export interface ProductivityStats {
   monthlyTotals: { month: string; count: number }[]
 }
 
+export interface RateLimitInfo {
+  limit: number
+  remaining: number
+  resetAt?: string
+}
+
 export interface UserData {
   user: GitHubUser
   repos: Repository[]
   contributions: ContributionsData | null
   engagement: EngagementStats | null
   productivity: ProductivityStats | null
+  pinnedRepos?: Repository[]
+  rateLimit?: RateLimitInfo
   error?: string
   errorType?: 'not_found' | 'rate_limited' | 'unknown'
 }
