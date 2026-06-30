@@ -71,6 +71,7 @@ export interface UserData {
   contributions: ContributionsData | null
   engagement: EngagementStats | null
   productivity: ProductivityStats | null
+  pinnedRepos?: Repository[]
   error?: string
   errorType?: 'not_found' | 'rate_limited' | 'unknown'
 }

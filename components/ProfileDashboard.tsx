@@ -10,6 +10,7 @@ import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
 import ExportPanel from '@/components/ExportPanel'
 import RepoReadmeModal from '@/components/RepoReadmeModal'
+import PinnedRepos from '@/components/PinnedRepos'
 import type { Repository, SortOption, UserData } from '@/types/github'
 import {
   aggregateLanguagesByBytes,
@@ -28,7 +29,7 @@ interface ProfileDashboardProps {
  * /[username] route so both render identically.
  */
 export default function ProfileDashboard({ data }: ProfileDashboardProps) {
-  const { user, repos, contributions, engagement, productivity } = data
+  const { user, repos, contributions, engagement, productivity, pinnedRepos } = data
 
   const [sortBy, setSortBy] = useState<SortOption>('stars')
   const [languageFilter, setLanguageFilter] = useState<string[]>([])
@@ -113,6 +114,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
           </p>
         </div>
       )}
+
+      {/* Pinned repositories — the user's curated showcase, above Top Repositories */}
+      {pinnedRepos && <PinnedRepos repos={pinnedRepos} onRepoClick={setSelectedRepo} />}
 
       {/* Repositories */}
       <div className="mt-12">

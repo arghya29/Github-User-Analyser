@@ -35,6 +35,16 @@ interface GraphQLRepoNode {
   languages: { edges: GraphQLLanguageEdge[] } | null
 }
 
+interface GraphQLPinnedRepoNode {
+  name: string
+  description: string | null
+  url: string
+  stargazerCount: number
+  forkCount: number
+  updatedAt: string
+  primaryLanguage: { name: string } | null
+}
+
 interface GraphQLContributionDay {
   contributionCount: number
   date: string
@@ -67,6 +77,9 @@ interface GraphQLUserResponse {
   repositories: {
     totalCount: number
     nodes: GraphQLRepoNode[]
+  }
+  pinnedItems: {
+    nodes: GraphQLPinnedRepoNode[]
   }
 }
 
@@ -123,6 +136,19 @@ const GRAPHQL_QUERY = `
           }
         }
       }
+      pinnedItems(first: 6, types: [REPOSITORY]) {
+        nodes {
+          ... on Repository {
+            name
+            description
+            url
+            stargazerCount
+            forkCount
+            updatedAt
+            primaryLanguage { name }
+          }
+        }
+      }
     }
   }
 `
@@ -144,6 +170,18 @@ function mapGraphQLRepo(node: GraphQLRepoNode): Repository {
       name: edge.node.name,
       bytes: edge.size,
     })),
+  }
+}
+
+function mapGraphQLPinnedRepo(node: GraphQLPinnedRepoNode): Repository {
+  return {
+    name: node.name,
+    description: node.description || '',
+    html_url: node.url,
+    stargazers_count: node.stargazerCount,
+    forks_count: node.forkCount,
+    language: node.primaryLanguage?.name || '',
+    updated_at: node.updatedAt,
   }
 }
 
@@ -171,6 +209,7 @@ async function fetchViaGraphQL(username: string): Promise<{
   repos: Repository[]
   contributions: ContributionsData
   engagement: EngagementStats
+  pinnedRepos: Repository[]
 }> {
   const response = await axios.post(
     'https://api.github.com/graphql',
@@ -198,6 +237,9 @@ async function fetchViaGraphQL(username: string): Promise<{
   }
 
   const repos = (userNode.repositories.nodes || []).map(mapGraphQLRepo)
+  const pinnedRepos = (userNode.pinnedItems?.nodes || [])
+    .filter((node) => node && node.name)
+    .map(mapGraphQLPinnedRepo)
   const user = mapGraphQLUser(userNode)
 
   const calendar = userNode.contributionsCollection.contributionCalendar
@@ -219,7 +261,7 @@ async function fetchViaGraphQL(username: string): Promise<{
       userNode.contributionsCollection.totalPullRequestReviewContributions,
   }
 
-  return { user, repos, contributions, engagement }
+  return { user, repos, contributions, engagement, pinnedRepos }
 }
 
 export default async function handler(
@@ -251,9 +293,9 @@ export default async function handler(
   // GraphQL always requires auth, so this only runs when a token is configured.
   if (process.env.GITHUB_TOKEN) {
     try {
-      const { user, repos, contributions, engagement } = await fetchViaGraphQL(username)
+      const { user, repos, contributions, engagement, pinnedRepos } = await fetchViaGraphQL(username)
       const productivity = computeProductivityStats(contributions.weeks)
-      const result: UserData = { user, repos, contributions, engagement, productivity }
+      const result: UserData = { user, repos, contributions, engagement, productivity, pinnedRepos }
 
       setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
       return res.status(200).json(result)
@@ -298,6 +340,7 @@ export default async function handler(
       contributions: null,
       engagement: null,
       productivity: null,
+      pinnedRepos: [],
     }
 
     setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
