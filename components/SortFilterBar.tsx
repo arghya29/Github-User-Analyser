@@ -8,6 +8,8 @@ interface SortFilterBarProps {
   languages: { name: string; count: number }[]
   activeLanguages: string[]
   onLanguagesChange: (languages: string[]) => void
+  repoQuery: string
+  onRepoQueryChange: (query: string) => void
 }
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -22,6 +24,8 @@ export default function SortFilterBar({
   languages,
   activeLanguages,
   onLanguagesChange,
+  repoQuery,
+  onRepoQueryChange,
 }: SortFilterBarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -64,6 +68,41 @@ export default function SortFilterBar({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+          <label htmlFor="repo-search" className="sr-only">Search repositories by name</label>
+          <div className="relative w-full sm:w-auto">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
+            <input
+              id="repo-search"
+              type="search"
+              value={repoQuery}
+              onChange={(e) => onRepoQueryChange(e.target.value)}
+              placeholder="Search repositories…"
+              aria-label="Search repositories by name"
+              className="w-full sm:w-56 pl-9 pr-9 py-2.5 sm:py-2 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all [&::-webkit-search-cancel-button]:appearance-none"
+            />
+            {repoQuery && (
+              <button
+                type="button"
+                onClick={() => onRepoQueryChange('')}
+                aria-label="Clear repository search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label htmlFor="sort-select" className="sr-only">Sort repositories</label>
           <select
