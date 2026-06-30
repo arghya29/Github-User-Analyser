@@ -28,6 +28,7 @@ export interface Repository {
   closed_issues_count?: number
   license?: string | null
   languages?: LanguageBytes[]
+  owner_login?: string
 }
 
 export interface LanguageBytes {
@@ -71,6 +72,7 @@ export interface UserData {
   contributions: ContributionsData | null
   engagement: EngagementStats | null
   productivity: ProductivityStats | null
+  pinnedRepos?: Repository[]
   error?: string
   errorType?: 'not_found' | 'rate_limited' | 'unknown'
 }

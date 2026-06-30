@@ -10,6 +10,7 @@ import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
 import ExportPanel from '@/components/ExportPanel'
 import RepoReadmeModal from '@/components/RepoReadmeModal'
+import PinnedRepos from '@/components/PinnedRepos'
 import type { Repository, SortOption, UserData } from '@/types/github'
 import {
   aggregateLanguagesByBytes,
@@ -28,7 +29,7 @@ interface ProfileDashboardProps {
  * /[username] route so both render identically.
  */
 export default function ProfileDashboard({ data }: ProfileDashboardProps) {
-  const { user, repos, contributions, engagement, productivity } = data
+  const { user, repos, contributions, engagement, productivity, pinnedRepos } = data
 
   const [sortBy, setSortBy] = useState<SortOption>('stars')
   const [languageFilter, setLanguageFilter] = useState<string[]>([])
@@ -114,6 +115,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
         </div>
       )}
 
+      {/* Pinned repositories — the user's curated showcase, above Top Repositories */}
+      {pinnedRepos && <PinnedRepos repos={pinnedRepos} onRepoClick={setSelectedRepo} />}
+
       {/* Repositories */}
       <div className="mt-12">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Top Repositories</h2>
@@ -149,7 +153,7 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       {selectedRepo && (
         <RepoReadmeModal
           repo={selectedRepo}
-          owner={user.login}
+          owner={selectedRepo.owner_login ?? user.login}
           onClose={() => setSelectedRepo(null)}
         />
       )}
