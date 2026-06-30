@@ -52,7 +52,17 @@ export default function RateLimitBadge({ rateLimit }: RateLimitBadgeProps) {
         API {remaining.toLocaleString()} / {limit.toLocaleString()}
       </span>
       {resetText && (
-        <span className="text-gray-400 dark:text-gray-500 hidden sm:inline">· resets {resetText}</span>
+        <>
+          {/* Announced to assistive tech at every breakpoint (the visible copy
+              below is hidden under sm), so the reset time never lives in title alone. */}
+          <span className="sr-only">, resets {resetText}</span>
+          <span
+            aria-hidden="true"
+            className="text-gray-400 dark:text-gray-500 hidden sm:inline"
+          >
+            · resets {resetText}
+          </span>
+        </>
       )}
     </div>
   )
