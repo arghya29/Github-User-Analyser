@@ -14,7 +14,7 @@ import type { UserData } from '@/types/github'
 
 type Mode = 'search' | 'compare'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
 const SITE_DESCRIPTION = 'Analyze GitHub users and view their repositories'
 
 export default function Home() {
