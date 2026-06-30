@@ -11,6 +11,7 @@ interface RepositoryCardProps {
 export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   const [showActionBox, setShowActionBox] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   const lastUpdated = new Date(repo.updated_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -20,7 +21,17 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
   const langColor = getLanguageColorClass(repo.language)
 
-  const closeModal = useCallback(() => setShowActionBox(false), [])
+  const openModal = useCallback(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null
+    setShowActionBox(true)
+  }, [])
+
+  const closeModal = useCallback(() => {
+    setShowActionBox(false)
+    if (previousFocusRef.current) {
+      previousFocusRef.current.focus()
+    }
+  }, [])
 
   useEffect(() => {
     if (!showActionBox) return
@@ -62,13 +73,13 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
     <>
       <div
         className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
-        onClick={() => setShowActionBox(true)}
+        onClick={openModal}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
             e.preventDefault()
-            setShowActionBox(true)
+            openModal()
           }
         }}
       >
