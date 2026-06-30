@@ -6,6 +6,7 @@ import type {
   Repository,
   ContributionsData,
   EngagementStats,
+  RateLimitInfo,
 } from '@/types/github'
 import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCached, setCached } from '@/lib/cache'
@@ -86,6 +87,11 @@ interface GraphQLUserResponse {
 
 const GRAPHQL_QUERY = `
   query($username: String!) {
+    rateLimit {
+      limit
+      remaining
+      resetAt
+    }
     user(login: $username) {
       login
       name
@@ -213,6 +219,7 @@ async function fetchViaGraphQL(username: string): Promise<{
   contributions: ContributionsData
   engagement: EngagementStats
   pinnedRepos: Repository[]
+  rateLimit: RateLimitInfo | undefined
 }> {
   const response = await axios.post(
     'https://api.github.com/graphql',
@@ -264,7 +271,36 @@ async function fetchViaGraphQL(username: string): Promise<{
       userNode.contributionsCollection.totalPullRequestReviewContributions,
   }
 
-  return { user, repos, contributions, engagement, pinnedRepos }
+  const rateLimitNode = response.data?.data?.rateLimit as
+    | { limit?: number; remaining?: number; resetAt?: string }
+    | null
+    | undefined
+  const rateLimit: RateLimitInfo | undefined =
+    rateLimitNode &&
+    typeof rateLimitNode.limit === 'number' &&
+    typeof rateLimitNode.remaining === 'number'
+      ? {
+          limit: rateLimitNode.limit,
+          remaining: rateLimitNode.remaining,
+          resetAt: rateLimitNode.resetAt,
+        }
+      : undefined
+
+  return { user, repos, contributions, engagement, pinnedRepos, rateLimit }
+}
+
+function parseRestRateLimit(headers: Record<string, unknown>): RateLimitInfo | undefined {
+  const limit = Number(headers['x-ratelimit-limit'])
+  const remaining = Number(headers['x-ratelimit-remaining'])
+  const reset = Number(headers['x-ratelimit-reset'])
+  if (!Number.isFinite(limit) || !Number.isFinite(remaining)) {
+    return undefined
+  }
+  return {
+    limit,
+    remaining,
+    resetAt: Number.isFinite(reset) ? new Date(reset * 1000).toISOString() : undefined,
+  }
 }
 
 export default async function handler(
@@ -296,9 +332,9 @@ export default async function handler(
   // GraphQL always requires auth, so this only runs when a token is configured.
   if (process.env.GITHUB_TOKEN) {
     try {
-      const { user, repos, contributions, engagement, pinnedRepos } = await fetchViaGraphQL(username)
+      const { user, repos, contributions, engagement, pinnedRepos, rateLimit } = await fetchViaGraphQL(username)
       const productivity = computeProductivityStats(contributions.weeks)
-      const result: UserData = { user, repos, contributions, engagement, productivity, pinnedRepos }
+      const result: UserData = { user, repos, contributions, engagement, productivity, pinnedRepos, rateLimit }
 
       setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
       return res.status(200).json(result)
@@ -344,6 +380,7 @@ export default async function handler(
       engagement: null,
       productivity: null,
       pinnedRepos: [],
+      rateLimit: parseRestRateLimit(reposResponse.headers as unknown as Record<string, unknown>),
     }
 
     setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
