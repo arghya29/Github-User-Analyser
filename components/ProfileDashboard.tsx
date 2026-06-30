@@ -10,6 +10,7 @@ import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
 import ExportPanel from '@/components/ExportPanel'
 import RepoReadmeModal from '@/components/RepoReadmeModal'
+import RateLimitBadge from '@/components/RateLimitBadge'
 import PinnedRepos from '@/components/PinnedRepos'
 import type { Repository, SortOption, UserData } from '@/types/github'
 import {
@@ -29,7 +30,7 @@ interface ProfileDashboardProps {
  * /[username] route so both render identically.
  */
 export default function ProfileDashboard({ data }: ProfileDashboardProps) {
-  const { user, repos, contributions, engagement, productivity, pinnedRepos } = data
+  const { user, repos, contributions, engagement, productivity, pinnedRepos, rateLimit } = data
 
   const [sortBy, setSortBy] = useState<SortOption>('stars')
   const [languageFilter, setLanguageFilter] = useState<string[]>([])
@@ -78,6 +79,11 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
 
   return (
     <>
+      {/* Fixed-height slot so the badge appearing/disappearing never shifts the
+          dashboard layout. */}
+      <div className="flex justify-end mb-3 min-h-[1.75rem]">
+        {rateLimit && <RateLimitBadge rateLimit={rateLimit} />}
+      </div>
       <UserCard user={user} />
 
       {/* AI Insights + Export & Share — at the top for quick access */}

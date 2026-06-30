@@ -66,6 +66,12 @@ export interface ProductivityStats {
   monthlyTotals: { month: string; count: number }[]
 }
 
+export interface RateLimitInfo {
+  limit: number
+  remaining: number
+  resetAt?: string
+}
+
 export interface UserData {
   user: GitHubUser
   repos: Repository[]
@@ -73,6 +79,7 @@ export interface UserData {
   engagement: EngagementStats | null
   productivity: ProductivityStats | null
   pinnedRepos?: Repository[]
+  rateLimit?: RateLimitInfo
   error?: string
   errorType?: 'not_found' | 'rate_limited' | 'unknown'
 }
