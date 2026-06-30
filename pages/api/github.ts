@@ -337,7 +337,12 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
     if (process.env.GITHUB_TOKEN) {
       headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
     }
-    const response = await axios.get('https://api.github.com/rate_limit', { headers })
+    // Best-effort only: a short timeout ensures a stalled GitHub request can't
+    // block the otherwise-fast cached profile response.
+    const response = await axios.get('https://api.github.com/rate_limit', {
+      headers,
+      timeout: 2000,
+    })
     const resources = response.data?.resources as
       | Record<string, { limit?: number; remaining?: number; reset?: number }>
       | undefined
