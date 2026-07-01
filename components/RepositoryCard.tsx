@@ -11,6 +11,7 @@ interface RepositoryCardProps {
 export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
   const [showActionBox, setShowActionBox] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   const lastUpdated = new Date(repo.updated_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -20,7 +21,17 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
   const langColor = getLanguageColorClass(repo.language)
 
-  const closeModal = useCallback(() => setShowActionBox(false), [])
+  const openModal = useCallback((trigger?: HTMLElement | null) => {
+    previousFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    setShowActionBox(true)
+  }, [])
+
+  const closeModal = useCallback(() => {
+    setShowActionBox(false)
+    if (previousFocusRef.current) {
+      previousFocusRef.current.focus()
+    }
+  }, [])
 
   useEffect(() => {
     if (!showActionBox) return
@@ -60,17 +71,10 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
   return (
     <>
-      <div
-        className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
-        onClick={() => setShowActionBox(true)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
-            e.preventDefault()
-            setShowActionBox(true)
-          }
-        }}
+      <button
+        type="button"
+        className="w-full text-left bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer block"
+        onClick={(e) => openModal(e.currentTarget)}
       >
         {/* Repo Name */}
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -124,21 +128,21 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
           )}
           <div className="ml-auto text-xs">Updated {lastUpdated}</div>
         </div>
-      </div>
+      </button>
 
       {/* Action box modal */}
       {showActionBox && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={closeModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
         >
           <div
             ref={dialogRef}
             className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl w-full max-w-sm p-6"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
           >
             <h3
               id={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
