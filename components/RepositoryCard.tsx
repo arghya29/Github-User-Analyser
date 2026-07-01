@@ -21,8 +21,8 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
   const langColor = getLanguageColorClass(repo.language)
 
-  const openModal = useCallback(() => {
-    previousFocusRef.current = document.activeElement as HTMLElement | null
+  const openModal = useCallback((trigger?: HTMLElement | null) => {
+    previousFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
     setShowActionBox(true)
   }, [])
 
@@ -73,13 +73,13 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
     <>
       <div
         className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
-        onClick={openModal}
+        onClick={(e) => openModal(e.currentTarget)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
             e.preventDefault()
-            openModal()
+            openModal(e.currentTarget)
           }
         }}
       >
