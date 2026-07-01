@@ -71,17 +71,10 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
 
   return (
     <>
-      <div
-        className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+      <button
+        type="button"
+        className="w-full text-left bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer block"
         onClick={(e) => openModal(e.currentTarget)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
-            e.preventDefault()
-            openModal(e.currentTarget)
-          }
-        }}
       >
         {/* Repo Name */}
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -135,7 +128,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
           )}
           <div className="ml-auto text-xs">Updated {lastUpdated}</div>
         </div>
-      </div>
+      </button>
 
       {/* Action box modal */}
       {showActionBox && (
