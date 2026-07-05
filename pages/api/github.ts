@@ -10,6 +10,7 @@ import type {
 } from '@/types/github'
 import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCached, setCached } from '@/lib/cache'
+import { sanitizeUsername } from '@/lib/securitySanitizer'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -365,9 +366,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<UserData>
 ) {
-  const { username } = req.query
+  const { username: rawUsername } = req.query
 
-  if (!username || typeof username !== 'string') {
+  if (!rawUsername || typeof rawUsername !== 'string') {
     return res.status(400).json({
       user: {} as GitHubUser,
       repos: [],
@@ -375,6 +376,21 @@ export default async function handler(
       engagement: null,
       productivity: null,
       error: 'Username is required',
+      errorType: 'unknown',
+    })
+  }
+
+  let username: string
+  try {
+    username = sanitizeUsername(rawUsername)
+  } catch {
+    return res.status(400).json({
+      user: {} as GitHubUser,
+      repos: [],
+      contributions: null,
+      engagement: null,
+      productivity: null,
+      error: 'Invalid username format.',
       errorType: 'unknown',
     })
   }
@@ -468,15 +484,17 @@ export default async function handler(
       })
     }
 
-    if (error.response?.status === 403) {
-      return res.status(403).json({
+    if (error.response?.status === 403 || error.response?.status === 429) {
+      const rateLimit = parseRestRateLimit(error.response.headers as unknown as Record<string, unknown>)
+      return res.status(error.response?.status || 403).json({
         user: {} as GitHubUser,
         repos: [],
         contributions: null,
         engagement: null,
         productivity: null,
-        error: 'GitHub API rate limit reached. Please try again in a few minutes.',
+        error: 'GitHub API rate limit reached. Please try again later or add GITHUB_TOKEN.',
         errorType: 'rate_limited',
+        rateLimit,
       })
     }
 

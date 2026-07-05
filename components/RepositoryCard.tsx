@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
-import HealthScoreBadge from '@/components/HealthScoreBadge'
+import RepoHealthAnalysisPanel from '@/components/RepoHealthAnalysisPanel'
 
 interface RepositoryCardProps {
   repo: Repository
@@ -165,9 +165,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
                 📖 Preview README
               </button>
 
-              <div className="w-full">
-                <HealthScoreBadge repo={repo} />
-              </div>
+              <RepoHealthAnalysisPanel repo={repo} />
 
               <a
                 href={repo.html_url}

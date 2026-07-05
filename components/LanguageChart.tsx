@@ -1,16 +1,13 @@
 import { useState, useId } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { getLanguageColor } from '@/lib/languageColors'
+import CustomChartContainer from './charts/CustomChartContainer'
 
 interface LanguageChartProps {
   data: { name: string; value: number }[]
   mode?: 'bytes' | 'count'
 }
 
-// How many languages to show in the single legend row before the rest
-// collapse behind a "see more" toggle. Kept low (4) because the chart sits in
-// a half-width grid column on desktop and a narrow viewport on mobile, so more
-// than ~4 language names cannot fit on one line without clipping.
 const MAX_INLINE_LANGUAGES = 4
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,22 +31,21 @@ function valueLabel(value: number, mode: 'bytes' | 'count'): string {
 export default function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
   const [showAll, setShowAll] = useState(false)
   const panelId = useId()
+
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">No language data available</p>
-      </div>
+      <CustomChartContainer title="Language Distribution" isEmpty={true} emptyMessage="No language data available.">
+        <div />
+      </CustomChartContainer>
     )
   }
 
-  // Guarantee descending order by usage regardless of how the caller sorted it.
   const sorted = [...data].sort((a, b) => b.value - a.value)
   const inline = sorted.slice(0, MAX_INLINE_LANGUAGES)
   const overflowCount = sorted.length - inline.length
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Language Distribution</h3>
+    <CustomChartContainer title="Language Distribution" height="auto">
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -73,7 +69,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
         </ResponsiveContainer>
       </div>
 
-      {/* Single-row legend (descending). Extra languages collapse behind "see more". */}
+      {/* Single-row legend */}
       <div className="flex items-center gap-2 mt-2">
         <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
           {inline.map((entry) => (
@@ -102,7 +98,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
         )}
       </div>
 
-      {/* Expanded box listing every language, sorted descending. */}
+      {/* Expanded box */}
       {showAll && overflowCount > 0 && (
         <div id={panelId} className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
           <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -122,6 +118,6 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
           </div>
         </div>
       )}
-    </div>
+    </CustomChartContainer>
   )
 }

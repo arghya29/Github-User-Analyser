@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { type AxiosError } from 'axios'
 import { getCached, setCached } from '@/lib/cache'
+import { sanitizeUsername, sanitizeRepoName } from '@/lib/securitySanitizer'
 
 interface ReadmeResponse {
   content: string | null
@@ -13,10 +14,19 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ReadmeResponse>
 ) {
-  const { owner, repo } = req.query
+  const { owner: rawOwner, repo: rawRepo } = req.query
 
-  if (!owner || !repo || typeof owner !== 'string' || typeof repo !== 'string') {
+  if (!rawOwner || !rawRepo || typeof rawOwner !== 'string' || typeof rawRepo !== 'string') {
     return res.status(400).json({ content: null, error: 'owner and repo are required' })
+  }
+
+  let owner: string
+  let repo: string
+  try {
+    owner = sanitizeUsername(rawOwner)
+    repo = sanitizeRepoName(rawRepo)
+  } catch {
+    return res.status(400).json({ content: null, error: 'Invalid owner or repository name query format.' })
   }
 
   const cacheKey = `readme:${owner}/${repo}`

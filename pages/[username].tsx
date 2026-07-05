@@ -9,6 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import Footer from '@/components/Footer'
 import ProfileDashboard from '@/components/ProfileDashboard'
+import RateLimitBanner from '@/components/RateLimitBanner'
 import { fetchUserData } from '@/lib/github'
 import { recordSearch } from '@/lib/searchHistory'
 import type { UserData } from '@/types/github'
@@ -132,11 +133,20 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
             )}
 
             {!loading && error && (
-              <div
-                className={`mt-6 max-w-2xl mx-auto p-4 border rounded-lg ${errorStyles[errorType]}`}
-              >
-                {error}
-              </div>
+              errorType === 'rate_limited' ? (
+                <RateLimitBanner
+                  resetAt={data?.rateLimit?.resetAt}
+                  onRetry={() => {
+                    router.replace(router.asPath)
+                  }}
+                />
+              ) : (
+                <div
+                  className={`mt-6 max-w-2xl mx-auto p-4 border rounded-lg ${errorStyles[errorType]}`}
+                >
+                  {error}
+                </div>
+              )
             )}
 
             {!loading && data && <ProfileDashboard data={data} />}

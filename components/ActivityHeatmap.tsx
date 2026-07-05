@@ -1,4 +1,5 @@
 import type { ContributionsData } from '@/types/github'
+import CustomChartContainer from './charts/CustomChartContainer'
 
 interface ActivityHeatmapProps {
   data: ContributionsData
@@ -45,10 +46,9 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   })
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity</h3>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+    <CustomChartContainer title="Activity Heatmap" height="auto">
+      <div className="flex justify-between items-center -mt-2 mb-3">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
           {totalContributions.toLocaleString()} contributions in the last year
         </span>
       </div>
@@ -89,6 +89,6 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         ))}
         <span>More</span>
       </div>
-    </div>
+    </CustomChartContainer>
   )
 }
