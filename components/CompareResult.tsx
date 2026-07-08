@@ -87,21 +87,21 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-8 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-8 gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-4 sm:p-8 max-w-3xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+        <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-start">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={userA.user.avatar_url}
             alt={userA.user.login}
-            className="w-12 h-12 rounded-full border-2 border-blue-500 shrink-0"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-blue-500 shrink-0"
           />
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userA.user.login}
           </span>
         </div>
         <span className="text-gray-400 dark:text-gray-500 font-bold shrink-0">VS</span>
-        <div className="flex items-center gap-3 min-w-0 justify-end">
+        <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-end">
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userB.user.login}
           </span>
@@ -109,7 +109,7 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
           <img
             src={userB.user.avatar_url}
             alt={userB.user.login}
-            className="w-12 h-12 rounded-full border-2 border-purple-500 shrink-0"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-purple-500 shrink-0"
           />
         </div>
       </div>

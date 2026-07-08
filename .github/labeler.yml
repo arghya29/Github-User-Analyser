@@ -1,0 +1,30 @@
+# Pull Request Labeler configuration
+# Automatically labels PRs based on file paths.
+
+# Frontend / Components changes
+frontend:
+  - 'components/**/*'
+  - 'styles/**/*'
+  - 'pages/**/*.tsx'
+
+# API changes
+api:
+  - 'pages/api/**/*'
+
+# Utility libraries
+lib:
+  - 'lib/**/*'
+  - 'types/**/*'
+
+# CI workflows
+ci:
+  - '.github/workflows/**/*'
+  - '.github/**/*.yml'
+
+# Documentation modifications
+documentation:
+  - 'README.md'
+  - 'CONTRIBUTING.md'
+  - 'docs/**/*'
+  - 'SECURITY.md'
+  - 'CODE_OF_CONDUCT.md'

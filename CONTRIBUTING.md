@@ -50,29 +50,31 @@ cd github-user-analyzer
 npm install
 ```
 
-3. Create a new branch:
+3. Create a new branch. Ensure branch names follow: `fix/`, `enhancement/`, `docs/`, or `refactor/` prefixes.
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
-4. Start the dev server:
+4. Set up environment tokens following our [API Token Setup Guide](docs/API_SETUP.md).
+
+5. Start the dev server:
 ```bash
 npm run dev
 ```
 
-5. Make your changes and test thoroughly
+6. Make your changes and test thoroughly. Validate code formatting with `npm run lint`.
 
-6. Commit with a clear message:
+7. Commit with a clear message:
 ```bash
 git commit -m "Add brief description of changes"
 ```
 
-7. Push to your fork:
+8. Push to your fork:
 ```bash
 git push origin feature/your-feature-name
 ```
 
-8. Create a Pull Request on GitHub
+9. Create a Pull Request on GitHub against our `dev` branch.
 
 ## Styleguides
 

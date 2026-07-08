@@ -95,6 +95,14 @@ GEMINI_API_KEY=your_gemini_api_key
 - **`GITHUB_TOKEN`** *(recommended)* — a free [GitHub personal access token](https://github.com/settings/tokens) (classic, no scopes needed) raises your rate limit from 60 to 5,000 requests/hour and unlocks the GraphQL-powered features: engagement stats, productivity panel, achievements, activity heatmap, and byte-accurate language distribution. Without it, the app still works with basic profile and repo data.
 - **`GEMINI_API_KEY`** *(optional)* — a free key from [Google AI Studio](https://aistudio.google.com/app/apikey), needed only for the AI Insights (bio generator / Roast or Toast) feature.
 
+## Documentation & Guides
+
+To help you get started and understand the project internals, please refer to the following documents in our `docs` folder:
+
+- 📊 **[API Token Setup Guide](docs/API_SETUP.md)** — Step-by-step instructions on setting up GitHub Personal Access Tokens and local environment variables.
+- 📐 **[Architecture Overview](docs/ARCHITECTURE.md)** — Comprehensive architecture diagrams and system breakdown detailing API routes, pages, and context providers.
+- 📈 **[Metrics & Achievements Logic](docs/METRICS.md)** — Detailed formulas and calculations for achievements levels, streaks, and repository health indicators.
+
 ## Usage
 
 1. Enter a GitHub username and search, or pick one from your recent history

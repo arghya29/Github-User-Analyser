@@ -12,6 +12,8 @@ import ExportPanel from '@/components/ExportPanel'
 import RepoReadmeModal from '@/components/RepoReadmeModal'
 import RateLimitBadge from '@/components/RateLimitBadge'
 import PinnedRepos from '@/components/PinnedRepos'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import ErrorFallback from '@/components/ErrorFallback'
 import type { Repository, SortOption, UserData } from '@/types/github'
 import {
   aggregateLanguagesByBytes,
@@ -88,20 +90,28 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
 
       {/* AI Insights + Export & Share — at the top for quick access */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-        <AiInsightPanel
-          user={user}
-          repos={repos}
-          totalContributions={contributions?.totalContributions ?? null}
-          productivity={productivity}
-        />
-        <ExportPanel userData={{ user, repos, contributions, engagement, productivity }} />
+        <ErrorBoundary fallback={ErrorFallback}>
+          <AiInsightPanel
+            user={user}
+            repos={repos}
+            totalContributions={contributions?.totalContributions ?? null}
+            productivity={productivity}
+          />
+        </ErrorBoundary>
+        <ErrorBoundary fallback={ErrorFallback}>
+          <ExportPanel userData={{ user, repos, contributions, engagement, productivity }} />
+        </ErrorBoundary>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
+        <ErrorBoundary fallback={ErrorFallback}>
+          <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
+        </ErrorBoundary>
         {contributions ? (
-          <ActivityHeatmap data={contributions} />
+          <ErrorBoundary fallback={ErrorFallback}>
+            <ActivityHeatmap data={contributions} />
+          </ErrorBoundary>
         ) : (
           <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
             <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -115,13 +125,19 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       {/* Engagement, productivity, achievements — all need the GraphQL token path */}
       {contributions !== null && engagement !== null && productivity !== null ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          <EngagementStats data={engagement} />
-          <ProductivityPanel data={productivity} />
-          <AchievementsPanel
-            totalContributions={contributions.totalContributions}
-            currentStreak={productivity.currentStreak}
-            totalPullRequests={engagement.totalPullRequestContributions}
-          />
+          <ErrorBoundary fallback={ErrorFallback}>
+            <EngagementStats data={engagement} />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={ErrorFallback}>
+            <ProductivityPanel data={productivity} />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={ErrorFallback}>
+            <AchievementsPanel
+              totalContributions={contributions.totalContributions}
+              currentStreak={productivity.currentStreak}
+              totalPullRequests={engagement.totalPullRequestContributions}
+            />
+          </ErrorBoundary>
         </div>
       ) : (
         <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">

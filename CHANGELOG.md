@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Mobile-responsive navigation component (MobileNav) with bottom sheet drawer and backdrop blur
+- Custom responsive hooks (useMediaQuery, useBreakpoint, useIsMobile, useIsTablet, useIsDesktop)
+- Touch-friendly interaction improvements (tap highlight removal, min touch targets on mobile, font-size adjustment)
+- Custom scrollbar styling for WebKit browsers
+- Reduced motion support with prefers-reduced-motion media query
+- Enhanced SearchBar with auto-focus, trim-on-submit, and active scale feedback
+- Responsive CompareResult layout with mobile-optimized avatar sizes
+- Fixed broken repository owner links in Footer (your-username -> arghya29)
+- Progressive Web App (PWA) support with service worker for offline caching
+- Web manifest (manifest.json) for installable app experience
+- Service worker (sw.js) with static asset caching and cache-first strategy
+- InstallPrompt component for native app installation on supported browsers
+- PWA meta tags (theme-color, apple-mobile-web-app, apple-touch-icon)
+- Service worker and analytics route tracking in _app.tsx
+- Install button in Footer for manual PWA trigger
+- IndexedDB-based persistent cache for cross-session data retention
+- Offline contribution queue with localStorage-backed pending syncs
+- Hybrid in-memory + IndexedDB caching via getCachedWithFallback
+- Cache statistics reporting for debugging and monitoring
 - GitHub User Analyzer project initialization
 - GitHub API integration for user data fetching
 - Search functionality to find GitHub users
@@ -70,5 +89,5 @@ When contributing, please follow these guidelines when updating this changelog:
 
 ## Links
 
-- [Latest Release](https://github.com/YOUR-USERNAME/github-user-analyzer/releases)
-- [Unreleased Changes](https://github.com/YOUR-USERNAME/github-user-analyzer/compare/main...develop)
+- [Latest Release](https://github.com/arghya29/Github-User-Analyser/releases)
+- [Unreleased Changes](https://github.com/arghya29/Github-User-Analyser/compare/main...dev)
