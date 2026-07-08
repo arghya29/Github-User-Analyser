@@ -2,8 +2,17 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { getCached, setCached } from '@/lib/cache'
 import { computeCurrentStreak } from '@/lib/contributionStats'
+import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 
 const BADGE_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour — badges are embedded in READMEs so cache aggressively
+const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 min — don't re-hit GitHub for known-missing usernames
+
+// Badges are embedded in READMEs and are the most automation-exposed route, so a
+// per-IP limiter (shared with the other metered routes) protects the single
+// app-wide GitHub token from being exhausted by a script hitting many usernames.
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX = 60
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
 
 interface BadgeData {
   name: string
@@ -154,13 +163,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).send('username is required')
   }
 
+  const retryAfter = rateLimiter.check(getClientIp(req))
+  if (retryAfter !== null) {
+    res.setHeader('Retry-After', String(retryAfter))
+    return res.status(429).send(`Too many requests \u2014 please wait ${retryAfter}s and try again`)
+  }
+
   const cacheKey = `badge:${username.toLowerCase()}`
+  const notFoundKey = `badge:404:${username.toLowerCase()}`
   let data = getCached<BadgeData>(cacheKey)
 
   if (!data) {
+    // Short-circuit known-missing usernames so repeated requests for the same
+    // invalid user don't keep hitting GitHub.
+    if (getCached<boolean>(notFoundKey)) {
+      return res.status(404).send('User not found')
+    }
     try {
       const fetched = await fetchBadgeData(username)
       if (!fetched) {
+        setCached(notFoundKey, true, NEGATIVE_CACHE_TTL_MS)
         return res.status(404).send('User not found')
       }
       data = fetched

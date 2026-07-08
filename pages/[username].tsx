@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { resolveBaseUrl } from '@/lib/siteUrl'
 import { useRouter } from 'next/router'
@@ -10,20 +10,10 @@ import LoadingSkeleton from '@/components/LoadingSkeleton'
 import Footer from '@/components/Footer'
 import ProfileDashboard from '@/components/ProfileDashboard'
 import RateLimitBanner from '@/components/RateLimitBanner'
+import ErrorState, { type ErrorType } from '@/components/ErrorState'
 import { fetchUserData } from '@/lib/github'
 import { recordSearch } from '@/lib/searchHistory'
 import type { UserData } from '@/types/github'
-
-type ErrorType = 'not_found' | 'rate_limited' | 'unknown'
-
-const errorStyles: Record<ErrorType, string> = {
-  not_found:
-    'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-  rate_limited:
-    'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-500 text-amber-600 dark:text-amber-400',
-  unknown:
-    'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-}
 
 interface OgMeta {
   title: string
@@ -45,6 +35,7 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<ErrorType>('unknown')
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     if (!router.isReady) return
@@ -74,8 +65,15 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
       .catch((err: unknown) => {
         if (cancelled) return
         const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
-        setError(axiosError.response?.data?.error || 'Failed to fetch user data')
-        setErrorType(axiosError.response?.data?.errorType || 'unknown')
+        if (axiosError.response) {
+          // The server responded with an error payload.
+          setError(axiosError.response.data?.error || 'Failed to fetch user data')
+          setErrorType(axiosError.response.data?.errorType || 'unknown')
+        } else {
+          // No response at all → a connectivity/network failure.
+          setError('We couldn’t reach GitHub. Check your internet connection and try again.')
+          setErrorType('network')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -84,7 +82,9 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
     return () => {
       cancelled = true
     }
-  }, [router.isReady, username])
+  }, [router.isReady, username, retryCount])
+
+  const handleRetry = useCallback(() => setRetryCount((count) => count + 1), [])
 
   return (
     <>
@@ -136,16 +136,14 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
               errorType === 'rate_limited' ? (
                 <RateLimitBanner
                   resetAt={data?.rateLimit?.resetAt}
-                  onRetry={() => {
-                    router.replace(router.asPath)
-                  }}
+                  onRetry={handleRetry}
                 />
               ) : (
-                <div
-                  className={`mt-6 max-w-2xl mx-auto p-4 border rounded-lg ${errorStyles[errorType]}`}
-                >
-                  {error}
-                </div>
+                <ErrorState
+                  errorType={errorType}
+                  message={error}
+                  onRetry={errorType === 'not_found' ? undefined : handleRetry}
+                />
               )
             )}
 

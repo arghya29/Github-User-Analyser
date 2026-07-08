@@ -18,6 +18,19 @@ function resolveImageSrc(src: string | undefined, owner: string, repoName: strin
   return `https://raw.githubusercontent.com/${owner}/${repoName}/HEAD/${cleanPath}`
 }
 
+function resolveLinkHref(href: string | undefined, owner: string, repoName: string): string | undefined {
+  if (!href) return href
+  // Leave absolute URLs (any scheme: http(s), mailto:, tel:, …), protocol-relative
+  // URLs, and in-page anchors (#section) untouched. Everything else is a relative
+  // link to a file in the repo — resolve it to GitHub's blob view so it doesn't
+  // navigate within the analyzer app (which 404s) when clicked.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('#') || href.startsWith('//')) {
+    return href
+  }
+  const cleanPath = href.replace(/^\.?\//, '')
+  return `https://github.com/${owner}/${repoName}/blob/HEAD/${cleanPath}`
+}
+
 export default function RepoReadmeModal({ repo, owner, onClose }: RepoReadmeModalProps) {
   const [content, setContent] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -110,11 +123,12 @@ export default function RepoReadmeModal({ repo, owner, onClose }: RepoReadmeModa
                   p: ({ ...props }: any) => (
                     <p className="text-gray-700 dark:text-gray-300 mb-3 leading-relaxed" {...props} />
                   ),
-                  a: ({ ...props }: any) => (
+                  a: ({ href, ...props }: any) => (
                     <a
                       className="text-blue-600 dark:text-blue-400 hover:underline"
                       target="_blank"
                       rel="noopener noreferrer"
+                      href={resolveLinkHref(href, owner, repo.name)}
                       {...props}
                     />
                   ),

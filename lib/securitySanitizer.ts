@@ -34,3 +34,19 @@ export function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
 }
+
+/**
+ * Escape a value for safe inclusion in a CSV cell.
+ *
+ * Guards against CSV/spreadsheet formula injection (CWE-1236): a cell whose
+ * value begins with `=`, `+`, `-`, `@`, a tab, or a carriage return is executed
+ * as a formula when opened in Excel/Google Sheets. Such values are prefixed with
+ * a single quote so they are treated as text. The value is then wrapped in
+ * double quotes and embedded quotes are doubled, so commas, quotes, and newlines
+ * cannot break the row structure.
+ */
+export function escapeCsvCell(value: unknown): string {
+  const str = value === null || value === undefined ? '' : String(value)
+  const guarded = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str
+  return `"${guarded.replace(/"/g, '""')}"`
+}

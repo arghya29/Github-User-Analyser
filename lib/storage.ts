@@ -7,6 +7,17 @@ const DB_NAME = 'gh-analyzer-cache'
 const DB_VERSION = 1
 const STORE_NAME = 'api-cache'
 
+// IndexedDB is a browser-only API. This module is imported by the server-side
+// cache tier (lib/cache.ts → pages/api/github.ts), where `indexedDB` is
+// undefined (Node serverless runtime). Without this guard, every server-side
+// cache miss calls `indexedDB.open` and throws `ReferenceError: indexedDB is
+// not defined`, which the try/catch blocks below silently swallow on the hot
+// path. Short-circuiting here keeps the persistence tier a clean no-op on the
+// server (the in-memory tier still works) instead of throwing per miss.
+function isIndexedDbAvailable(): boolean {
+  return typeof indexedDB !== 'undefined'
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
@@ -22,6 +33,7 @@ function openDb(): Promise<IDBDatabase> {
 }
 
 export async function persistToIndexedDB<T>(key: string, value: T, ttlMs: number): Promise<void> {
+  if (!isIndexedDbAvailable()) return
   try {
     const db = await openDb()
     const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -39,6 +51,7 @@ export async function persistToIndexedDB<T>(key: string, value: T, ttlMs: number
 }
 
 export async function readFromIndexedDB<T>(key: string): Promise<T | null> {
+  if (!isIndexedDbAvailable()) return null
   try {
     const db = await openDb()
     const tx = db.transaction(STORE_NAME, 'readonly')
@@ -62,6 +75,7 @@ export async function readFromIndexedDB<T>(key: string): Promise<T | null> {
 }
 
 async function removeFromIndexedDB(key: string): Promise<void> {
+  if (!isIndexedDbAvailable()) return
   try {
     const db = await openDb()
     const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -74,6 +88,7 @@ async function removeFromIndexedDB(key: string): Promise<void> {
 }
 
 export async function clearIndexedDBCache(): Promise<void> {
+  if (!isIndexedDbAvailable()) return
   try {
     const db = await openDb()
     const tx = db.transaction(STORE_NAME, 'readwrite')

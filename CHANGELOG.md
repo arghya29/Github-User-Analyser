@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Content Security Policy (CSP) headers via Next.js middleware for XSS prevention
+- Security headers (HSTS, X-Content-Type-Options, X-Frame-Options, Permissions-Policy, Referrer-Policy)
+- Input validation library (lib/validation.ts) for sanitizing GitHub usernames and repo names
+- Enhanced rate limiter with per-path granularity and remaining quota query
+- Server-side security headers via next.config.js (poweredByHeader disabled, etags enabled)
+- API route input sanitization for /api/github endpoint
+- Cache-Control: no-store for all API routes
 - Mobile-responsive navigation component (MobileNav) with bottom sheet drawer and backdrop blur
 - Custom responsive hooks (useMediaQuery, useBreakpoint, useIsMobile, useIsTablet, useIsDesktop)
 - Touch-friendly interaction improvements (tap highlight removal, min touch targets on mobile, font-size adjustment)

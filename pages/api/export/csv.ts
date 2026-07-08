@@ -1,33 +1,81 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { Repository } from '@/types/github'
+import { sanitizeUsername, escapeCsvCell } from '@/lib/securitySanitizer'
+import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
+
+// Align with the other export/AI routes: a per-IP limiter on this metered route.
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX = 20
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  try {
-    const { user, repos } = req.body
+  const retryAfter = rateLimiter.check(getClientIp(req))
+  if (retryAfter !== null) {
+    res.setHeader('Retry-After', String(retryAfter))
+    return res
+      .status(429)
+      .json({ error: `Too many requests \u2014 please wait ${retryAfter}s and try again` })
+  }
 
-    if (!user || !repos) {
-      return res.status(400).json({ error: 'Missing profile parameters' })
+  try {
+    const { user, repos } = (req.body ?? {}) as {
+      user?: { login?: unknown }
+      repos?: unknown
     }
 
-    const headers = ['Repository Name', 'Language', 'Stars', 'Forks', 'Open Issues', 'Created At', 'URL']
+    // Validate body shape rather than trusting arbitrary input.
+    if (
+      typeof user !== 'object' ||
+      user === null ||
+      typeof user.login !== 'string' ||
+      !Array.isArray(repos)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid request body: expected { user: { login }, repos: [] }' })
+    }
+
+    // Validate the login before it enters the Content-Disposition header. If it
+    // isn't a well-formed GitHub username, fall back to a safe fixed filename
+    // (prevents header injection and malformed downloads).
+    let filename = 'repositories.csv'
+    try {
+      filename = `${sanitizeUsername(user.login)}-repositories.csv`
+    } catch {
+      // keep the safe fallback
+    }
+
+    const headers = [
+      'Repository Name',
+      'Language',
+      'Stars',
+      'Forks',
+      'Open Issues',
+      'Created At',
+      'URL',
+    ]
     const rows = (repos as Repository[]).map((repo) => [
-      `"${repo.name.replace(/"/g, '""')}"`,
-      `"${(repo.language || 'N/A').replace(/"/g, '""')}"`,
-      repo.stargazers_count || 0,
-      repo.forks_count || 0,
-      repo.open_issues_count || 0,
-      repo.updated_at || '',
-      `"${repo.html_url || ''}"`,
+      escapeCsvCell(repo?.name),
+      escapeCsvCell(repo?.language || 'N/A'),
+      Number(repo?.stargazers_count) || 0,
+      Number(repo?.forks_count) || 0,
+      Number(repo?.open_issues_count) || 0,
+      escapeCsvCell(repo?.updated_at || ''),
+      escapeCsvCell(repo?.html_url || ''),
     ])
 
-    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
+    const csvContent = [
+      headers.map(escapeCsvCell).join(','),
+      ...rows.map((row) => row.join(',')),
+    ].join('\n')
 
     res.setHeader('Content-Type', 'text/csv')
-    res.setHeader('Content-Disposition', `attachment; filename=${user.login}-repositories.csv`)
+    // RFC 6266: the filename is quoted (and the value is sanitized above).
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
     return res.status(200).send(csvContent)
   } catch {
     return res.status(500).json({ error: 'Failed to generate CSV export' })

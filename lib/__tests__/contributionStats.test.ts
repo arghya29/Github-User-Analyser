@@ -103,6 +103,14 @@ describe('computeProductivityStats', () => {
     expect(stats.mostProductiveDay).toBeNull()
   })
 
+  it('returns null for mostProductiveDay when every day has zero contributions', () => {
+    // A brand-new / inactive account: a full window of zero-count days must not
+    // report a bogus "most productive day" (the first day) with count 0.
+    const days = [day('2026-06-01', 0), day('2026-06-02', 0), day('2026-06-03', 0)]
+    const stats = computeProductivityStats([weekOf(days)])
+    expect(stats.mostProductiveDay).toBeNull()
+  })
+
   it('splits weekday vs weekend totals using UTC day-of-week', () => {
     // 2026-06-13 is a Saturday, 2026-06-14 a Sunday (weekend); 2026-06-15 Monday (weekday).
     const days = [day('2026-06-13', 4), day('2026-06-14', 6), day('2026-06-15', 5)]

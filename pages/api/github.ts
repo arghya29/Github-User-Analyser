@@ -86,8 +86,9 @@ interface GraphQLUserResponse {
   }
 }
 
+// FIX 1: Add $from and $to variables to the query definition and pass them to contributionsCollection
 const GRAPHQL_QUERY = `
-  query($username: String!) {
+  query($username: String!, $from: DateTime!, $to: DateTime!) {
     rateLimit {
       limit
       remaining
@@ -107,7 +108,7 @@ const GRAPHQL_QUERY = `
       url
       followers { totalCount }
       following { totalCount }
-      contributionsCollection {
+      contributionsCollection(from: $from, to: $to) {
         totalCommitContributions
         totalIssueContributions
         totalPullRequestContributions
@@ -222,9 +223,21 @@ async function fetchViaGraphQL(username: string): Promise<{
   pinnedRepos: Repository[]
   rateLimit: RateLimitInfo | undefined
 }> {
+  // FIX 2: Calculate a strict 1-year UTC window to prevent timezone drifting
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
+
   const response = await axios.post(
     'https://api.github.com/graphql',
-    { query: GRAPHQL_QUERY, variables: { username } },
+    { 
+      query: GRAPHQL_QUERY, 
+      variables: { 
+        username,
+        from: fromDate.toISOString(),
+        to: toDate.toISOString()
+      } 
+    },
     {
       headers: {
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -361,7 +374,7 @@ export default async function handler(
       contributions: null,
       engagement: null,
       productivity: null,
-      error: 'Username is required',
+      error: 'Invalid username',
       errorType: 'unknown',
     })
   }
@@ -394,6 +407,21 @@ export default async function handler(
           if (err instanceof GraphQLNotFoundError) {
             throw err
           }
+          // Non-"not found" GraphQL failures (rate-limit, transient 5xx, partial
+          // GraphQL/schema errors) previously fell through to REST silently,
+          // degrading token-backed deployments (no heatmap/engagement/productivity)
+          // with nothing in the logs. Keep the graceful REST fallback, but log
+          // with enough context to tell the causes apart.
+          const message = err instanceof Error ? err.message : String(err)
+          const kind = /rate limit|secondary rate|api rate/i.test(message)
+            ? 'rate-limit'
+            : err instanceof GraphQLOtherError
+              ? 'graphql-error'
+              : 'transient'
+          console.error(
+            `[github] GraphQL fetch failed for @${username} [${kind}]; falling back to REST:`,
+            message
+          )
         }
       }
 

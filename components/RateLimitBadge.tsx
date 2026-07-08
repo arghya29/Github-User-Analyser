@@ -52,17 +52,14 @@ export default function RateLimitBadge({ rateLimit }: RateLimitBadgeProps) {
         API {remaining.toLocaleString()} / {limit.toLocaleString()}
       </span>
       {resetText && (
-        <>
-          {/* Announced to assistive tech at every breakpoint (the visible copy
-              below is hidden under sm), so the reset time never lives in title alone. */}
-          <span className="sr-only">, resets {resetText}</span>
-          <span
-            aria-hidden="true"
-            className="text-gray-400 dark:text-gray-500 hidden sm:inline"
-          >
-            · resets {resetText}
-          </span>
-        </>
+        <span className="text-gray-400 dark:text-gray-500">
+          {/* Screen readers hear the comma at all sizes; sighted users see the dot only on sm+ */}
+          <span className="sr-only">, </span>
+          <span aria-hidden="true" className="hidden sm:inline">· </span>
+          
+          {/* Text is available to screen readers at all times, but only visible on sm+ */}
+          <span className="sr-only sm:not-sr-only">resets {resetText}</span>
+        </span>
       )}
     </div>
   )
