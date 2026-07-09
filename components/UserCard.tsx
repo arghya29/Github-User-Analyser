@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import type { GitHubUser } from '@/types/github'
+import FollowersExplorer from '@/components/FollowersExplorer'
 
 interface UserCardProps {
   user: GitHubUser
 }
 
 export default function UserCard({ user }: UserCardProps) {
+  const [showFollowers, setShowFollowers] = useState(false)
   const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -46,18 +49,26 @@ export default function UserCard({ user }: UserCardProps) {
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Repositories</div>
               </div>
-              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+              <button
+                type="button"
+                onClick={() => setShowFollowers(true)}
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.followers}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
-              </div>
-              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFollowers(true)}
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.following}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
-              </div>
+              </button>
             </div>
 
             {/* Details */}
@@ -117,6 +128,14 @@ export default function UserCard({ user }: UserCardProps) {
           </div>
         </div>
       </div>
+      {showFollowers && (
+        <FollowersExplorer
+          username={user.login}
+          followersCount={user.followers}
+          followingCount={user.following}
+          onClose={() => setShowFollowers(false)}
+        />
+      )}
     </div>
   )
 }

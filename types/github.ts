@@ -145,4 +145,11 @@ export interface SponsorInfo {
   isSponsoring: boolean
 }
 
+export interface CodeFrequency {
+  week: number
+  additions: number
+  deletions: number
+  total: number
+}
+
 export type SortOption = 'stars' | 'updated' | 'forks'

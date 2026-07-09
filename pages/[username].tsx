@@ -147,7 +147,20 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
               )
             )}
 
-            {!loading && data && <ProfileDashboard data={data} />}
+            {!loading && data && (
+              <>
+                {/* Dynamic OG tags for rich sharing when data is available */}
+                <Head>
+                  <meta property="og:title" content={`${data.user.name || data.user.login} · GitHub User Analyzer`} />
+                  <meta property="og:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s ${data.repos.length} repositories and contribution activity.`} />
+                  <meta property="og:image" content={data.user.avatar_url} />
+                  <meta name="twitter:title" content={`${data.user.name || data.user.login} · GitHub User Analyzer`} />
+                  <meta name="twitter:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s repositories.`} />
+                  <meta name="twitter:image" content={data.user.avatar_url} />
+                </Head>
+                <ProfileDashboard data={data} />
+              </>
+            )}
           </div>
         </main>
 

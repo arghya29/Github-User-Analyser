@@ -30,7 +30,8 @@ export default async function handler(
   }
 
   const cacheKey = `readme:${owner}/${repo}`
-  const cached = getCached<ReadmeResponse>(cacheKey)
+  // FIXED: Added await here
+  const cached = await getCached<ReadmeResponse>(cacheKey)
   if (cached) {
     return res.status(200).json(cached)
   }
@@ -51,7 +52,8 @@ export default async function handler(
     const decoded = Buffer.from(base64Content, 'base64').toString('utf-8')
     const result: ReadmeResponse = { content: decoded }
 
-    setCached(cacheKey, result, README_CACHE_TTL_MS)
+    // FIXED: Added await here
+    await setCached(cacheKey, result, README_CACHE_TTL_MS)
     return res.status(200).json(result)
   } catch (err: unknown) {
     const error = err as AxiosError

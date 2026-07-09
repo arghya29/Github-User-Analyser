@@ -22,10 +22,8 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmed = input.trim()
-    if (trimmed) {
-      onSearch(trimmed)
-    }
+    // Pass the input up unconditionally so the parent can trigger the validation error
+    onSearch(input)
   }
 
   return (

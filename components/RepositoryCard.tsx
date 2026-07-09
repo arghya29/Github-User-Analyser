@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
 import RepoHealthAnalysisPanel from '@/components/RepoHealthAnalysisPanel'
+import CommitActivityButton from '@/components/CommitActivityButton'
 import StarHistoryButton from '@/components/StarHistoryButton'
 
 interface RepositoryCardProps {
@@ -167,7 +168,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
               </button>
 
               <RepoHealthAnalysisPanel repo={repo} />
-
+              <CommitActivityButton repo={repo} />
               <StarHistoryButton repo={repo} />
 
               <a

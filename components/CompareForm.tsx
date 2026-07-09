@@ -38,7 +38,8 @@ export default function CompareForm({ onCompare, loading }: CompareFormProps) {
         />
         <button
           type="submit"
-          disabled={loading}
+          // FIXED: Disable the button if either input is empty or just spaces
+          disabled={loading || !userA.trim() || !userB.trim()}
           className="w-full sm:w-auto shrink-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors"
         >
           {loading ? 'Comparing...' : 'Compare'}

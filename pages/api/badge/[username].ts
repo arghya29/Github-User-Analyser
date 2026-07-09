@@ -29,12 +29,17 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   }
 
   if (process.env.GITHUB_TOKEN) {
+    // FIX: Calculate a strict 1-year UTC window to prevent timezone drifting on the badge
+    const toDate = new Date()
+    const fromDate = new Date()
+    fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
+
     const query = `
-      query($username: String!) {
+      query($username: String!, $from: DateTime!, $to: DateTime!) {
         user(login: $username) {
           name
           login
-          contributionsCollection {
+          contributionsCollection(from: $from, to: $to) {
             contributionCalendar {
               totalContributions
               weeks {
@@ -50,7 +55,14 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     `
     const response = await axios.post(
       'https://api.github.com/graphql',
-      { query, variables: { username } },
+      { 
+        query, 
+        variables: { 
+          username,
+          from: fromDate.toISOString(),
+          to: toDate.toISOString()
+        } 
+      },
       {
         headers: {
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -121,42 +133,33 @@ function buildSvg(data: BadgeData): string {
     </clipPath>
   </defs>
 
-  <!-- Background -->
   <rect width="420" height="130" rx="12" ry="12" fill="url(#bg)"/>
 
-  <!-- Top accent line -->
   <rect x="0" y="0" width="420" height="3" fill="url(#accentLine)" clip-path="url(#round)"/>
 
-  <!-- Border -->
   <rect width="420" height="130" rx="12" ry="12" fill="none" stroke="#334155" stroke-width="1.5"/>
 
-  <!-- App label -->
   <text x="20" y="26" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b" font-weight="500" letter-spacing="0.5">
     GITHUB USER ANALYZER
   </text>
 
-  <!-- Username -->
   <text x="20" y="52" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#f1f5f9" font-weight="700">
     ${safeName}
   </text>
 
-  <!-- Divider -->
   <line x1="20" y1="64" x2="400" y2="64" stroke="#334155" stroke-width="1"/>
 
-  <!-- Streak block -->
   <rect x="20" y="76" width="175" height="40" rx="8" fill="#1e293b"/>
   <path d="M48,89 C48,89 52,86 51,82 C53,84 54,87 52,90 C55,88 56,84 54,80 C57,83 58,89 56,93 C58,91 59,88 58,85 C61,89 60,96 56,100 C54,103 50,104 48,104 C44,104 40,101 40,96 C40,91 44,89 48,89 Z" fill="#f97316"/>
   <text x="62" y="94" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#f1f5f9" font-weight="700">${currentStreak}</text>
   <text x="62" y="109" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b">day streak</text>
 
-  <!-- Contributions block -->
   <rect x="210" y="76" width="190" height="40" rx="8" fill="#1e293b"/>
   <polygon points="238,89 239.8,93.6 244.7,93.8 240.9,96.9 242.1,101.7 238,99 233.9,101.7 235.1,96.9 231.3,93.8 236.2,93.6" fill="#eab308"/>
   <text x="252" y="94" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#f1f5f9" font-weight="700">${totalContributions.toLocaleString()}</text>
   <text x="252" y="109" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b">contributions this year</text>
 </svg>`
 }
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { username } = req.query
   if (!username || typeof username !== 'string') {
@@ -171,22 +174,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const cacheKey = `badge:${username.toLowerCase()}`
   const notFoundKey = `badge:404:${username.toLowerCase()}`
-  let data = getCached<BadgeData>(cacheKey)
+  
+  let data = await getCached<BadgeData>(cacheKey)
 
   if (!data) {
     // Short-circuit known-missing usernames so repeated requests for the same
     // invalid user don't keep hitting GitHub.
-    if (getCached<boolean>(notFoundKey)) {
+    
+    // FIXED: Added await here
+    if (await getCached<boolean>(notFoundKey)) {
       return res.status(404).send('User not found')
     }
     try {
       const fetched = await fetchBadgeData(username)
       if (!fetched) {
-        setCached(notFoundKey, true, NEGATIVE_CACHE_TTL_MS)
+        // FIXED: Added await here to ensure Redis finishes writing
+        await setCached(notFoundKey, true, NEGATIVE_CACHE_TTL_MS)
         return res.status(404).send('User not found')
       }
       data = fetched
-      setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
+      
+      // Added await so the cache write completes before the serverless function exits.
+      await setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
     } catch {
       return res.status(500).send('Failed to fetch GitHub data')
     }
