@@ -45,5 +45,51 @@ export const exportUserDataSchema = z.object({
     login: z.string(),
     avatar_url: z.string().url().optional(),
   }),
-  repos: z.array(z.unknown()),
+  repos: z.array(z.any()),
+  contributions: z
+    .object({
+      totalContributions: z.number(),
+      weeks: z.array(
+        z.object({
+          contributionDays: z.array(
+            z.object({ date: z.string(), count: z.number() })
+          ),
+        })
+      ),
+    })
+    .nullable()
+    .optional(),
+  engagement: z
+    .object({
+      totalCommitContributions: z.number(),
+      totalIssueContributions: z.number(),
+      totalPullRequestContributions: z.number(),
+      totalPullRequestReviewContributions: z.number(),
+    })
+    .nullable()
+    .optional(),
+  productivity: z
+    .object({
+      currentStreak: z.number(),
+      longestStreak: z.number(),
+      mostProductiveDay: z
+        .object({ date: z.string(), count: z.number() })
+        .nullable()
+        .optional(),
+      weekdayCount: z.number(),
+      weekendCount: z.number(),
+      monthlyTotals: z.array(z.object({ month: z.string(), count: z.number() })),
+    })
+    .nullable()
+    .optional(),
+  pinnedRepos: z.array(z.any()).optional(),
+  rateLimit: z
+    .object({
+      limit: z.number(),
+      remaining: z.number(),
+      resetAt: z.string().optional(),
+    })
+    .optional(),
+  error: z.string().optional(),
+  errorType: z.enum(['not_found', 'rate_limited', 'network', 'unknown']).optional(),
 })

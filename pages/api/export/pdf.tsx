@@ -464,7 +464,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.body !== undefined && req.body !== null) {
       const validated = validateRequest(res, exportUserDataSchema, req.body)
       if (validated === null) return
-      userData = validated
+      userData = validated as UserData
     }
   }
 

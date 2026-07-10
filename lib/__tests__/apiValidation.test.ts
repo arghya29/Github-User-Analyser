@@ -6,7 +6,14 @@ describe('exportUserDataSchema', () => {
     const result = exportUserDataSchema.safeParse({
       user: { login: 'octocat', avatar_url: 'https://avatars.githubusercontent.com/u/583231?v=4' },
       repos: [{ name: 'r' }],
-      productivity: { currentStreak: 3 },
+      productivity: {
+        currentStreak: 3,
+        longestStreak: 5,
+        mostProductiveDay: { date: '2026-01-01', count: 8 },
+        weekdayCount: 10,
+        weekendCount: 2,
+        monthlyTotals: [{ month: 'January', count: 12 }],
+      },
     })
     expect(result.success).toBe(true)
   })
