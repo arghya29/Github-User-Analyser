@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
+import { env } from '@/lib/env'
 
 interface StarEntry {
   date: string
@@ -21,7 +22,7 @@ export default async function handler(
     return res.status(400).json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
   }
 
-  const token = process.env.GITHUB_TOKEN
+  const token = env.GITHUB_TOKEN
 
   try {
     const response = await axios.get(

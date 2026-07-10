@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'http'
+import { env } from '@/lib/env'
 
 /**
  * Resolves the canonical base URL used to build absolute OG/Twitter URLs.
@@ -9,7 +10,7 @@ import type { IncomingMessage } from 'http'
  * is available so callers can fall back to a root-relative path.
  */
 export function resolveBaseUrl(req: IncomingMessage): string {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
+  const configuredSiteUrl = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
   if (configuredSiteUrl) return configuredSiteUrl
 
   const forwardedProto = req.headers['x-forwarded-proto']
