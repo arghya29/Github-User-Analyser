@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import type { CodeFrequency } from '@/types/github'
-import { env } from '@/lib/env'
 
 interface ErrorResponse {
   error: string
@@ -18,7 +17,7 @@ export default async function handler(
     return res.status(400).json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
   }
 
-  const token = env.GITHUB_TOKEN
+  const token = process.env.GITHUB_TOKEN
 
   try {
     const response = await axios.get(

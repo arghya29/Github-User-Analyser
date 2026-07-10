@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import type { FollowerUser } from '@/types/github'
-import { env } from '@/lib/env'
 
 interface ErrorResponse {
   error: string
@@ -19,7 +18,7 @@ export default async function handler(
   }
 
   const listType = type === 'following' ? 'following' : 'followers'
-  const token = env.GITHUB_TOKEN
+  const token = process.env.GITHUB_TOKEN
 
   try {
     const response = await axios.get(

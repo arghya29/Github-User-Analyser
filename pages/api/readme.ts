@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { type AxiosError } from 'axios'
 import { getCached, setCached } from '@/lib/cache'
 import { sanitizeUsername, sanitizeRepoName } from '@/lib/securitySanitizer'
-import { env } from '@/lib/env'
 
 interface ReadmeResponse {
   content: string | null
@@ -40,8 +39,8 @@ export default async function handler(
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
   }
-  if (env.GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
+  if (process.env.GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
   }
 
   try {

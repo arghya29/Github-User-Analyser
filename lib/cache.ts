@@ -1,10 +1,9 @@
 import { Redis } from '@upstash/redis'
-import { env } from '@/lib/env'
 
 // Initialize the Redis client. 
 // This requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in your .env file.
 // We use a fallback to null so the app doesn't crash during local dev if env vars are missing.
-const redis = env.UPSTASH_REDIS_REST_URL 
+const redis = process.env.UPSTASH_REDIS_REST_URL 
   ? Redis.fromEnv() 
   : null
 

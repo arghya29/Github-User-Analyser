@@ -1,6 +1,5 @@
 import { ImageResponse } from '@vercel/og'
 import { sanitizeUsername } from '@/lib/validation'
-import { env } from '@/lib/env'
 
 // @vercel/og requires the edge runtime.
 export const config = { runtime: 'edge' }
@@ -19,8 +18,8 @@ async function fetchUser(username: string): Promise<OgUser | null> {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'github-user-analyser',
   }
-  if (env.GITHUB_TOKEN) {
-    headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
   }
   try {
     const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, {

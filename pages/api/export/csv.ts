@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import type { Repository } from '@/types/github'
 import { sanitizeUsername, escapeCsvCell } from '@/lib/securitySanitizer'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
-import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
 
 // Align with the other export/AI routes: a per-IP limiter on this metered route.
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -23,10 +22,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const validated = validateRequest(res, exportUserDataSchema, req.body)
-    if (validated === null) return
-    const { user } = validated
-    const repos = validated.repos as Repository[]
+    const { user, repos } = (req.body ?? {}) as {
+      user?: { login?: unknown }
+      repos?: unknown
+    }
+
+    // Validate body shape rather than trusting arbitrary input.
+    if (
+      typeof user !== 'object' ||
+      user === null ||
+      typeof user.login !== 'string' ||
+      !Array.isArray(repos)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid request body: expected { user: { login }, repos: [] }' })
+    }
 
     // Validate the login before it enters the Content-Disposition header. If it
     // isn't a well-formed GitHub username, fall back to a safe fixed filename
@@ -47,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Created At',
       'URL',
     ]
-    const rows = repos.map((repo) => [
+    const rows = (repos as Repository[]).map((repo) => [
       escapeCsvCell(repo?.name),
       escapeCsvCell(repo?.language || 'N/A'),
       Number(repo?.stargazers_count) || 0,
