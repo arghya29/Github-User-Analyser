@@ -8,7 +8,7 @@ interface AiInsightPanelProps {
   productivity: ProductivityStats | null
 }
 
-type InsightType = 'bio' | 'roast'
+type InsightType = 'bio' | 'roast' | 'consistency'
 type ToneType = 'Professional' | 'Casual' | 'Tech-Heavy'
 type LengthType = 'Short' | 'Detailed'
 
@@ -52,6 +52,11 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
     const total = productivity ? productivity.weekdayCount + productivity.weekendCount : 0
     const weekdayPct = productivity && total > 0 ? Math.round((productivity.weekdayCount / total) * 100) : undefined
     const weekendPct = weekdayPct !== undefined ? 100 - weekdayPct : undefined
+    const mostProductiveDay = productivity?.mostProductiveDay
+      ? `${productivity.mostProductiveDay.date} (${productivity.mostProductiveDay.count} contributions)`
+      : undefined
+    // Tone and length apply to bio and consistency insights, not the roast.
+    const usesToneLength = type === 'bio' || type === 'consistency'
 
     try {
       const response = await fetch('/api/ai-insight', {
@@ -65,11 +70,13 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
           topRepos: buildTopRepos(repos),
           totalContributions: totalContributions ?? undefined,
           currentStreak: productivity?.currentStreak,
+          longestStreak: productivity?.longestStreak,
           weekdayPct,
           weekendPct,
-          // We only pass tone and length if we are generating a bio
-          tone: type === 'bio' ? bioTone : undefined,
-          length: type === 'bio' ? bioLength : undefined,
+          mostProductiveDay,
+          // Tone and length apply to bio and consistency insights
+          tone: usesToneLength ? bioTone : undefined,
+          length: usesToneLength ? bioLength : undefined,
         }),
       })
       const data = await response.json().catch(() => null)
@@ -155,6 +162,13 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
         >
           {loading && activeType === 'roast' ? 'Cooking...' : 'Roast or Toast'}
         </button>
+        <button
+          onClick={() => generate('consistency')}
+          disabled={loading}
+          className="px-4 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg transition-colors"
+        >
+          {loading && activeType === 'consistency' ? 'Analyzing...' : 'Consistency'}
+        </button>
       </div>
 
       {error && <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>}
@@ -162,7 +176,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
       {text && (
         <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-4">
           <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{text}</p>
-          {activeType === 'bio' && (
+          {(activeType === 'bio' || activeType === 'consistency') && (
             <button
               onClick={handleCopy}
               className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:underline"

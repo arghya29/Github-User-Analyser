@@ -1,11 +1,16 @@
 import { Redis } from '@upstash/redis'
+import { env } from '@/lib/env'
 
-// Initialize the Redis client. 
-// This requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in your .env file.
-// We use a fallback to null so the app doesn't crash during local dev if env vars are missing.
-const redis = process.env.UPSTASH_REDIS_REST_URL 
-  ? Redis.fromEnv() 
-  : null
+// Initialize the Redis client from validated env values. Gating on both the URL
+// and the token means a half-configured setup (URL set, token missing) resolves
+// to null here rather than failing at the first request.
+const redis =
+  env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: env.UPSTASH_REDIS_REST_URL,
+        token: env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null
 
 export async function getCached<T>(key: string): Promise<T | null> {
   if (!redis) return null

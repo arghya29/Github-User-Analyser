@@ -13,6 +13,7 @@ import {
 import axios from 'axios'
 import type { UserData } from '@/types/github'
 import { getCached } from '@/lib/cache'
+import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 
 // ─── Styles ─────────────────────────────────────────────────────────────
@@ -453,6 +454,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let userData: UserData | null = null
 
   if (req.method === 'POST') {
+    // Reject a malformed posted body with a clear 400 before it is used below.
+    // This gate only rejects; the userData assignment that follows is unchanged.
+    if (req.body != null && validateRequest(res, exportUserDataSchema, req.body) === null) {
+      return
+    }
     try {
       userData = req.body as UserData
     } catch {
