@@ -8,7 +8,7 @@ export default function SearchHistory({ history, onSelect, onClear }: SearchHist
   if (history.length === 0) return null
 
   return (
-    <div className="max-w-2xl mx-auto mt-3 flex items-center gap-2 flex-wrap" role="region" aria-label="Search History">
+    <div className="max-w-2xl mx-auto mt-1 flex items-center gap-2 flex-wrap" role="region" aria-label="Search History">
       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Recent:</span>
       <ul className="flex flex-wrap gap-2" role="list">
         {history.map((username) => (

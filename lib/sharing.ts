@@ -5,7 +5,7 @@ export function getShareUrl(username: string): string {
 
 export function getShareText(username: string, name?: string): string {
   const displayName = name || username
-  return `Check out ${displayName}'s GitHub profile analysis on GitHub User Analyzer!`
+  return `Check out ${displayName}'s GitHub profile analysis on GitHub User Analyser!`
 }
 
 export function shareViaTwitter(username: string, name?: string): void {

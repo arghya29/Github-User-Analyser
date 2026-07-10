@@ -17,8 +17,12 @@ export default function Document() {
                   var theme = localStorage.getItem('github-analyzer-theme');
                   if (theme === 'light') {
                     document.documentElement.classList.remove('dark');
-                  } else {
+                  } else if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
+                  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
                   }
                 } catch (e) {
                   document.documentElement.classList.add('dark');

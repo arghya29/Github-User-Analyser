@@ -18,7 +18,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
-            <p className="text-gray-900 dark:text-white font-semibold">GitHub User Analyzer</p>
+            <p className="text-gray-900 dark:text-white font-semibold">GitHub User Analyser</p>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               Search, visualize, and compare GitHub profiles.
             </p>
@@ -61,7 +61,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-100 dark:border-slate-800 mt-6 pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-          <p>&copy; {year} GitHub User Analyzer. Not affiliated with GitHub, Inc.</p>
+          <p>&copy; {year} GitHub User Analyser. Not affiliated with GitHub, Inc.</p>
           <p>Built with Next.js, TypeScript, Tailwind CSS &amp; Recharts</p>
         </div>
       </div>

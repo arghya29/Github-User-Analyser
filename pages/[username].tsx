@@ -98,13 +98,13 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
 
         {/* Open Graph */}
         <meta property="og:type" content="profile" />
-        <meta property="og:site_name" content="GitHub User Analyzer" />
+        <meta property="og:site_name" content="GitHub User Analyser" />
         <meta property="og:title" content={og.title} />
         <meta property="og:description" content={og.description} />
         <meta property="og:image" content={og.image} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="GitHub User Analyzer" />
+        <meta property="og:image:alt" content="GitHub User Analyser" />
         <meta property="og:url" content={og.url} />
 
         {/* Twitter */}
@@ -145,7 +145,7 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
                       href="/"
                       className="min-w-0 text-lg md:text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity truncate"
                     >
-                      GitHub User Analyzer
+                      GitHub User Analyser
                     </Link>
                     <Link
                       href="/"
@@ -208,10 +208,10 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
               <>
                 {/* Dynamic OG tags for rich sharing when data is available */}
                 <Head>
-                  <meta property="og:title" content={`${data.user.name || data.user.login} · GitHub User Analyzer`} />
+                  <meta property="og:title" content={`${data.user.name || data.user.login} · GitHub User Analyser`} />
                   <meta property="og:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s ${data.repos.length} repositories and contribution activity.`} />
                   <meta property="og:image" content={data.user.avatar_url} />
-                  <meta name="twitter:title" content={`${data.user.name || data.user.login} · GitHub User Analyzer`} />
+                  <meta name="twitter:title" content={`${data.user.name || data.user.login} · GitHub User Analyser`} />
                   <meta name="twitter:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s repositories.`} />
                   <meta name="twitter:image" content={data.user.avatar_url} />
                 </Head>
@@ -238,9 +238,9 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
 
   // Per-profile tags are derived from the login (already in the route), so the
   // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyzer` : 'GitHub User Analyzer'
+  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
   const description = username
-    ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyzer.`
+    ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
     : 'Analyze GitHub users and view their repositories'
 
   const og: OgMeta = {

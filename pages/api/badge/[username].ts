@@ -140,7 +140,7 @@ function buildSvg(data: BadgeData): string {
   <rect width="420" height="130" rx="12" ry="12" fill="none" stroke="#334155" stroke-width="1.5"/>
 
   <text x="20" y="26" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b" font-weight="500" letter-spacing="0.5">
-    GITHUB USER ANALYZER
+    GITHUB USER ANALYSER
   </text>
 
   <text x="20" y="52" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#f1f5f9" font-weight="700">
