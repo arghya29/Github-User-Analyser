@@ -14,6 +14,10 @@ import { sanitizeUsername } from '@/lib/securitySanitizer'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
+// Abort a hung GitHub request instead of letting it hang until the platform kills
+// the invocation, leaving the user on an indefinite loading state.
+const GITHUB_TIMEOUT_MS = 10000
+
 class GraphQLNotFoundError extends Error {}
 class GraphQLOtherError extends Error {}
 
@@ -243,6 +247,7 @@ async function fetchViaGraphQL(username: string): Promise<{
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
+      timeout: GITHUB_TIMEOUT_MS,
     }
   )
 
@@ -433,10 +438,13 @@ export default async function handler(
       }
 
       const [userResponse, reposResponse] = await Promise.all([
-        axios.get(`https://api.github.com/users/${username}`, { headers }),
+        axios.get(`https://api.github.com/users/${username}`, {
+          headers,
+          timeout: GITHUB_TIMEOUT_MS,
+        }),
         axios.get(
           `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
-          { headers }
+          { headers, timeout: GITHUB_TIMEOUT_MS }
         ),
       ])
 
@@ -462,6 +470,20 @@ export default async function handler(
         productivity: null,
         error: 'User not found',
         errorType: 'not_found',
+      })
+    }
+
+    // A timeout aborts with code ECONNABORTED and carries no response — surface it
+    // as a distinct network error rather than falling through to a generic failure.
+    if ((err as { code?: string }).code === 'ECONNABORTED') {
+      return res.status(504).json({
+        user: {} as GitHubUser,
+        repos: [],
+        contributions: null,
+        engagement: null,
+        productivity: null,
+        error: 'The request to GitHub timed out. Please try again.',
+        errorType: 'network',
       })
     }
 

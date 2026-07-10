@@ -46,7 +46,16 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
 
   return (
     <CustomChartContainer title="Language Distribution" height="auto">
-      <div className="h-64">
+      <div
+        className="h-64"
+        role="img"
+        aria-label={`Language distribution across ${sorted.length} language${
+          sorted.length === 1 ? '' : 's'
+        }. Most used: ${sorted
+          .slice(0, 3)
+          .map((d) => d.name)
+          .join(', ')}.`}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

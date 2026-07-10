@@ -81,7 +81,7 @@ export interface UserData {
   pinnedRepos?: Repository[]
   rateLimit?: RateLimitInfo
   error?: string
-  errorType?: 'not_found' | 'rate_limited' | 'unknown'
+  errorType?: 'not_found' | 'rate_limited' | 'network' | 'unknown'
 }
 
 export interface StarEntry {

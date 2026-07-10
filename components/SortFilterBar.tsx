@@ -125,10 +125,11 @@ export default function SortFilterBar({
               onClick={() => setIsOpen(!isOpen)}
               type="button"
               aria-expanded={isOpen}
+              aria-haspopup="true"
               aria-label="Filter by Language"
               aria-describedby="language-filter-value"
               aria-controls="language-filter-popup"
-              className={`flex items-center justify-between gap-3 px-4 py-2.5 sm:py-2 text-sm rounded-lg border transition-all w-full sm:w-auto min-w-[200px] ${
+              className={`flex items-center justify-between gap-3 px-4 py-2.5 sm:py-2 text-sm rounded-lg border transition-all w-full sm:w-auto min-w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 isOpen || activeLanguages.length > 0
                   ? 'bg-white dark:bg-slate-700 border-blue-500 text-gray-900 dark:text-white shadow-sm ring-1 ring-blue-500'
                   : 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500'
@@ -199,7 +200,7 @@ export default function SortFilterBar({
         <button
           onClick={() => onLanguagesChange([])}
           type="button"
-          className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg transition-all w-full sm:w-auto mt-2 sm:mt-0"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg transition-all w-full sm:w-auto mt-2 sm:mt-0 focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <svg
             className="w-4 h-4"

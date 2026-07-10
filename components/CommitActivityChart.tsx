@@ -44,30 +44,37 @@ export default function CommitActivityChart({ data, repoName }: CommitActivityCh
       <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
         📊 Commit Activity — {repoName}
       </h4>
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-          <XAxis
-            dataKey="week"
-            tickFormatter={formatWeek}
-            tick={{ fontSize: 10, fill: '#94a3b8' }}
-            interval="preserveStartEnd"
-          />
-          <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
-          <Tooltip
-            labelFormatter={(label) => formatWeek(Number(label))}
-            contentStyle={{
-              backgroundColor: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              fontSize: '12px',
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: '11px' }} />
-          <Bar dataKey="additions" fill="#22c55e" name="Additions" radius={[2, 2, 0, 0]} />
-          <Bar dataKey="deletions" fill="#ef4444" name="Deletions" radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div
+        role="img"
+        aria-label={`Weekly commit activity for ${repoName}: additions and deletions across ${chartData.length} week${
+          chartData.length === 1 ? '' : 's'
+        }.`}
+      >
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis
+              dataKey="week"
+              tickFormatter={formatWeek}
+              tick={{ fontSize: 10, fill: '#94a3b8' }}
+              interval="preserveStartEnd"
+            />
+            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
+            <Tooltip
+              labelFormatter={(label) => formatWeek(Number(label))}
+              contentStyle={{
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Legend wrapperStyle={{ fontSize: '11px' }} />
+            <Bar dataKey="additions" fill="#22c55e" name="Additions" radius={[2, 2, 0, 0]} />
+            <Bar dataKey="deletions" fill="#ef4444" name="Deletions" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

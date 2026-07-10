@@ -204,20 +204,7 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
               )
             )}
 
-            {!loading && data && (
-              <>
-                {/* Dynamic OG tags for rich sharing when data is available */}
-                <Head>
-                  <meta property="og:title" content={`${data.user.name || data.user.login} · GitHub User Analyser`} />
-                  <meta property="og:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s ${data.repos.length} repositories and contribution activity.`} />
-                  <meta property="og:image" content={data.user.avatar_url} />
-                  <meta name="twitter:title" content={`${data.user.name || data.user.login} · GitHub User Analyser`} />
-                  <meta name="twitter:description" content={data.user.bio ? `${data.user.bio.slice(0, 120)} — Analyze GitHub profiles.` : `Explore @${data.user.login}'s repositories.`} />
-                  <meta name="twitter:image" content={data.user.avatar_url} />
-                </Head>
-                <ProfileDashboard data={data} />
-              </>
-            )}
+            {!loading && data && <ProfileDashboard data={data} />}
           </div>
         </main>
 
@@ -247,7 +234,9 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
     title,
     description,
     url: baseUrl ? `${baseUrl}/${encodeURIComponent(username)}` : `/${username}`,
-    image: baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png',
+    image: baseUrl
+      ? `${baseUrl}/api/og/${encodeURIComponent(username)}`
+      : `/api/og/${encodeURIComponent(username)}`,
   }
 
   return { props: { og } }

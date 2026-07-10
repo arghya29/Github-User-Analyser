@@ -46,6 +46,38 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
     [summaries]
   )
 
+  const [filterLanguage, setFilterLanguage] = useState<string>('')
+  const [filterCategory, setFilterCategory] = useState<
+    'all' | 'missing-license' | 'no-description' | 'stale'
+  >('all')
+
+  // Languages present across the user's repos, for the drill-down dropdown.
+  const languages = useMemo(() => {
+    const set = new Set<string>()
+    for (const r of repos) if (r.language) set.add(r.language)
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [repos])
+
+  // RepoHealthSummary has no language, so join back to repos by name.
+  const languageByRepo = useMemo(() => {
+    const map = new Map<string, string | null>()
+    for (const r of repos) map.set(r.name, r.language ?? null)
+    return map
+  }, [repos])
+
+  const filteredSummaries = useMemo(() => {
+    return summaries.filter((s) => {
+      if (filterLanguage && languageByRepo.get(s.repoName) !== filterLanguage) return false
+      if (filterCategory === 'missing-license' && s.hasLicense) return false
+      if (filterCategory === 'no-description' && s.hasDescription) return false
+      if (filterCategory === 'stale' && s.isRecent) return false
+      return true
+    })
+  }, [summaries, filterLanguage, filterCategory, languageByRepo])
+
+  const isFiltered = filterLanguage !== '' || filterCategory !== 'all'
+  const visibleSummaries = isFiltered ? filteredSummaries : filteredSummaries.slice(0, 20)
+
   if (!repos.length) return null
 
   return (
@@ -135,18 +167,83 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
             )}
           </div>
 
-          {/* Full list */}
-          <div className="space-y-2">
-            {summaries.slice(0, 20).map((s) => (
-              <div key={s.repoName} className="flex items-center gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full ${getHealthBg(s.score)} shrink-0`} />
-                <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{s.repoName}</span>
-                <span className={`font-medium ${getHealthColor(s.score)}`}>{s.score}</span>
-              </div>
+          {/* Drill-down filters */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <select
+              value={filterLanguage}
+              onChange={(e) => setFilterLanguage(e.target.value)}
+              aria-label="Filter repositories by language"
+              className="text-xs rounded border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 px-2 py-1"
+            >
+              <option value="">All languages</option>
+              {languages.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            {(
+              [
+                ['all', 'All'],
+                ['missing-license', 'Missing license'],
+                ['no-description', 'No description'],
+                ['stale', 'Stale'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilterCategory(value)}
+                aria-pressed={filterCategory === value}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  filterCategory === value
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600'
+                }`}
+              >
+                {label}
+              </button>
             ))}
-            {summaries.length > 20 && (
+          </div>
+
+          {/* Filtered repo list */}
+          <div className="space-y-2">
+            {visibleSummaries.length > 0 ? (
+              visibleSummaries.map((s) => {
+                const issues: string[] = []
+                if (!s.hasLicense) issues.push('No license')
+                if (!s.hasDescription) issues.push('No description')
+                if (!s.isRecent) issues.push('Stale')
+                return (
+                  <div key={s.repoName} className="flex items-center gap-3 text-sm">
+                    <div className={`w-2 h-2 rounded-full ${getHealthBg(s.score)} shrink-0`} />
+                    <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">
+                      {s.repoName}
+                    </span>
+                    {issues.length > 0 && (
+                      <span className="hidden sm:flex gap-1">
+                        {issues.map((issue) => (
+                          <span
+                            key={issue}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-600 text-gray-500 dark:text-gray-400"
+                          >
+                            {issue}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    <span className={`font-medium ${getHealthColor(s.score)}`}>{s.score}</span>
+                  </div>
+                )
+              })
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                No repositories match this filter
+              </p>
+            )}
+            {!isFiltered && filteredSummaries.length > 20 && (
               <p className="text-xs text-gray-400 text-center pt-2">
-                +{summaries.length - 20} more repos
+                +{filteredSummaries.length - 20} more repos
               </p>
             )}
           </div>

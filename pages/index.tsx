@@ -5,6 +5,7 @@ import { resolveBaseUrl } from '@/lib/siteUrl'
 import Head from 'next/head'
 import SearchBar from '@/components/SearchBar'
 import SearchHistory from '@/components/SearchHistory'
+import Favorites from '@/components/Favorites'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
@@ -12,6 +13,7 @@ import CompareResult from '@/components/CompareResult'
 import Footer from '@/components/Footer'
 import { fetchUserData } from '@/lib/github'
 import { loadHistory, clearHistory as clearStoredHistory } from '@/lib/searchHistory'
+import { getFavorites, removeFavorite } from '@/lib/favorites'
 import type { UserData } from '@/types/github'
 
 type Mode = 'search' | 'compare'
@@ -29,6 +31,7 @@ export default function Home({ baseUrl }: HomePageProps) {
   // --- Single-user search state (search navigates to /[username]) ---
   const [error, setError] = useState('')
   const [history, setHistory] = useState<string[]>([])
+  const [favorites, setFavorites] = useState<string[]>([])
 
   // --- Compare mode state ---
   const [compareLoading, setCompareLoading] = useState(false)
@@ -39,6 +42,7 @@ export default function Home({ baseUrl }: HomePageProps) {
   // Load search history once on mount
   useEffect(() => {
     setHistory(loadHistory())
+    setFavorites(getFavorites())
   }, [])
 
   const handleSearch = (rawUsername: string) => {
@@ -52,6 +56,7 @@ export default function Home({ baseUrl }: HomePageProps) {
   }
 
   const clearHistory = () => setHistory(clearStoredHistory())
+  const handleRemoveFavorite = (username: string) => setFavorites(removeFavorite(username))
 
   const handleCompare = async (rawA: string, rawB: string) => {
     const usernameA = rawA.trim()
@@ -184,6 +189,7 @@ export default function Home({ baseUrl }: HomePageProps) {
                       <>
                         <SearchBar onSearch={handleSearch} loading={false} />
                         <SearchHistory history={history} onSelect={handleSearch} onClear={clearHistory} />
+                        <Favorites favorites={favorites} onSelect={handleSearch} onRemove={handleRemoveFavorite} />
                         {error && <div className="text-sm text-rose-200">{error}</div>}
                       </>
                     ) : (

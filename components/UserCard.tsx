@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GitHubUser } from '@/types/github'
 import FollowersExplorer from '@/components/FollowersExplorer'
+import FavoriteButton from '@/components/FavoriteButton'
 
 interface UserCardProps {
   user: GitHubUser
@@ -31,9 +32,12 @@ export default function UserCard({ user }: UserCardProps) {
           {/* User Info */}
           <div className="flex-1">
             <div className="mb-4">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                {user.name || user.login}
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {user.name || user.login}
+                </h2>
+                <FavoriteButton username={user.login} />
+              </div>
               <p className="text-blue-600 dark:text-blue-400 text-lg">@{user.login}</p>
             </div>
 
