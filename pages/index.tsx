@@ -119,10 +119,10 @@ export default function Home({ baseUrl }: HomePageProps) {
 
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800">
-          <div className="container mx-auto px-4 py-12">
+          <div className="container mx-auto px-4 pt-6 pb-12">
             {/* Header */}
-            <div className="flex items-start justify-between mb-12">
-              <div className="flex-1 text-center">
+            <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border-b border-gray-200/80 dark:border-slate-800/80 py-4 mb-12 -mx-4">
+              <div className="flex items-start justify-between container mx-auto px-4">
                 <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
                   GitHub User Analyzer
                 </h1>

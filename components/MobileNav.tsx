@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
-import Link from 'next/link'
 
 interface MobileNavProps {
   isOpen: boolean
   onClose: () => void
-  username?: string
 }
 
-export default function MobileNav({ isOpen, onClose, username }: MobileNavProps) {
+export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = ''
@@ -33,7 +31,7 @@ export default function MobileNav({ isOpen, onClose, username }: MobileNavProps)
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto">
+      <div className="fixed inset-y-0 left-0 w-full max-w-xs bg-white dark:bg-slate-800 shadow-2xl p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <span className="text-lg font-bold text-gray-900 dark:text-white">Menu</span>
           <button
@@ -49,39 +47,40 @@ export default function MobileNav({ isOpen, onClose, username }: MobileNavProps)
         </div>
 
         <nav className="space-y-3">
-          <Link
-            href="/"
+          <a
+            href="#profile"
             onClick={onClose}
             className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
           >
-            Home
-          </Link>
-          {username && (
-            <Link
-              href={`/${username}`}
-              onClick={onClose}
-              className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
-            >
-              @{username}
-            </Link>
-          )}
-          <a
-            href="https://github.com/arghya29/Github-User-Analyser"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300"
-          >
-            Source Code
+            Profile
           </a>
           <a
-            href="https://github.com/arghya29/Github-User-Analyser/issues"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#activity"
             onClick={onClose}
-            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300"
+            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
           >
-            Report Issue
+            Activity
+          </a>
+          <a
+            href="#techstack"
+            onClick={onClose}
+            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
+          >
+            Techstack
+          </a>
+          <a
+            href="#repo-health"
+            onClick={onClose}
+            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
+          >
+            Repo Health
+          </a>
+          <a
+            href="#repositories"
+            onClick={onClose}
+            className="block px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white font-medium"
+          >
+            Repositories
           </a>
         </nav>
       </div>

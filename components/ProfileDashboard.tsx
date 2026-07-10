@@ -16,7 +16,6 @@ import ActivityTimeline from '@/components/ActivityTimeline'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ErrorFallback from '@/components/ErrorFallback'
 import SponsorsDisplay from '@/components/SponsorsDisplay'
-import SharePanel from '@/components/SharePanel'
 import RepoHealthDashboard from '@/components/RepoHealthDashboard'
 import LanguageDashboard from '@/components/LanguageDashboard'
 import type { Repository, SortOption, UserData } from '@/types/github'
@@ -88,125 +87,157 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
     <>
       {/* Fixed-height slot so the badge appearing/disappearing never shifts the
           dashboard layout. */}
-      <div className="flex justify-end mb-3 min-h-[1.75rem]">
+      <div className="flex justify-end mb-0 min-h-[1.75rem]">
         {rateLimit && <RateLimitBadge rateLimit={rateLimit} />}
       </div>
-      <UserCard user={user} />
-
-      <SponsorsDisplay username={user.login} />
-
-      {/* AI Insights + Export + Share + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-12">
-        <ErrorBoundary fallback={ErrorFallback}>
-          <AiInsightPanel
-            user={user}
-            repos={repos}
-            totalContributions={contributions?.totalContributions ?? null}
-            productivity={productivity}
-          />
-        </ErrorBoundary>
-        
-        <ErrorBoundary fallback={ErrorFallback}>
-          <ExportPanel userData={{ user, repos, contributions, engagement, productivity }} />
-        </ErrorBoundary>
-
-        <ErrorBoundary fallback={ErrorFallback}>
-          <SharePanel user={user} />
-        </ErrorBoundary>
-
-        <ErrorBoundary fallback={ErrorFallback}>
-          <ActivityTimeline username={user.login} />
-        </ErrorBoundary>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <ErrorBoundary fallback={ErrorFallback}>
-          <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
-        </ErrorBoundary>
-        {contributions ? (
-          <ErrorBoundary fallback={ErrorFallback}>
-            <ActivityHeatmap data={contributions} />
-          </ErrorBoundary>
-        ) : (
-          <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Activity heatmap unavailable. This data requires server-side GraphQL access (a
-              configured GITHUB_TOKEN) or may be temporarily unavailable.
-            </p>
+      <div className="space-y-12">
+        <section id="profile" className="scroll-mt-24">
+          <div className="flex items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Profile</h2>
           </div>
-        )}
-      </div>
 
-      <ErrorBoundary fallback={ErrorFallback}>
-        <LanguageDashboard repos={repos} />
-      </ErrorBoundary>
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-6">
+            <div className="space-y-6">
+              <UserCard user={user} />
+              <SponsorsDisplay username={user.login} />
+            </div>
 
-      {/* Engagement, productivity, achievements — all need the GraphQL token path */}
-      {contributions !== null && engagement !== null && productivity !== null ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          <ErrorBoundary fallback={ErrorFallback}>
-            <EngagementStats data={engagement} />
-          </ErrorBoundary>
-          <ErrorBoundary fallback={ErrorFallback}>
-            <ProductivityPanel data={productivity} />
-          </ErrorBoundary>
-          <ErrorBoundary fallback={ErrorFallback}>
-            <AchievementsPanel
-              totalContributions={contributions.totalContributions}
-              currentStreak={productivity.currentStreak}
-              totalPullRequests={engagement.totalPullRequestContributions}
-            />
-          </ErrorBoundary>
-        </div>
-      ) : (
-        <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Engagement, productivity, and achievement stats require server-side GraphQL access (a
-            configured GITHUB_TOKEN) or are temporarily unavailable.
-          </p>
-        </div>
-      )}
+            <div className="grid grid-cols-1 gap-6">
+              <ErrorBoundary fallback={ErrorFallback}>
+                <AiInsightPanel
+                  user={user}
+                  repos={repos}
+                  totalContributions={contributions?.totalContributions ?? null}
+                  productivity={productivity}
+                />
+              </ErrorBoundary>
 
-      {/* Pinned repositories — the user's curated showcase, above Top Repositories */}
-      {pinnedRepos && <PinnedRepos repos={pinnedRepos} onRepoClick={setSelectedRepo} />}
+              <ErrorBoundary fallback={ErrorFallback}>
+                <ExportPanel userData={{ user, repos, contributions, engagement, productivity }} />
+              </ErrorBoundary>
+            </div>
+          </div>
 
-      <ErrorBoundary fallback={ErrorFallback}>
-        <RepoHealthDashboard repos={repos} />
-      </ErrorBoundary>
+          {contributions !== null && engagement !== null && productivity !== null ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              <ErrorBoundary fallback={ErrorFallback}>
+                <EngagementStats data={engagement} />
+              </ErrorBoundary>
+              <ErrorBoundary fallback={ErrorFallback}>
+                <ProductivityPanel data={productivity} />
+              </ErrorBoundary>
+              <ErrorBoundary fallback={ErrorFallback}>
+                <AchievementsPanel
+                  totalContributions={contributions.totalContributions}
+                  currentStreak={productivity.currentStreak}
+                  totalPullRequests={engagement.totalPullRequestContributions}
+                />
+              </ErrorBoundary>
+            </div>
+          ) : (
+            <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Engagement, productivity, and achievement stats require server-side GraphQL access (a
+                configured GITHUB_TOKEN) or are temporarily unavailable.
+              </p>
+            </div>
+          )}
+        </section>
 
-      {/* Repositories */}
-      <div className="mt-12">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Top Repositories</h2>
+        <section id="activity" className="scroll-mt-24">
+          <div className="flex items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Activity</h2>
+          </div>
 
-        {repos.length > 0 ? (
-          <>
-            <SortFilterBar
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              languages={languageCounts}
-              activeLanguages={languageFilter}
-              onLanguagesChange={setLanguageFilter}
-              repoQuery={repoQuery}
-              onRepoQueryChange={setRepoQuery}
-            />
-            {displayedRepos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedRepos.map((repo) => (
-                  <RepositoryCard
-                    key={repo.name}
-                    repo={repo}
-                    onClick={() => setSelectedRepo(repo)}
-                  />
-                ))}
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {contributions ? (
+              <ErrorBoundary fallback={ErrorFallback}>
+                <ActivityHeatmap data={contributions} />
+              </ErrorBoundary>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No repositories match this filter</p>
+              <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  Activity heatmap unavailable. This data requires server-side GraphQL access (a
+                  configured GITHUB_TOKEN) or may be temporarily unavailable.
+                </p>
+              </div>
             )}
-          </>
-        ) : (
-          <p className="text-gray-500 dark:text-gray-400">No repositories found</p>
-        )}
+
+            <ErrorBoundary fallback={ErrorFallback}>
+              <ActivityTimeline username={user.login} />
+            </ErrorBoundary>
+          </div>
+        </section>
+
+        <section id="techstack" className="scroll-mt-24">
+          <div className="flex items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Techstack</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ErrorBoundary fallback={ErrorFallback}>
+              <LanguageChart data={pieData} mode={usingByteData ? 'bytes' : 'count'} />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={ErrorFallback}>
+              <LanguageDashboard repos={repos} />
+            </ErrorBoundary>
+          </div>
+        </section>
+
+        <section id="repo-health" className="scroll-mt-24">
+          <div className="flex items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Repo Health</h2>
+          </div>
+
+          <ErrorBoundary fallback={ErrorFallback}>
+            <RepoHealthDashboard repos={repos} />
+          </ErrorBoundary>
+        </section>
+
+        <section id="repositories" className="scroll-mt-24">
+          <div className="flex items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Repositories</h2>
+          </div>
+
+          {pinnedRepos && (
+            <div className="mb-8">
+              <PinnedRepos repos={pinnedRepos} onRepoClick={setSelectedRepo} />
+            </div>
+          )}
+
+          <div className="mt-12">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Repositories</h3>
+
+            {repos.length > 0 ? (
+              <>
+                <SortFilterBar
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  languages={languageCounts}
+                  activeLanguages={languageFilter}
+                  onLanguagesChange={setLanguageFilter}
+                  repoQuery={repoQuery}
+                  onRepoQueryChange={setRepoQuery}
+                />
+                {displayedRepos.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {displayedRepos.map((repo) => (
+                      <RepositoryCard
+                        key={repo.name}
+                        repo={repo}
+                        onClick={() => setSelectedRepo(repo)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">No repositories match this filter</p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No repositories found</p>
+            )}
+          </div>
+        </section>
       </div>
 
       {selectedRepo && (
