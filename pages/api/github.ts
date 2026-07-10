@@ -11,6 +11,7 @@ import type {
 import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCachedWithFallback } from '@/lib/cache'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
+import { env } from '@/lib/env'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -244,7 +245,7 @@ async function fetchViaGraphQL(username: string): Promise<{
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
       timeout: GITHUB_TIMEOUT_MS,
@@ -339,8 +340,8 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github.v3+json',
     }
-    if (process.env.GITHUB_TOKEN) {
-      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+    if (env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
     }
     // Best-effort only: a short timeout ensures a stalled GitHub request can't
     // block the otherwise-fast cached profile response.
@@ -351,7 +352,7 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
     const resources = response.data?.resources as
       | Record<string, { limit?: number; remaining?: number; reset?: number }>
       | undefined
-    const bucket = process.env.GITHUB_TOKEN ? resources?.graphql : resources?.core
+    const bucket = env.GITHUB_TOKEN ? resources?.graphql : resources?.core
     if (!bucket || typeof bucket.limit !== 'number' || typeof bucket.remaining !== 'number') {
       return undefined
     }
@@ -403,7 +404,7 @@ export default async function handler(
 
   try {
     const cached = await getCachedWithFallback<UserData>(cacheKey, PROFILE_CACHE_TTL_MS, async () => {
-      if (process.env.GITHUB_TOKEN) {
+      if (env.GITHUB_TOKEN) {
         try {
           const result = await fetchViaGraphQL(username)
           const productivity = computeProductivityStats(result.contributions.weeks)
@@ -433,8 +434,8 @@ export default async function handler(
       const headers: Record<string, string> = {
         Accept: 'application/vnd.github.v3+json',
       }
-      if (process.env.GITHUB_TOKEN) {
-        headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+      if (env.GITHUB_TOKEN) {
+        headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
       }
 
       const [userResponse, reposResponse] = await Promise.all([

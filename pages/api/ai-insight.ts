@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { type AxiosError } from 'axios'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
+import { env } from '@/lib/env'
 
 // Extend the serverless function timeout to 60 seconds to allow for retries
 export const maxDuration = 60
@@ -214,7 +215,7 @@ export default async function handler(
     return res.status(405).json({ text: null, error: 'Method not allowed' })
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!env.GEMINI_API_KEY) {
     return res
       .status(503)
       .json({ text: null, error: 'AI insights are not configured on this server (missing GEMINI_API_KEY)' })
@@ -309,7 +310,7 @@ export default async function handler(
           {
             headers: {
               'Content-Type': 'application/json',
-              'x-goog-api-key': process.env.GEMINI_API_KEY,
+              'x-goog-api-key': env.GEMINI_API_KEY,
             },
           }
         )

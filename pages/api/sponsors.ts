@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import type { SponsorInfo } from '@/types/github'
+import { env } from '@/lib/env'
 
 interface ErrorResponse {
   error: string
@@ -37,7 +38,7 @@ export default async function handler(
     return res.status(400).json({ error: 'Missing username parameter', errorType: 'unknown' })
   }
 
-  const token = process.env.GITHUB_TOKEN
+  const token = env.GITHUB_TOKEN
 
   if (!token) {
     return res.status(200).json([])

@@ -13,6 +13,7 @@ import {
 import axios from 'axios'
 import type { UserData } from '@/types/github'
 import { getCached } from '@/lib/cache'
+import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 
 // ─── Styles ─────────────────────────────────────────────────────────────
@@ -213,13 +214,17 @@ function isAllowedAvatarUrl(rawUrl: unknown): rawUrl is string {
   } catch {
     return false
   }
-  return parsed.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(parsed.hostname)
+  return parsed.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(parsed.hostname.toLowerCase())
 }
 
-async function avatarToDataUrl(url: string): Promise<string | null> {
-  if (!isAllowedAvatarUrl(url)) return null
+async function avatarToDataUrl(rawUrl: unknown): Promise<string | null> {
+  if (!isAllowedAvatarUrl(rawUrl)) return null
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 })
+    const response = await axios.get(rawUrl, {
+      responseType: 'arraybuffer',
+      timeout: 5000,
+      maxRedirects: 0,
+    })
     const contentType = response.headers['content-type'] || 'image/jpeg'
     const base64 = Buffer.from(response.data as ArrayBuffer).toString('base64')
     return `data:${contentType};base64,${base64}`
@@ -453,10 +458,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let userData: UserData | null = null
 
   if (req.method === 'POST') {
-    try {
-      userData = req.body as UserData
-    } catch {
-      userData = null
+    // Validate the posted body shape rather than trusting a bare cast. An empty
+    // POST (no body) still falls through to the cache lookup below; a malformed
+    // body gets a clear 400 via the shared validator.
+    if (req.body !== undefined && req.body !== null) {
+      const validated = validateRequest(res, exportUserDataSchema, req.body)
+      if (validated === null) return
+      userData = validated as UserData
     }
   }
 

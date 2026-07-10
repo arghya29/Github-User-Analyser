@@ -3,6 +3,7 @@ import axios from 'axios'
 import { getCached, setCached } from '@/lib/cache'
 import { computeCurrentStreak } from '@/lib/contributionStats'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
+import { env } from '@/lib/env'
 
 const BADGE_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour — badges are embedded in READMEs so cache aggressively
 const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 min — don't re-hit GitHub for known-missing usernames
@@ -24,11 +25,11 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json',
   }
-  if (process.env.GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+  if (env.GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
   }
 
-  if (process.env.GITHUB_TOKEN) {
+  if (env.GITHUB_TOKEN) {
     // FIX: Calculate a strict 1-year UTC window to prevent timezone drifting on the badge
     const toDate = new Date()
     const fromDate = new Date()
@@ -65,7 +66,7 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+          Authorization: `Bearer ${env.GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
         },
       }
