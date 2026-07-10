@@ -41,6 +41,9 @@ export function validateRequest<T>(
  * opportunistically — so only the essentials are required here.
  */
 export const exportUserDataSchema = z.object({
-  user: z.object({ login: z.string() }),
+  user: z.object({
+    login: z.string(),
+    avatar_url: z.string().url().optional(),
+  }),
   repos: z.array(z.unknown()),
 })

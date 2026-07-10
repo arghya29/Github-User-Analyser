@@ -4,11 +4,17 @@ import { exportUserDataSchema, validateRequest } from '@/lib/apiValidation'
 describe('exportUserDataSchema', () => {
   it('accepts a valid user + repos, allowing extra fields', () => {
     const result = exportUserDataSchema.safeParse({
-      user: { login: 'octocat', avatar_url: 'x' },
+      user: { login: 'octocat', avatar_url: 'https://avatars.githubusercontent.com/u/583231?v=4' },
       repos: [{ name: 'r' }],
       productivity: { currentStreak: 3 },
     })
     expect(result.success).toBe(true)
+  })
+
+  it('rejects an invalid avatar_url', () => {
+    expect(
+      exportUserDataSchema.safeParse({ user: { login: 'octocat', avatar_url: 'not-a-url' }, repos: [] }).success
+    ).toBe(false)
   })
 
   it('rejects a non-string login', () => {
