@@ -13,6 +13,7 @@ import {
 import axios from 'axios'
 import type { UserData } from '@/types/github'
 import { getCached } from '@/lib/cache'
+import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 
 // ─── Styles ─────────────────────────────────────────────────────────────
@@ -453,11 +454,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let userData: UserData | null = null
 
   if (req.method === 'POST') {
-    try {
-      userData = req.body as UserData
-    } catch {
-      userData = null
+    // Validate the posted body shape rather than trusting a bare cast. An empty
+    // POST (no body) still falls through to the cache lookup below; a malformed
+    // body gets a clear 400 via the shared validator.
+    if (req.body !== undefined && req.body !== null) {
+      const validated = validateRequest(res, exportUserDataSchema, req.body)
+      if (validated === null) return
     }
+    userData = (req.body as UserData) ?? null
   }
 
   if (!userData) {
