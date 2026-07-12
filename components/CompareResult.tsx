@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { UserData } from '@/types/github'
 import { summarizeReposHealth } from '@/lib/repoHealth'
 import CompareScoreCard from './CompareScoreCard'
@@ -117,11 +118,12 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-4 sm:p-8 max-w-3xl mx-auto">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-start">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={userA.user.avatar_url}
             alt={userA.user.login}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-blue-500 shrink-0"
+            width={48}
+            height={48}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-blue-500 shrink-0 object-cover"
           />
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userA.user.login}
@@ -132,11 +134,12 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userB.user.login}
           </span>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={userB.user.avatar_url}
             alt={userB.user.login}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-purple-500 shrink-0"
+            width={48}
+            height={48}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-purple-500 shrink-0 object-cover"
           />
         </div>
       </div>

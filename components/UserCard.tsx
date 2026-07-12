@@ -1,4 +1,5 @@
 import { useState, memo } from 'react'
+import Image from 'next/image'
 import type { GitHubUser } from '@/types/github'
 import FollowersExplorer from '@/components/FollowersExplorer'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -21,11 +22,12 @@ function UserCard({ user }: UserCardProps) {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={user.avatar_url}
               alt={user.login}
-              className="w-32 h-32 rounded-full border-4 border-blue-500"
+              width={128}
+              height={128}
+              className="w-32 h-32 rounded-full border-4 border-blue-500 object-cover"
             />
           </div>
 
