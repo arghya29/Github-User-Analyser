@@ -31,7 +31,7 @@ export default function SortFilterBar({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
 
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -48,8 +48,10 @@ export default function SortFilterBar({
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
+      if (typeof document.removeEventListener === 'function') {
+        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener('keydown', handleKeyDown)
+      }
     }
   }, [])
 
