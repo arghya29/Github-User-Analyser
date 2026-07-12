@@ -8,7 +8,12 @@ import { useRouter } from 'next/router'
 import ScrollToTop from '@/components/ScrollToTop'
 
 function registerServiceWorker() {
-  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator) || process.env.NODE_ENV !== 'production') {
+  if (
+    typeof navigator === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    typeof navigator.serviceWorker?.register !== 'function' ||
+    process.env.NODE_ENV !== 'production'
+  ) {
     return
   }
 

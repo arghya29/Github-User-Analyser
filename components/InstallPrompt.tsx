@@ -6,7 +6,7 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
 
     const handler = (e: Event) => {
       e.preventDefault()
@@ -16,7 +16,11 @@ export default function InstallPrompt() {
       setShowPrompt(true)
     }
     window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    return () => {
+      if (typeof window.removeEventListener === 'function') {
+        window.removeEventListener('beforeinstallprompt', handler)
+      }
+    }
   }, [])
 
   const handleInstall = async () => {

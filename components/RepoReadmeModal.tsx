@@ -135,13 +135,17 @@ export default function RepoReadmeModal({ repo, owner, onClose }: RepoReadmeModa
   }, [owner, repo.name])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
 
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
+    return () => {
+      if (typeof window.removeEventListener === 'function') {
+        window.removeEventListener('keydown', handleEsc)
+      }
+    }
   }, [onClose])
 
   return (
