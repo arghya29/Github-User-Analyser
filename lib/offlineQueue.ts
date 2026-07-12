@@ -8,12 +8,18 @@ interface OfflineContribution {
 
 const PENDING_KEY = 'gh-analyzer-pending'
 
+function getStorage(): Storage | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  return window.localStorage
+}
+
 export function queueOfflineContribution(username: string, day: ContributionDay): void {
   try {
-    const raw = localStorage.getItem(PENDING_KEY)
+    const storage = getStorage()
+    const raw = storage?.getItem(PENDING_KEY)
     const queue: OfflineContribution[] = raw ? JSON.parse(raw) : []
     queue.push({ username, contributionDay: day, syncedAt: null })
-    localStorage.setItem(PENDING_KEY, JSON.stringify(queue))
+    storage?.setItem(PENDING_KEY, JSON.stringify(queue))
   } catch {
     // storage unavailable
   }
@@ -21,7 +27,7 @@ export function queueOfflineContribution(username: string, day: ContributionDay)
 
 export function getPendingContributions(): OfflineContribution[] {
   try {
-    const raw = localStorage.getItem(PENDING_KEY)
+    const raw = getStorage()?.getItem(PENDING_KEY)
     return raw ? JSON.parse(raw) : []
   } catch {
     return []
@@ -30,7 +36,7 @@ export function getPendingContributions(): OfflineContribution[] {
 
 export function clearSyncedContributions(): void {
   try {
-    localStorage.removeItem(PENDING_KEY)
+    getStorage()?.removeItem(PENDING_KEY)
   } catch {
     // ignore
   }

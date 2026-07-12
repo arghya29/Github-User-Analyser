@@ -1,6 +1,11 @@
 const HISTORY_KEY = 'github-analyzer-history'
 const MAX_HISTORY = 5
 
+function getStorage(): Storage | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  return window.localStorage
+}
+
 /**
  * Reads the saved search history from localStorage. Returns an empty list when
  * storage is unavailable (e.g. private browsing) or the stored value is
@@ -8,7 +13,8 @@ const MAX_HISTORY = 5
  */
 export function loadHistory(): string[] {
   try {
-    const saved = window.localStorage.getItem(HISTORY_KEY)
+    const storage = getStorage()
+    const saved = storage?.getItem(HISTORY_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed)) {
@@ -35,7 +41,7 @@ export function recordSearch(username: string): string[] {
   const deduped = [username, ...current.filter((h) => h.toLowerCase() !== username.toLowerCase())]
   const next = deduped.slice(0, MAX_HISTORY)
   try {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
+    getStorage()?.setItem(HISTORY_KEY, JSON.stringify(next))
   } catch {
     // ignore write failures
   }
@@ -45,7 +51,7 @@ export function recordSearch(username: string): string[] {
 /** Clears the stored history and returns the new (empty) list. */
 export function clearHistory(): string[] {
   try {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify([]))
+    getStorage()?.setItem(HISTORY_KEY, JSON.stringify([]))
   } catch {
     // ignore write failures
   }
