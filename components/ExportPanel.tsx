@@ -60,13 +60,22 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
       }
 
       const blob = await response.blob()
+      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+        return
+      }
       const url = URL.createObjectURL(blob)
+      if (typeof document === 'undefined') {
+        URL.revokeObjectURL(url)
+        return
+      }
       const a = document.createElement('a')
       a.href = url
       a.download = `${login}-github-profile.pdf`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      if (document.body) {
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
       URL.revokeObjectURL(url)
     } catch (err) {
       setPdfError(err instanceof Error ? err.message : 'Failed to generate PDF')
@@ -91,13 +100,22 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
       }
 
       const blob = await response.blob()
+      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+        return
+      }
       const url = URL.createObjectURL(blob)
+      if (typeof document === 'undefined') {
+        URL.revokeObjectURL(url)
+        return
+      }
       const a = document.createElement('a')
       a.href = url
       a.download = `${login}-repositories.csv`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      if (document.body) {
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
       URL.revokeObjectURL(url)
     } catch (err) {
       setCsvError(err instanceof Error ? err.message : 'Failed to generate CSV')
@@ -111,13 +129,22 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
     try {
       const jsonStr = formatAsJSON(userData, selectedSections)
       const blob = new Blob([jsonStr], { type: 'application/json' })
+      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+        return
+      }
       const url = URL.createObjectURL(blob)
+      if (typeof document === 'undefined') {
+        URL.revokeObjectURL(url)
+        return
+      }
       const a = document.createElement('a')
       a.href = url
       a.download = `${login}-profile-analytics.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      if (document.body) {
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
       URL.revokeObjectURL(url)
     } catch {
       setJsonError('Failed to generate JSON')
@@ -129,13 +156,22 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
     try {
       const md = formatAsMarkdown(userData)
       const blob = new Blob([md], { type: 'text/markdown' })
+      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+        return
+      }
       const url = URL.createObjectURL(blob)
+      if (typeof document === 'undefined') {
+        URL.revokeObjectURL(url)
+        return
+      }
       const a = document.createElement('a')
       a.href = url
       a.download = `${login}-profile.md`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      if (document.body) {
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
       URL.revokeObjectURL(url)
     } catch {
       setMdError('Failed to generate Markdown')
