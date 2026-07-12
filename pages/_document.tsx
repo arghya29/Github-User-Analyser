@@ -14,12 +14,12 @@ export default function Document() {
             __html: `
               (function () {
                 try {
-                  var theme = localStorage.getItem('github-analyzer-theme');
+                  var theme = typeof localStorage !== 'undefined' ? localStorage.getItem('github-analyzer-theme') : null;
                   if (theme === 'light') {
                     document.documentElement.classList.remove('dark');
                   } else if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
-                  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  } else if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     document.documentElement.classList.add('dark');
                   } else {
                     document.documentElement.classList.remove('dark');

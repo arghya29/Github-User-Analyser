@@ -3,11 +3,24 @@ import { useState } from 'react'
 interface CompareFormProps {
   onCompare: (userA: string, userB: string) => void
   loading: boolean
+  /**
+   * Seed values for the two fields. /compare passes the pair from the URL so the form reflects
+   * what's on screen — otherwise you'd have to retype both names just to swap one of them.
+   *
+   * Optional and defaulted, so the home page's usage is unchanged.
+   */
+  initialUserA?: string
+  initialUserB?: string
 }
 
-export default function CompareForm({ onCompare, loading }: CompareFormProps) {
-  const [userA, setUserA] = useState('')
-  const [userB, setUserB] = useState('')
+export default function CompareForm({
+  onCompare,
+  loading,
+  initialUserA = '',
+  initialUserB = '',
+}: CompareFormProps) {
+  const [userA, setUserA] = useState(initialUserA)
+  const [userB, setUserB] = useState(initialUserB)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

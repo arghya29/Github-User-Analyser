@@ -30,7 +30,7 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
   const langColor = getLanguageColorClass(repo.language)
 
   const openModal = useCallback((trigger?: HTMLElement | null) => {
-    previousFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    previousFocusRef.current = trigger ?? (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null)
     setShowActionBox(true)
   }, [])
 
@@ -42,7 +42,7 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
   }, [])
 
   useEffect(() => {
-    if (!showActionBox) return
+    if (!showActionBox || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -74,7 +74,11 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
     const firstBtn = dialogRef.current?.querySelector<HTMLElement>('button')
     firstBtn?.focus()
 
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      if (typeof document.removeEventListener === 'function') {
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }
   }, [showActionBox, closeModal])
 
   return (

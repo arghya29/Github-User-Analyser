@@ -8,11 +8,18 @@ import { useRouter } from 'next/router'
 import ScrollToTop from '@/components/ScrollToTop'
 
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      logError('ServiceWorker', err)
-    })
+  if (
+    typeof navigator === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    typeof navigator.serviceWorker?.register !== 'function' ||
+    process.env.NODE_ENV !== 'production'
+  ) {
+    return
   }
+
+  navigator.serviceWorker.register('/sw.js').catch((err) => {
+    logError('ServiceWorker', err)
+  })
 }
 
 export default function App({ Component, pageProps }: AppProps) {

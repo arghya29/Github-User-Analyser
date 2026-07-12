@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { fetchFollowersOrFollowing } from '@/lib/followers'
 import type { FollowerUser } from '@/types/github'
 
@@ -43,12 +44,18 @@ export default function FollowersExplorer({
   }, [load])
 
   useEffect(() => {
+    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handleKeyDown)
     dialogRef.current?.querySelector<HTMLElement>('button')?.focus()
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      if (typeof document.removeEventListener === 'function') {
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }
   }, [onClose])
 
   return (
@@ -113,10 +120,12 @@ export default function FollowersExplorer({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <img
+                  <Image
                     src={u.avatarUrl}
                     alt={u.login}
-                    className="w-10 h-10 rounded-full"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{u.login}</p>

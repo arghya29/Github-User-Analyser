@@ -61,13 +61,19 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
 
   // Close the dropdown on an outside click.
   useEffect(() => {
+    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+
     function onClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
     document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    return () => {
+      if (typeof document.removeEventListener === 'function') {
+        document.removeEventListener('mousedown', onClickOutside)
+      }
+    }
   }, [])
 
   const selectSuggestion = (username: string) => {

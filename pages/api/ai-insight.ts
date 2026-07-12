@@ -3,6 +3,7 @@ import axios, { type AxiosError } from 'axios'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
 import { env } from '@/lib/env'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 // Extend the serverless function timeout to 60 seconds to allow for retries
 export const maxDuration = 60
@@ -491,8 +492,12 @@ export default async function handler(
       return res.status(429).json({ text: null, error: 'AI quota reached for now — try again in a minute' })
     }
     if (status === 503) {
+      // 429 and 503 are the provider telling us to back off. They're expected, already surfaced
+      // to the user, and logging them would let a burst of traffic flush the 50-entry queue.
+      logWarn('api/ai-insight', 'AI provider is overloaded', { status })
       return res.status(503).json({ text: null, error: 'AI service is temporarily overloaded — try again in a moment' })
     }
+    logError('api/ai-insight', error, { status })
     return res.status(500).json({ text: null, error: 'Failed to generate AI insight' })
   }
 }

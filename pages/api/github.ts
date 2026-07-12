@@ -13,6 +13,7 @@ import { getCachedWithFallback } from '@/lib/cache'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
 import { env } from '@/lib/env'
 import { withRetry, type RetryInfo } from '@/lib/retry'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -29,7 +30,9 @@ function retryLogger(context: string) {
   return ({ attempt, delayMs, error }: RetryInfo) => {
     const status = (error as { response?: { status?: number } })?.response?.status
     const code = (error as { code?: string })?.code
-    console.warn('[github] transient failure; retrying request:', {
+    // Only the derived status/code go into the log — never the error object or the request
+    // config, which carries the Authorization header.
+    logWarn('api/github', 'transient failure; retrying request', {
       context,
       attempt,
       delayMs,
@@ -448,10 +451,13 @@ export default async function handler(
             : err instanceof GraphQLOtherError
               ? 'graphql-error'
               : 'transient'
-          console.error(
-            `[github] GraphQL fetch failed for @${username} [${kind}]; falling back to REST:`,
-            message
-          )
+          // A warning, not an error: the REST fallback below still serves the request.
+          // console.error overstated it.
+          logWarn('api/github', 'GraphQL fetch failed; falling back to REST', {
+            username,
+            kind,
+            reason: message,
+          })
         }
       }
 
@@ -509,6 +515,7 @@ export default async function handler(
     // A timeout aborts with code ECONNABORTED and carries no response — surface it
     // as a distinct network error rather than falling through to a generic failure.
     if ((err as { code?: string }).code === 'ECONNABORTED') {
+      logWarn('api/github', 'request to GitHub timed out', { username })
       return res.status(504).json({
         user: {} as GitHubUser,
         repos: [],
@@ -522,6 +529,9 @@ export default async function handler(
 
     const axiosErr = err as { response?: { status?: number; headers?: Record<string, unknown> } }
     if (axiosErr.response?.status === 403 || axiosErr.response?.status === 429) {
+      // Only the status goes into the log — never `axiosErr.response.headers`, and never the
+      // error object itself, whose request config carries the Authorization header.
+      logWarn('api/github', 'GitHub rate limit reached', { username, status: axiosErr.response.status })
       const rateLimit = parseRestRateLimit(axiosErr.response.headers as unknown as Record<string, unknown>)
       return res.status(axiosErr.response?.status || 403).json({
         user: {} as GitHubUser,
@@ -535,6 +545,9 @@ export default async function handler(
       })
     }
 
+    // Everything above is an expected outcome — an unknown username, a timeout, a rate limit.
+    // Reaching here means something we didn't anticipate, which is exactly what the log is for.
+    logError('api/github', err, { username })
     return res.status(500).json({
       user: {} as GitHubUser,
       repos: [],

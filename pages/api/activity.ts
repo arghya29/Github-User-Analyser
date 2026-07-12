@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import type { ActivityEvent } from '@/types/github'
 import { env } from '@/lib/env'
+import { logError } from '@/lib/errorLogger'
 
 interface ErrorResponse {
   error: string
@@ -56,7 +57,8 @@ export default async function handler(
     })
 
     return res.status(200).json(events)
-  } catch {
+  } catch (error) {
+    logError('api/activity', error, { username })
     return res.status(500).json({ error: 'Failed to fetch activity', errorType: 'unknown' })
   }
 }

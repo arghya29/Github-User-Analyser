@@ -1,22 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 
 export default function ScrollToTop() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+
     const toggleVisibility = () => {
-      setVisible(window.scrollY > 300);
-    };
+      if (typeof window.scrollY === 'number') {
+        setVisible(window.scrollY > 300)
+      }
+    }
 
-    toggleVisibility(); // check position on mount too, in case the page loads already scrolled
+    toggleVisibility()
 
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
+    window.addEventListener('scroll', toggleVisibility)
+    return () => {
+      if (typeof window.removeEventListener === 'function') {
+        window.removeEventListener('scroll', toggleVisibility)
+      }
+    }
+  }, [])
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   if (!visible) return null;
 
@@ -25,10 +34,7 @@ export default function ScrollToTop() {
       type="button"
       onClick={scrollToTop}
       aria-label="Scroll to top"
-      className="fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg
-                 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800
-                 hover:opacity-90 transition-opacity duration-200
-                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      className="fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 hover:opacity-90 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

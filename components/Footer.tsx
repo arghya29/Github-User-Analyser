@@ -5,11 +5,8 @@ export default function Footer() {
 
   const handleInstallClick = async () => {
     const outcome = await triggerInstall()
-    if (!outcome) {
-      const promptShown = window.dispatchEvent(new Event('beforeinstallprompt'))
-      if (!promptShown) {
-        console.log('PWA install not available')
-      }
+    if (!outcome && typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new Event('beforeinstallprompt'))
     }
   }
 

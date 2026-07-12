@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import type { SponsorInfo } from '@/types/github'
 import { env } from '@/lib/env'
+import { logWarn } from '@/lib/errorLogger'
 
 interface ErrorResponse {
   error: string
@@ -86,7 +87,15 @@ export default async function handler(
     }
 
     return res.status(200).json(sponsors)
-  } catch {
+  } catch (error) {
+    // Deliberately still a 200 with an empty list — sponsors are a nice-to-have and shouldn't
+    // fail the page. But it must not be *silent*: as written, a GitHub outage was
+    // indistinguishable from a user who genuinely has no sponsors. `warn`, not `error`,
+    // because the request still succeeds from the caller's point of view.
+    logWarn('api/sponsors', 'sponsors lookup failed; returning an empty list', {
+      username,
+      reason: error instanceof Error ? error.message : String(error),
+    })
     return res.status(200).json([])
   }
 }
