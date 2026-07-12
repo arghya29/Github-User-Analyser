@@ -44,6 +44,8 @@ export default function FollowersExplorer({
   }, [load])
 
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }

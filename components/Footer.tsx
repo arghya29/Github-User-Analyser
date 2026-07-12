@@ -5,7 +5,7 @@ export default function Footer() {
 
   const handleInstallClick = async () => {
     const outcome = await triggerInstall()
-    if (!outcome) {
+    if (!outcome && typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
       window.dispatchEvent(new Event('beforeinstallprompt'))
     }
   }

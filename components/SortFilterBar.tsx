@@ -31,6 +31,8 @@ export default function SortFilterBar({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)

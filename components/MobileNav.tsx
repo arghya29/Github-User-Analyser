@@ -7,6 +7,8 @@ interface MobileNavProps {
 
 export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
     if (!isOpen) {
       document.body.style.overflow = ''
       return
@@ -15,10 +17,15 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-    window.addEventListener('keydown', handleKey)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKey)
+      return () => {
+        document.body.style.overflow = ''
+        window.removeEventListener('keydown', handleKey)
+      }
+    }
     return () => {
       document.body.style.overflow = ''
-      window.removeEventListener('keydown', handleKey)
     }
   }, [isOpen, onClose])
 
