@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, type TooltipProps } from 'recharts'
 import type { ProductivityStats } from '@/types/github'
 import { useTheme } from '@/lib/ThemeContext'
 
@@ -69,8 +69,7 @@ function ProductivityPanel({ data }: ProductivityPanelProps) {
             <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <Tooltip
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              content={({ active, payload, label }: any) => {
+              content={({ active, payload, label }: TooltipProps<number, string>) => {
                 if (!active || !payload || !payload.length) return null
                 return (
                   <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">
