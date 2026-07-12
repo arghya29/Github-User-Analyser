@@ -61,6 +61,8 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
 
   // Close the dropdown on an outside click.
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
     function onClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
