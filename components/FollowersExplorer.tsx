@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { fetchFollowersOrFollowing } from '@/lib/followers'
 import type { FollowerUser } from '@/types/github'
 
@@ -113,10 +114,12 @@ export default function FollowersExplorer({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <img
+                  <Image
                     src={u.avatarUrl}
                     alt={u.login}
-                    className="w-10 h-10 rounded-full"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{u.login}</p>

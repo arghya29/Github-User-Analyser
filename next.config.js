@@ -47,6 +47,18 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   generateEtags: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+    ],
+  },
 
   async headers() {
     return [
