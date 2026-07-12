@@ -20,11 +20,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let initial: Theme = 'dark'
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
         const saved = window.localStorage.getItem(STORAGE_KEY)
         if (saved === 'light' || saved === 'dark') {
           initial = saved
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        } else if (
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-color-scheme: light)').matches
+        ) {
           initial = 'light'
         }
       }
@@ -44,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('dark')
     }
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
         window.localStorage.setItem(STORAGE_KEY, theme)
       }
     } catch {

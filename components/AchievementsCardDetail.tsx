@@ -15,13 +15,17 @@ interface AchievementsCardDetailProps {
 
 export default function AchievementsCardDetail({ achievement, onClose }: AchievementsCardDetailProps) {
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      if (typeof window.removeEventListener === 'function') {
+        window.removeEventListener('keydown', handleKeyDown)
+      }
+    }
   }, [onClose])
 
   const completedMilestones = achievement.milestones.filter((m) => achievement.value >= m)
