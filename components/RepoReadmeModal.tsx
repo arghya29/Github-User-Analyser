@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Repository } from '@/types/github'
@@ -151,11 +152,13 @@ export default function RepoReadmeModal({ repo, owner, onClose }: RepoReadmeModa
                     <strong className="font-semibold text-gray-900 dark:text-white" {...props} />
                   ),
                   img: ({ src, alt, ...props }: any) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       className="max-w-full rounded my-3"
                       src={resolveImageSrc(src, owner, repo.name)}
                       alt={alt || ''}
+                      width={800}
+                      height={600}
+                      unoptimized
                       {...props}
                     />
                   ),
