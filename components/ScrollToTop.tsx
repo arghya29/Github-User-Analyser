@@ -17,7 +17,7 @@ export default function ScrollToTop() {
   }, [])
 
   const scrollToTop = () => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
