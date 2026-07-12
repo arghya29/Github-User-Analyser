@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 import type { UserData } from '@/types/github'
 import { formatAsJSON, formatAsMarkdown, ALL_EXPORT_SECTIONS, type ExportSection } from '@/lib/exportDataFormatter'
 
@@ -248,10 +249,11 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
 
       {showBadge && (
         <div className="mt-4 space-y-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={badgeUrl}
             alt="GitHub Stats Badge"
+            width={600}
+            height={200}
             className="rounded-lg border border-gray-200 dark:border-slate-600"
           />
 
