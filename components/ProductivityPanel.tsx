@@ -1,10 +1,16 @@
 import { memo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, type TooltipProps } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 import type { ProductivityStats } from '@/types/github'
 import { useTheme } from '@/lib/ThemeContext'
 
 interface ProductivityPanelProps {
   data: ProductivityStats
+}
+
+type ProductivityTooltipProps = {
+  active?: boolean
+  payload?: ReadonlyArray<{ value?: number | string | readonly (string | number)[] }>
+  label?: string | number
 }
 
 function formatDate(dateStr: string): string {
@@ -69,7 +75,7 @@ function ProductivityPanel({ data }: ProductivityPanelProps) {
             <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <Tooltip
-              content={({ active, payload, label }: TooltipProps<number, string>) => {
+              content={({ active, payload, label }: ProductivityTooltipProps) => {
                 if (!active || !payload || !payload.length) return null
                 return (
                   <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">

@@ -1,5 +1,5 @@
 import { useState, useId, memo } from 'react'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, type TooltipProps } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { getLanguageColor } from '@/lib/languageColors'
 import CustomChartContainer from './charts/CustomChartContainer'
 
@@ -8,9 +8,15 @@ interface LanguageChartProps {
   mode?: 'bytes' | 'count'
 }
 
+type LanguageTooltipProps = {
+  active?: boolean
+  payload?: Array<{ name?: string | number; value?: number | string | readonly (string | number)[] }>
+  mode?: 'bytes' | 'count'
+}
+
 const MAX_INLINE_LANGUAGES = 4
 
-function ChartTooltip({ active, payload, mode }: TooltipProps<number, string> & { mode: 'bytes' | 'count' }) {
+function ChartTooltip({ active, payload, mode }: LanguageTooltipProps) {
   if (!active || !payload || !payload.length) return null
   const entry = payload[0]
   const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
@@ -72,7 +78,9 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
                 <Cell key={entry.name} fill={getLanguageColor(entry.name)} />
               ))}
             </Pie>
-            <Tooltip content={<ChartTooltip mode={mode} />} />
+            <Tooltip
+              content={(props) => <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
