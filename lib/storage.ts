@@ -20,6 +20,11 @@ function isIndexedDbAvailable(): boolean {
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
+    if (!isIndexedDbAvailable()) {
+      reject(new Error('IndexedDB is unavailable'))
+      return
+    }
+
     const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = () => {
       const db = req.result
