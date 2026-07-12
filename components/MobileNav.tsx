@@ -9,23 +9,26 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
   useEffect(() => {
     if (typeof document === 'undefined') return
 
+    const body = document.body
+    if (!body) return
+
     if (!isOpen) {
-      document.body.style.overflow = ''
+      body.style.overflow = ''
       return
     }
-    document.body.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleKey)
       return () => {
-        document.body.style.overflow = ''
+        body.style.overflow = ''
         window.removeEventListener('keydown', handleKey)
       }
     }
     return () => {
-      document.body.style.overflow = ''
+      body.style.overflow = ''
     }
   }, [isOpen, onClose])
 
