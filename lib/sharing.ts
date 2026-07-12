@@ -45,7 +45,12 @@ export function shareViaWhatsApp(username: string, name?: string): void {
 
 export async function copyProfileLink(username: string): Promise<boolean> {
   try {
-    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) return false
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.clipboard?.writeText !== 'function'
+    ) {
+      return false
+    }
     await navigator.clipboard.writeText(getShareUrl(username))
     return true
   } catch {

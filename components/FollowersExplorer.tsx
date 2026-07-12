@@ -44,14 +44,18 @@ export default function FollowersExplorer({
   }, [load])
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handleKeyDown)
     dialogRef.current?.querySelector<HTMLElement>('button')?.focus()
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      if (typeof document.removeEventListener === 'function') {
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }
   }, [onClose])
 
   return (
