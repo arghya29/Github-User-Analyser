@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Repository } from '@/types/github'
@@ -72,14 +73,22 @@ function createComponents(owner: string, repoName: string): Components {
     strong: ({ ...props }) => (
       <strong className="font-semibold text-gray-900 dark:text-white" {...props} />
     ),
-    img: ({ src, alt, ...props }) => (
-      <img
-        className="max-w-full rounded my-3"
-        src={resolveImageSrc(src, owner, repoName)}
-        alt={alt || ''}
-        {...props}
-      />
-    ),
+    img: ({ src, alt, width, height, ...props }) => {
+      const resolvedWidth = typeof width === 'number' ? width : 800
+      const resolvedHeight = typeof height === 'number' ? height : 600
+
+      return (
+        <Image
+          className="max-w-full rounded my-3"
+          src={resolveImageSrc(src, owner, repoName)}
+          alt={alt || ''}
+          width={resolvedWidth}
+          height={resolvedHeight}
+          unoptimized
+          {...props}
+        />
+      )
+    },
     table: ({ ...props }) => (
       <table className="w-full text-sm border border-gray-200 dark:border-slate-600 mb-3" {...props} />
     ),
