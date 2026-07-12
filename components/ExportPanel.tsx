@@ -144,6 +144,7 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
 
   const handleCopyBadge = async () => {
     try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) return
       await navigator.clipboard.writeText(badgeMarkdown)
       setBadgeCopied(true)
       setTimeout(() => setBadgeCopied(false), 2000)
