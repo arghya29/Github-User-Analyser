@@ -6,6 +6,8 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const handler = (e: Event) => {
       e.preventDefault()
       const promptEvent = e as BeforeInstallPromptEvent

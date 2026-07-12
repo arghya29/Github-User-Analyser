@@ -116,6 +116,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
   const handleCopy = async () => {
     if (!text) return
     try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) return
       await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
