@@ -8,7 +8,7 @@ import { env } from '@/lib/env'
 export const maxDuration = 60
 
 interface AiInsightRequestBody {
-  type: 'bio' | 'roast' | 'consistency'
+  type: 'bio' | 'roast' | 'consistency' | 'growth' | 'learning'
   username: string
   bio?: string
   topLanguages: string[]
@@ -19,6 +19,16 @@ interface AiInsightRequestBody {
   weekdayPct?: number
   weekendPct?: number
   mostProductiveDay?: string
+  // Growth signals (derived client-side from productivity.monthlyTotals).
+  contributionTrend?: 'accelerating' | 'steady' | 'cooling'
+  contributionChangePct?: number
+  recentAvgPerMonth?: number
+  previousAvgPerMonth?: number
+  // Learning signals (derived client-side from the repo list).
+  languageCount?: number
+  primaryLanguageSharePct?: number
+  secondaryLanguages?: string[]
+  recentLanguages?: string[]
   // Optional parameters to support Phase 2 UI customization
   tone?: 'Professional' | 'Casual' | 'Tech-Heavy'
   length?: 'Short' | 'Detailed'
@@ -38,7 +48,13 @@ function isAiInsightRequestBody(body: unknown): body is AiInsightRequestBody {
   if (typeof data.type !== 'string') {
     return false
   }
-  if (data.type !== 'bio' && data.type !== 'roast' && data.type !== 'consistency') {
+  if (
+    data.type !== 'bio' &&
+    data.type !== 'roast' &&
+    data.type !== 'consistency' &&
+    data.type !== 'growth' &&
+    data.type !== 'learning'
+  ) {
     return false
   }
   if (typeof data.username !== 'string') {
@@ -82,6 +98,35 @@ function isAiInsightRequestBody(body: unknown): body is AiInsightRequestBody {
     return false
   }
   if (
+    data.contributionTrend !== undefined &&
+    (typeof data.contributionTrend !== 'string' ||
+      (data.contributionTrend !== 'accelerating' &&
+        data.contributionTrend !== 'steady' &&
+        data.contributionTrend !== 'cooling'))
+  ) {
+    return false
+  }
+  for (const key of [
+    'contributionChangePct',
+    'recentAvgPerMonth',
+    'previousAvgPerMonth',
+    'languageCount',
+    'primaryLanguageSharePct',
+  ] as const) {
+    if (data[key] !== undefined && typeof data[key] !== 'number') {
+      return false
+    }
+  }
+  for (const key of ['secondaryLanguages', 'recentLanguages'] as const) {
+    if (
+      data[key] !== undefined &&
+      (!Array.isArray(data[key]) ||
+        !(data[key] as unknown[]).every((item) => typeof item === 'string'))
+    ) {
+      return false
+    }
+  }
+  if (
     data.tone !== undefined &&
     (typeof data.tone !== 'string' ||
       (data.tone !== 'Professional' && data.tone !== 'Casual' && data.tone !== 'Tech-Heavy'))
@@ -104,6 +149,15 @@ const GEMINI_MODEL = 'gemini-2.5-flash-lite'
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
 export function buildPrompt(body: AiInsightRequestBody): string {
+  // CodeQL (js/type-confusion-through-parameter-tampering): `body` originates from
+  // `req.body`, and the validator's type-predicate barrier is not carried across this
+  // function boundary by static analysis — so the discriminant is re-narrowed here, at
+  // the sink, before it is compared. Note that `String(body.type)` must NOT be used for
+  // this: `String(['bio']) === 'bio'`, so an array would coerce straight through the
+  // check. A `typeof` guard is the only coercion-free narrowing.
+  const insightType: AiInsightRequestBody['type'] =
+    typeof body.type === 'string' ? body.type : 'roast'
+
   const repoList =
     // Defensively handle unexpected types: treat non-arrays as empty lists.
     (Array.isArray(body.topRepos)
@@ -122,6 +176,35 @@ export function buildPrompt(body: AiInsightRequestBody): string {
     ? body.topLanguages.filter((l) => typeof l === 'string').join(', ') || 'unknown'
     : String(body.topLanguages ?? 'unknown')
 
+  // Derived trend/breadth signals. Rendered as plain sentences and placed *inside*
+  // the delimited block below, so they sit behind the same prompt-injection boundary
+  // as every other profile-derived value (#188).
+  const trendLine =
+    typeof body.contributionTrend === 'string'
+      ? `${body.contributionTrend} (recent ~${body.recentAvgPerMonth ?? '?'} contributions/month vs ~${body.previousAvgPerMonth ?? '?'} previously${
+          typeof body.contributionChangePct === 'number'
+            ? `, ${body.contributionChangePct > 0 ? '+' : ''}${body.contributionChangePct}%`
+            : ''
+        })`
+      : 'unknown'
+
+  const languageLine =
+    typeof body.languageCount === 'number'
+      ? `${body.languageCount} languages used${
+          typeof body.primaryLanguageSharePct === 'number'
+            ? `; primary language is ${body.primaryLanguageSharePct}% of their code`
+            : ''
+        }${
+          Array.isArray(body.secondaryLanguages) && body.secondaryLanguages.length > 0
+            ? `; also works in ${body.secondaryLanguages.join(', ')}`
+            : ''
+        }${
+          Array.isArray(body.recentLanguages) && body.recentLanguages.length > 0
+            ? `; recently active in ${body.recentLanguages.join(', ')}`
+            : ''
+        }`
+      : 'unknown'
+
   // Untrusted profile fields (username, bio, repo names/descriptions) originate
   // from an attacker-controllable GitHub profile. Wrap them in a delimited block
   // and instruct the model to treat the contents as data only, so injected
@@ -139,9 +222,11 @@ Current streak: ${body.currentStreak ?? 'unknown'} days
 Longest streak: ${body.longestStreak ?? 'unknown'} days
 Weekday vs weekend activity split: ${body.weekdayPct ?? '?'}% weekday / ${body.weekendPct ?? '?'}% weekend
 Most productive day: ${body.mostProductiveDay ?? 'unknown'}
+Contribution trend: ${trendLine}
+Language profile: ${languageLine}
 </profile_data>`
 
-  if (body.type === 'bio') {
+  if (insightType === 'bio') {
     // Dynamic instructions based on potential frontend toggles
     const tone = typeof body.tone === 'string' ? body.tone : undefined
     const bioLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
@@ -164,7 +249,7 @@ ${shared}
 Return only the bio text. No preamble, no markdown headers, no quotation marks around it.`
   }
 
-  if (body.type === 'consistency') {
+  if (insightType === 'consistency') {
     const tone = typeof body.tone === 'string' ? body.tone : undefined
     const insightLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
     const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Encouraging and constructive.'
@@ -181,6 +266,53 @@ Crucial Instructions:
 - Keep it actionable and supportive — this is about building sustainable habits, not judgment.
 - ${toneInstruction}
 - Do NOT invent facts or numbers that aren't supported by the data below.
+
+${shared}
+
+Return only the analysis text. No preamble, no markdown headers, no quotation marks around it.`
+  }
+
+  if (insightType === 'growth') {
+    const tone = typeof body.tone === 'string' ? body.tone : undefined
+    const insightLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
+    const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Candid but encouraging.'
+    const lengthInstruction =
+      insightLength === 'Detailed'
+        ? 'Write a detailed 4-6 sentence analysis'
+        : 'Write a focused 3-4 sentence analysis'
+
+    return `You are a developer coach assessing the trajectory of a developer's open-source work, based on the data below. ${lengthInstruction} of where their activity is heading.
+
+Crucial Instructions:
+- Lead with the direction of travel: is their contribution volume accelerating, holding steady, or cooling off? Use the contribution trend figures below rather than guessing.
+- Connect that trajectory to what they are actually building — which languages and repositories are absorbing their recent effort, and where their reach (stars, breadth) is expanding.
+- Give one or two concrete, trend-based recommendations for what to do next: what to double down on, what to revive, or where a small push would compound.
+- If activity is cooling, say so plainly but without moralising — a quieter period is not a failure.
+- ${toneInstruction}
+- Do NOT invent facts, numbers, or repositories that aren't supported by the data below. If the trend is unknown, say the data is insufficient rather than speculating.
+
+${shared}
+
+Return only the analysis text. No preamble, no markdown headers, no quotation marks around it.`
+  }
+
+  if (insightType === 'learning') {
+    const tone = typeof body.tone === 'string' ? body.tone : undefined
+    const insightLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
+    const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Curious and constructive.'
+    const lengthInstruction =
+      insightLength === 'Detailed'
+        ? 'Write a detailed 4-6 sentence analysis'
+        : 'Write a focused 3-4 sentence analysis'
+
+    return `You are a developer mentor analyzing a developer's learning habits — how they broaden their skills — based on the data below. ${lengthInstruction} of how they learn.
+
+Crucial Instructions:
+- Characterise their breadth: are they a specialist concentrating deeply in one language, or a polyglot spreading across many? Use the language profile figures below.
+- Highlight what they appear to be picking up *now* — the languages showing up in recently-touched repositories — versus their established core.
+- Suggest one or two adjacent technologies or areas that would build naturally on what they already know, and note any obvious gap worth closing.
+- ${toneInstruction}
+- Do NOT invent facts, languages, or repositories that aren't supported by the data below. If the language profile is unknown, say the data is insufficient rather than speculating.
 
 ${shared}
 
@@ -302,7 +434,9 @@ export default async function handler(
           {
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             generationConfig: {
-              temperature: body.type === 'roast' ? 0.9 : 0.6,
+              // Narrowed for the same reason as in buildPrompt — this reads the
+              // user-controlled discriminant, so guard it before comparing.
+              temperature: typeof body.type === 'string' && body.type === 'roast' ? 0.9 : 0.6,
               maxOutputTokens: 1024,
               thinkingConfig: { thinkingBudget: 0 },
             },

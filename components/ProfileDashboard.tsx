@@ -1,8 +1,17 @@
+import dynamic from 'next/dynamic'
+import ChartSkeleton from '@/components/charts/ChartSkeleton'
 import { useState } from 'react'
 import UserCard from '@/components/UserCard'
 import ActivityHeatmap from '@/components/ActivityHeatmap'
 import EngagementStats from '@/components/EngagementStats'
-import ProductivityPanel from '@/components/ProductivityPanel'
+// recharts-backed and below the fold: split it out of the initial page bundle.
+// `ssr: false` is safe here rather than a behaviour change: the dashboard only
+// renders after the client-side profile fetch resolves, so this never rendered
+// on the server to begin with.
+const ProductivityPanel = dynamic(() => import('@/components/ProductivityPanel'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+})
 import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
 import ExportPanel from '@/components/ExportPanel'

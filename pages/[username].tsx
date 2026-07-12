@@ -25,9 +25,10 @@ interface OgMeta {
 
 interface UserProfilePageProps {
   og: OgMeta
+  jsonLd: string
 }
 
-export default function UserProfilePage({ og }: UserProfilePageProps) {
+export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
   const router = useRouter()
   const usernameParam = router.query.username
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
@@ -112,6 +113,13 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
         <meta name="twitter:title" content={og.title} />
         <meta name="twitter:description" content={og.description} />
         <meta name="twitter:image" content={og.image} />
+        {jsonLd ? (
+          <script
+            type="application/ld+json"
+            // Server-serialized + `<`-escaped in getServerSideProps; safe to embed.
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+          />
+        ) : null}
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -239,5 +247,24 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
       : `/api/og/${encodeURIComponent(username)}`,
   }
 
-  return { props: { og } }
+  // schema.org Person markup for richer search results. Built server-side from
+  // the login already in the route (no extra GitHub call). `<` is escaped to
+  // `\u003c` so the serialized JSON can never break out of the <script> tag it
+  // is embedded in, even if a value contained the sequence "</script>".
+  const personLd = username
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: username,
+        alternateName: username,
+        url: og.url,
+        image: `${baseUrl || ''}/api/og/${encodeURIComponent(username)}`,
+        sameAs: [`https://github.com/${encodeURIComponent(username)}`],
+      }
+    : null
+  const jsonLd = personLd
+    ? JSON.stringify(personLd).replace(/</g, '\\u003c')
+    : ''
+
+  return { props: { og, jsonLd } }
 }

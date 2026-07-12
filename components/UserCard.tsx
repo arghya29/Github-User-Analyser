@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { GitHubUser } from '@/types/github'
 import FollowersExplorer from '@/components/FollowersExplorer'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -7,7 +7,7 @@ interface UserCardProps {
   user: GitHubUser
 }
 
-export default function UserCard({ user }: UserCardProps) {
+function UserCard({ user }: UserCardProps) {
   const [showFollowers, setShowFollowers] = useState(false)
   const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -143,3 +143,6 @@ export default function UserCard({ user }: UserCardProps) {
     </div>
   )
 }
+
+// static profile summary; nothing about it changes while the user filters repos.
+export default memo(UserCard)

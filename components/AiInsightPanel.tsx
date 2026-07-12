@@ -8,7 +8,9 @@ interface AiInsightPanelProps {
   productivity: ProductivityStats | null
 }
 
-type InsightType = 'bio' | 'roast' | 'consistency'
+import { computeContributionTrend, computeLanguageProfile } from '@/lib/insightSignals'
+
+type InsightType = 'bio' | 'roast' | 'consistency' | 'growth' | 'learning'
 type ToneType = 'Professional' | 'Casual' | 'Tech-Heavy'
 type LengthType = 'Short' | 'Detailed'
 
@@ -55,8 +57,14 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
     const mostProductiveDay = productivity?.mostProductiveDay
       ? `${productivity.mostProductiveDay.date} (${productivity.mostProductiveDay.count} contributions)`
       : undefined
-    // Tone and length apply to bio and consistency insights, not the roast.
-    const usesToneLength = type === 'bio' || type === 'consistency'
+    // Growth/learning signals, derived from data the panel already receives —
+    // productivity.monthlyTotals and the repo list — so neither mode costs an
+    // extra GitHub request.
+    const trend = computeContributionTrend(productivity?.monthlyTotals)
+    const languageProfile = computeLanguageProfile(repos)
+
+    // Tone and length apply to every analytical insight, not the roast.
+    const usesToneLength = type !== 'roast'
 
     try {
       const response = await fetch('/api/ai-insight', {
@@ -74,7 +82,15 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
           weekdayPct,
           weekendPct,
           mostProductiveDay,
-          // Tone and length apply to bio and consistency insights
+          contributionTrend: trend?.direction,
+          contributionChangePct: trend?.changePct ?? undefined,
+          recentAvgPerMonth: trend?.recentAvgPerMonth,
+          previousAvgPerMonth: trend?.previousAvgPerMonth,
+          languageCount: languageProfile.languageCount,
+          primaryLanguageSharePct: languageProfile.primaryLanguageSharePct ?? undefined,
+          secondaryLanguages: languageProfile.secondaryLanguages,
+          recentLanguages: languageProfile.recentLanguages,
+          // Tone and length apply to every analytical insight
           tone: usesToneLength ? bioTone : undefined,
           length: usesToneLength ? bioLength : undefined,
         }),
@@ -169,6 +185,20 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
         >
           {loading && activeType === 'consistency' ? 'Analyzing...' : 'Consistency'}
         </button>
+        <button
+          onClick={() => generate('growth')}
+          disabled={loading}
+          className="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 disabled:bg-sky-400 text-white rounded-lg transition-colors"
+        >
+          {loading && activeType === 'growth' ? 'Assessing...' : 'Growth'}
+        </button>
+        <button
+          onClick={() => generate('learning')}
+          disabled={loading}
+          className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-lg transition-colors"
+        >
+          {loading && activeType === 'learning' ? 'Reviewing...' : 'Learning'}
+        </button>
       </div>
 
       {error && <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>}
@@ -176,7 +206,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
       {text && (
         <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-4">
           <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{text}</p>
-          {(activeType === 'bio' || activeType === 'consistency') && (
+          {activeType !== null && activeType !== 'roast' && (
             <button
               onClick={handleCopy}
               className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:underline"

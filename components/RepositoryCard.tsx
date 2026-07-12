@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import type { Repository } from '@/types/github'
 import { getLanguageColorClass } from '@/lib/languageColors'
 import RepoHealthAnalysisPanel from '@/components/RepoHealthAnalysisPanel'
@@ -7,10 +7,16 @@ import StarHistoryButton from '@/components/StarHistoryButton'
 
 interface RepositoryCardProps {
   repo: Repository
-  onClick: () => void
+  /**
+   * Receives the repo it was called for. Taking the repo as an argument (rather than
+   * having each parent close over it in `() => onRepoClick(repo)`) is what lets callers
+   * pass one stable handler reference down to every card — without that, the closure is
+   * a new function on every render and `memo` below would never prevent a re-render.
+   */
+  onSelect: (repo: Repository) => void
 }
 
-export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
+function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
   const [showActionBox, setShowActionBox] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -161,7 +167,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => { closeModal(); onClick() }}
+                onClick={() => { closeModal(); onSelect(repo) }}
                 className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 📖 Preview README
@@ -194,3 +200,7 @@ export default function RepositoryCard({ repo, onClick }: RepositoryCardProps) {
     </>
   )
 }
+
+// Rendered once per repository in a grid, so it re-renders on every dashboard state
+// change (search box, sort, opening the readme modal) even when its own repo hasn't moved.
+export default memo(RepositoryCard)

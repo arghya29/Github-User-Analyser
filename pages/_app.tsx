@@ -5,6 +5,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import { logError } from '@/lib/errorLogger'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import ScrollToTop from '@/components/ScrollToTop'
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -33,6 +34,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <ThemeProvider>
       <ErrorBoundary onError={(err, errorInfo) => logError('App', err, errorInfo)}>
         <Component {...pageProps} />
+        <ScrollToTop />
       </ErrorBoundary>
     </ThemeProvider>
   )

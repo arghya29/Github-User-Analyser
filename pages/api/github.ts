@@ -12,12 +12,32 @@ import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCachedWithFallback } from '@/lib/cache'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
 import { env } from '@/lib/env'
+import { withRetry, type RetryInfo } from '@/lib/retry'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 // Abort a hung GitHub request instead of letting it hang until the platform kills
 // the invocation, leaving the user on an indefinite loading state.
 const GITHUB_TIMEOUT_MS = 10000
+
+/**
+ * Logs a retry with enough context to tell causes apart. `context` is always a
+ * hardcoded literal and no user-controlled value is interpolated, so this stays
+ * clear of log-injection.
+ */
+function retryLogger(context: string) {
+  return ({ attempt, delayMs, error }: RetryInfo) => {
+    const status = (error as { response?: { status?: number } })?.response?.status
+    const code = (error as { code?: string })?.code
+    console.warn('[github] transient failure; retrying request:', {
+      context,
+      attempt,
+      delayMs,
+      status,
+      code,
+    })
+  }
+}
 
 class GraphQLNotFoundError extends Error {}
 class GraphQLOtherError extends Error {}
@@ -233,23 +253,27 @@ async function fetchViaGraphQL(username: string): Promise<{
   const fromDate = new Date()
   fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
 
-  const response = await axios.post(
-    'https://api.github.com/graphql',
-    { 
-      query: GRAPHQL_QUERY, 
-      variables: { 
-        username,
-        from: fromDate.toISOString(),
-        to: toDate.toISOString()
-      } 
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: GITHUB_TIMEOUT_MS,
-    }
+  const response = await withRetry(
+    () =>
+      axios.post(
+        'https://api.github.com/graphql',
+        {
+          query: GRAPHQL_QUERY,
+          variables: {
+            username,
+            from: fromDate.toISOString(),
+            to: toDate.toISOString()
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: GITHUB_TIMEOUT_MS,
+        }
+      ),
+    { onRetry: retryLogger('graphql') }
   )
 
   const errors = response.data?.errors as { type?: string; message?: string }[] | undefined
@@ -439,13 +463,21 @@ export default async function handler(
       }
 
       const [userResponse, reposResponse] = await Promise.all([
-        axios.get(`https://api.github.com/users/${username}`, {
-          headers,
-          timeout: GITHUB_TIMEOUT_MS,
-        }),
-        axios.get(
-          `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
-          { headers, timeout: GITHUB_TIMEOUT_MS }
+        withRetry(
+          () =>
+            axios.get(`https://api.github.com/users/${username}`, {
+              headers,
+              timeout: GITHUB_TIMEOUT_MS,
+            }),
+          { onRetry: retryLogger('rest:user') }
+        ),
+        withRetry(
+          () =>
+            axios.get(
+              `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+              { headers, timeout: GITHUB_TIMEOUT_MS }
+            ),
+          { onRetry: retryLogger('rest:repos') }
         ),
       ])
 

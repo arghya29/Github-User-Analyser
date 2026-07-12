@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 import type { ProductivityStats } from '@/types/github'
 import { useTheme } from '@/lib/ThemeContext'
@@ -15,7 +16,7 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default function ProductivityPanel({ data }: ProductivityPanelProps) {
+function ProductivityPanel({ data }: ProductivityPanelProps) {
   const { theme } = useTheme()
   const tickColor = theme === 'dark' ? '#94a3b8' : '#64748b'
   const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0'
@@ -86,3 +87,6 @@ export default function ProductivityPanel({ data }: ProductivityPanelProps) {
     </div>
   )
 }
+
+// recharts-backed panel; its stats don't change while the user filters or sorts repos.
+export default memo(ProductivityPanel)

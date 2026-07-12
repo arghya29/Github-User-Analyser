@@ -1,4 +1,14 @@
-import LanguageChart from '@/components/LanguageChart'
+import dynamic from 'next/dynamic'
+import ChartSkeleton from '@/components/charts/ChartSkeleton'
+// Below the fold and recharts-backed: split it out so it streams in behind a
+// skeleton instead of blocking the initial page bundle.
+// `ssr: false` is safe here rather than a behaviour change: the dashboard only
+// renders after the client-side profile fetch resolves, so this never rendered
+// on the server to begin with.
+const LanguageChart = dynamic(() => import('@/components/LanguageChart'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+})
 import LanguageDashboard from '@/components/LanguageDashboard'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ErrorFallback from '@/components/ErrorFallback'
