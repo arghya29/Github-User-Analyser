@@ -78,4 +78,114 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
     document.addEventListener('mousedown', onClickOutside)
     return () => {
       if (typeof document.removeEventListener === 'function') {
-        document
+        document.removeEventListener('mousedown', onClickOutside)
+      }
+    }
+  }, [])
+
+  const selectSuggestion = (username: string) => {
+    setInput(username)
+    setIsOpen(false)
+    setActiveIndex(-1)
+    onSearch(username)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsOpen(false)
+    onSearch(input)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDropdown) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((i) => (i + 1) % filtered.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => (i <= 0 ? filtered.length - 1 : i - 1))
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && activeIndex < filtered.length) {
+        e.preventDefault()
+        selectSuggestion(filtered[activeIndex])
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false)
+      setActiveIndex(-1)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto" role="search">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <label htmlFor={searchInputId} className="sr-only">
+          GitHub Username
+        </label>
+        <div ref={containerRef} className="relative flex-1">
+          <input
+            id={searchInputId}
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value)
+              setIsOpen(true)
+            }}
+            onFocus={() => setIsOpen(true)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter GitHub username..."
+            aria-label="GitHub username"
+            autoComplete="off"
+            spellCheck={false}
+            role="combobox"
+            aria-expanded={showDropdown}
+            aria-controls={showDropdown ? listboxId : undefined}
+            aria-autocomplete="list"
+            aria-activedescendant={
+              activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+            }
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 placeholder-gray-500 dark:placeholder-gray-400 transition-shadow"
+            disabled={loading}
+          />
+          {showDropdown && (
+            <ul
+              id={listboxId}
+              role="listbox"
+              aria-label="Suggestions"
+              className="absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-1 max-h-64 overflow-y-auto"
+            >
+              {filtered.map((s, i) => (
+                <li
+                  key={s}
+                  id={`${listboxId}-option-${i}`}
+                  role="option"
+                  aria-selected={i === activeIndex}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    selectSuggestion(s)
+                  }}
+                  onMouseEnter={() => setActiveIndex(i)}
+                  className={`px-4 py-2 text-sm cursor-pointer ${
+                    i === activeIndex
+                      ? 'bg-blue-50 dark:bg-slate-700 text-gray-900 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {s}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <button
+          type="submit"
+          aria-label="Submit GitHub user search"
+          disabled={loading || !input.trim()}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </div>
+    </form>
+  )
+}
