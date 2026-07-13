@@ -93,15 +93,15 @@ export interface ActivityEvent {
   id: string
   type: string
   repo: string
-  repo_url: string // 🛠️ FIX: Standardized to snake_case
-  created_at: string // 🛠️ FIX: Standardized to snake_case
+  repoUrl: string
+  createdAt: string
   payload: string
 }
 
 export interface FollowerUser {
   login: string
-  avatar_url: string // 🛠️ FIX: Standardized to match GitHub API
-  html_url: string // 🛠️ FIX: Standardized to match GitHub API
+  avatarUrl: string
+  htmlUrl: string
   type: string
 }
 
@@ -139,9 +139,9 @@ export interface WatchlistItem {
 
 export interface SponsorInfo {
   login: string
-  avatar_url: string // 🛠️ FIX: Standardized to snake_case
-  html_url: string // 🛠️ FIX: Standardized to snake_case
-  tier_name?: string // 🛠️ FIX: Standardized to snake_case
+  avatarUrl: string
+  htmlUrl: string
+  tierName?: string
   isSponsoring: boolean
 }
 
@@ -152,4 +152,4 @@ export interface CodeFrequency {
   total: number
 }
 
-export type SortOption = '
+export type SortOption = 'stars' | 'updated' | 'forks'
