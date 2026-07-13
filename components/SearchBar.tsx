@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect, useId, useMemo, useCallback } from 'react'
 import { loadHistory } from '@/lib/searchHistory'
 import { getFavorites } from '@/lib/favorites'
@@ -179,7 +180,7 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
         </div>
         <button
           type="submit"
-          aria-label="Submit GitHub user search"
+          aria-label={loading ? 'Searching' : 'Search'}
           disabled={loading || !input.trim()}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
         >
