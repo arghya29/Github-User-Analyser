@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import EmptyState from '@/components/EmptyState'
 
 interface CustomChartContainerProps {
@@ -16,6 +16,13 @@ export default function CustomChartContainer({
   emptyMessage = 'No chart analytics data available.',
   children,
 }: CustomChartContainerProps) {
+  // 🛠️ FIX: Track whether the component has mounted on the client
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex flex-col justify-between">
       <div>
@@ -26,7 +33,8 @@ export default function CustomChartContainer({
           </div>
         ) : (
           <div style={{ height }} className="w-full relative">
-            {children}
+            {/* 🛠️ FIX: Only render the chart children once safely mounted in the browser */}
+            {isMounted ? children : null}
           </div>
         )}
       </div>
