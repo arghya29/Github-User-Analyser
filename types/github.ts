@@ -17,11 +17,11 @@ export interface GitHubUser {
 
 export interface Repository {
   name: string
-  description: string
+  description: string | null // 🛠️ FIX: Added null safety
   html_url: string
   stargazers_count: number
   forks_count: number
-  language: string
+  language: string | null // 🛠️ FIX: Added null safety
   updated_at: string
   watchers_count?: number
   open_issues_count?: number
@@ -93,15 +93,15 @@ export interface ActivityEvent {
   id: string
   type: string
   repo: string
-  repoUrl: string
-  createdAt: string
+  repo_url: string // 🛠️ FIX: Standardized to snake_case
+  created_at: string // 🛠️ FIX: Standardized to snake_case
   payload: string
 }
 
 export interface FollowerUser {
   login: string
-  avatarUrl: string
-  htmlUrl: string
+  avatar_url: string // 🛠️ FIX: Standardized to match GitHub API
+  html_url: string // 🛠️ FIX: Standardized to match GitHub API
   type: string
 }
 
@@ -119,14 +119,14 @@ export interface LanguageBreakdown {
 }
 
 export interface CompareResult {
-  repoName: string
-  owner: string
-  stars: number
-  forks: number
-  openIssues: number
-  language: string
-  description: string
-  url: string
+  name: string // 🛠️ FIX: Standardized from repoName
+  owner_login: string // 🛠️ FIX: Standardized from owner
+  stargazers_count: number // 🛠️ FIX: Standardized from stars
+  forks_count: number // 🛠️ FIX: Standardized from forks
+  open_issues_count: number // 🛠️ FIX: Standardized from openIssues
+  language: string | null // 🛠️ FIX: Added null safety
+  description: string | null // 🛠️ FIX: Added null safety
+  html_url: string // 🛠️ FIX: Standardized from url
 }
 
 export interface WatchlistItem {
@@ -139,9 +139,9 @@ export interface WatchlistItem {
 
 export interface SponsorInfo {
   login: string
-  avatarUrl: string
-  htmlUrl: string
-  tierName?: string
+  avatar_url: string // 🛠️ FIX: Standardized to snake_case
+  html_url: string // 🛠️ FIX: Standardized to snake_case
+  tier_name?: string // 🛠️ FIX: Standardized to snake_case
   isSponsoring: boolean
 }
 
@@ -152,4 +152,4 @@ export interface CodeFrequency {
   total: number
 }
 
-export type SortOption = 'stars' | 'updated' | 'forks'
+export type SortOption = '
