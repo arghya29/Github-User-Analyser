@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useId, useMemo } from 'react'
+
+import { useState, useRef, useEffect, useId, useMemo, useCallback } from 'react'
 import { loadHistory } from '@/lib/searchHistory'
 import { getFavorites } from '@/lib/favorites'
 
@@ -20,10 +21,8 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
   const listboxId = useId()
   const hasLoaded = useRef(false)
 
-  // Build the suggestion pool once on mount: favorites first, then recent
-  // history, de-duplicated case-insensitively. Reading localStorage here (not in
-  // render) avoids an SSR hydration mismatch.
-  useEffect(() => {
+  // 🛠️ FIX: Extracted suggestion pool logic so it can be re-run after a search
+  const loadSuggestions = useCallback(() => {
     const seen = new Set<string>()
     const merged: string[] = []
     for (const name of [...getFavorites(), ...loadHistory()]) {
@@ -36,15 +35,24 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
     setSuggestions(merged)
   }, [])
 
-  // Keep the existing "refocus the input when a search finishes" behaviour.
+  // Build the suggestion pool once on mount
+  useEffect(() => {
+    loadSuggestions()
+  }, [loadSuggestions])
+
+  // Refocus the input AND refresh history when a search finishes
   useEffect(() => {
     if (loading) {
       hasLoaded.current = true
     }
-    if (hasLoaded.current && !loading && inputRef.current) {
-      inputRef.current.focus()
+    if (hasLoaded.current && !loading) {
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+      // 🛠️ FIX: Re-sync local storage history into the dropdown state
+      loadSuggestions() 
     }
-  }, [loading])
+  }, [loading, loadSuggestions])
 
   const filtered = useMemo(() => {
     const q = input.trim().toLowerCase()
@@ -86,7 +94,6 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsOpen(false)
-    // Pass the input up unconditionally so the parent can trigger the validation error
     onSearch(input)
   }
 
@@ -133,12 +140,12 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
             spellCheck={false}
             role="combobox"
             aria-expanded={showDropdown}
-            aria-controls={listboxId}
+            aria-controls={showDropdown ? listboxId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={
               activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
             }
-            className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 transition-shadow"
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 placeholder-gray-500 dark:placeholder-gray-400 transition-shadow"
             disabled={loading}
           />
           {showDropdown && (
@@ -155,7 +162,6 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
                   role="option"
                   aria-selected={i === activeIndex}
                   onMouseDown={(e) => {
-                    // Prevent the input blur that would close the list before the click lands.
                     e.preventDefault()
                     selectSuggestion(s)
                   }}
@@ -174,8 +180,9 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
         </div>
         <button
           type="submit"
+          aria-label={loading ? 'Searching' : 'Search'}
           disabled={loading || !input.trim()}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors active:scale-95 touch-manipulation focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
