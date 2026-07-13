@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import axios, { type AxiosError } from 'axios'
+import axios from 'axios'
 import type {
   UserData,
   GitHubUser,
@@ -9,9 +9,38 @@ import type {
   RateLimitInfo,
 } from '@/types/github'
 import { computeProductivityStats } from '@/lib/contributionStats'
-import { getCached, setCached } from '@/lib/cache'
+import { getCachedWithFallback } from '@/lib/cache'
+import { sanitizeUsername } from '@/lib/securitySanitizer'
+import { env } from '@/lib/env'
+import { withRetry, type RetryInfo } from '@/lib/retry'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// Abort a hung GitHub request instead of letting it hang until the platform kills
+// the invocation, leaving the user on an indefinite loading state.
+const GITHUB_TIMEOUT_MS = 10000
+
+/**
+ * Logs a retry with enough context to tell causes apart. `context` is always a
+ * hardcoded literal and no user-controlled value is interpolated, so this stays
+ * clear of log-injection.
+ */
+function retryLogger(context: string) {
+  return ({ attempt, delayMs, error }: RetryInfo) => {
+    const status = (error as { response?: { status?: number } })?.response?.status
+    const code = (error as { code?: string })?.code
+    // Only the derived status/code go into the log — never the error object or the request
+    // config, which carries the Authorization header.
+    logWarn('api/github', 'transient failure; retrying request', {
+      context,
+      attempt,
+      delayMs,
+      status,
+      code,
+    })
+  }
+}
 
 class GraphQLNotFoundError extends Error {}
 class GraphQLOtherError extends Error {}
@@ -85,8 +114,9 @@ interface GraphQLUserResponse {
   }
 }
 
+// FIX 1: Add $from and $to variables to the query definition and pass them to contributionsCollection
 const GRAPHQL_QUERY = `
-  query($username: String!) {
+  query($username: String!, $from: DateTime!, $to: DateTime!) {
     rateLimit {
       limit
       remaining
@@ -106,7 +136,7 @@ const GRAPHQL_QUERY = `
       url
       followers { totalCount }
       following { totalCount }
-      contributionsCollection {
+      contributionsCollection(from: $from, to: $to) {
         totalCommitContributions
         totalIssueContributions
         totalPullRequestContributions
@@ -221,15 +251,32 @@ async function fetchViaGraphQL(username: string): Promise<{
   pinnedRepos: Repository[]
   rateLimit: RateLimitInfo | undefined
 }> {
-  const response = await axios.post(
-    'https://api.github.com/graphql',
-    { query: GRAPHQL_QUERY, variables: { username } },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-    }
+  // FIX 2: Calculate a strict 1-year UTC window to prevent timezone drifting
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
+
+  const response = await withRetry(
+    () =>
+      axios.post(
+        'https://api.github.com/graphql',
+        {
+          query: GRAPHQL_QUERY,
+          variables: {
+            username,
+            from: fromDate.toISOString(),
+            to: toDate.toISOString()
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: GITHUB_TIMEOUT_MS,
+        }
+      ),
+    { onRetry: retryLogger('graphql') }
   )
 
   const errors = response.data?.errors as { type?: string; message?: string }[] | undefined
@@ -309,20 +356,6 @@ function parseRestRateLimit(headers: Record<string, unknown>): RateLimitInfo | u
 }
 
 /**
- * Returns whichever snapshot reports the lower remaining quota. The REST
- * fallback fires two requests in parallel, each decrementing the budget, so the
- * badge should reflect the most-drained (safest) value rather than over-report.
- */
-function pickLowerRateLimit(
-  a: RateLimitInfo | undefined,
-  b: RateLimitInfo | undefined
-): RateLimitInfo | undefined {
-  if (!a) return b
-  if (!b) return a
-  return a.remaining <= b.remaining ? a : b
-}
-
-/**
  * Fetches a fresh rate-limit snapshot from GitHub's dedicated `/rate_limit`
  * endpoint, which does not itself consume quota. Picks the bucket matching the
  * path the app uses (GraphQL when a token is configured, otherwise REST core)
@@ -334,8 +367,8 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github.v3+json',
     }
-    if (process.env.GITHUB_TOKEN) {
-      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+    if (env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
     }
     // Best-effort only: a short timeout ensures a stalled GitHub request can't
     // block the otherwise-fast cached profile response.
@@ -346,7 +379,7 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
     const resources = response.data?.resources as
       | Record<string, { limit?: number; remaining?: number; reset?: number }>
       | undefined
-    const bucket = process.env.GITHUB_TOKEN ? resources?.graphql : resources?.core
+    const bucket = env.GITHUB_TOKEN ? resources?.graphql : resources?.core
     if (!bucket || typeof bucket.limit !== 'number' || typeof bucket.remaining !== 'number') {
       return undefined
     }
@@ -365,98 +398,109 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<UserData>
 ) {
-  const { username } = req.query
+  const { username: rawUsername } = req.query
 
-  if (!username || typeof username !== 'string') {
+  if (!rawUsername || typeof rawUsername !== 'string') {
     return res.status(400).json({
       user: {} as GitHubUser,
       repos: [],
       contributions: null,
       engagement: null,
       productivity: null,
-      error: 'Username is required',
+      error: 'Invalid username',
+      errorType: 'unknown',
+    })
+  }
+
+  let username: string
+  try {
+    username = sanitizeUsername(rawUsername)
+  } catch {
+    return res.status(400).json({
+      user: {} as GitHubUser,
+      repos: [],
+      contributions: null,
+      engagement: null,
+      productivity: null,
+      error: 'Invalid username format.',
       errorType: 'unknown',
     })
   }
 
   const cacheKey = `github-profile:${username.toLowerCase()}`
-  const cached = getCached<UserData>(cacheKey)
-  if (cached) {
-    // Rate-limit quota is deliberately not cached (it would go stale), so fetch
-    // a fresh snapshot and merge it in to keep the badge live on cache hits.
-    const rateLimit = await fetchRateLimitSnapshot()
-    return res.status(200).json({ ...cached, rateLimit })
-  }
-
-  // Preferred path: one GraphQL call gets profile + engagement + contribution
-  // calendar + repos (with watchers/open issues/language bytes) in one shot.
-  // GraphQL always requires auth, so this only runs when a token is configured.
-  if (process.env.GITHUB_TOKEN) {
-    try {
-      const { user, repos, contributions, engagement, pinnedRepos, rateLimit } = await fetchViaGraphQL(username)
-      const productivity = computeProductivityStats(contributions.weeks)
-      const result: UserData = { user, repos, contributions, engagement, productivity, pinnedRepos }
-
-      // Cache the profile WITHOUT the volatile rate-limit value; return the
-      // fresh snapshot from this request to the client.
-      setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
-      return res.status(200).json({ ...result, rateLimit })
-    } catch (err) {
-      if (err instanceof GraphQLNotFoundError) {
-        return res.status(404).json({
-          user: {} as GitHubUser,
-          repos: [],
-          contributions: null,
-          engagement: null,
-          productivity: null,
-          error: 'User not found',
-          errorType: 'not_found',
-        })
-      }
-      // Any other GraphQL failure (rate limit, network hiccup, schema surprise)
-      // falls through to the REST path below for a degraded-but-working response.
-    }
-  }
-
-  // Fallback path: plain REST calls. Works with or without a token, just
-  // without the engagement/productivity/byte-language extras.
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github.v3+json',
-  }
-  if (process.env.GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
-  }
 
   try {
-    const [userResponse, reposResponse] = await Promise.all([
-      axios.get(`https://api.github.com/users/${username}`, { headers }),
-      axios.get(
-        `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
-        { headers }
-      ),
-    ])
+    const cached = await getCachedWithFallback<UserData>(cacheKey, PROFILE_CACHE_TTL_MS, async () => {
+      if (env.GITHUB_TOKEN) {
+        try {
+          const result = await fetchViaGraphQL(username)
+          const productivity = computeProductivityStats(result.contributions.weeks)
+          return { ...result, productivity } as UserData
+        } catch (err) {
+          if (err instanceof GraphQLNotFoundError) {
+            throw err
+          }
+          // Non-"not found" GraphQL failures (rate-limit, transient 5xx, partial
+          // GraphQL/schema errors) previously fell through to REST silently,
+          // degrading token-backed deployments (no heatmap/engagement/productivity)
+          // with nothing in the logs. Keep the graceful REST fallback, but log
+          // with enough context to tell the causes apart.
+          const message = err instanceof Error ? err.message : String(err)
+          const kind = /rate limit|secondary rate|api rate/i.test(message)
+            ? 'rate-limit'
+            : err instanceof GraphQLOtherError
+              ? 'graphql-error'
+              : 'transient'
+          // A warning, not an error: the REST fallback below still serves the request.
+          // console.error overstated it.
+          logWarn('api/github', 'GraphQL fetch failed; falling back to REST', {
+            username,
+            kind,
+            reason: message,
+          })
+        }
+      }
 
-    const result: UserData = {
-      user: userResponse.data,
-      repos: reposResponse.data,
-      contributions: null,
-      engagement: null,
-      productivity: null,
-      pinnedRepos: [],
-    }
+      const headers: Record<string, string> = {
+        Accept: 'application/vnd.github.v3+json',
+      }
+      if (env.GITHUB_TOKEN) {
+        headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
+      }
 
-    // Both REST calls decrement the quota in parallel; keep the lower remaining
-    // so the badge can't over-report. Cache without it; return it fresh.
-    const rateLimit = pickLowerRateLimit(
-      parseRestRateLimit(userResponse.headers as unknown as Record<string, unknown>),
-      parseRestRateLimit(reposResponse.headers as unknown as Record<string, unknown>)
-    )
-    setCached(cacheKey, result, PROFILE_CACHE_TTL_MS)
-    return res.status(200).json({ ...result, rateLimit })
+      const [userResponse, reposResponse] = await Promise.all([
+        withRetry(
+          () =>
+            axios.get(`https://api.github.com/users/${username}`, {
+              headers,
+              timeout: GITHUB_TIMEOUT_MS,
+            }),
+          { onRetry: retryLogger('rest:user') }
+        ),
+        withRetry(
+          () =>
+            axios.get(
+              `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+              { headers, timeout: GITHUB_TIMEOUT_MS }
+            ),
+          { onRetry: retryLogger('rest:repos') }
+        ),
+      ])
+
+      return {
+        user: userResponse.data,
+        repos: reposResponse.data,
+        contributions: null,
+        engagement: null,
+        productivity: null,
+        pinnedRepos: [],
+      } as UserData
+    })
+
+    const rateLimit = await fetchRateLimitSnapshot()
+    return res.status(200).json({ ...cached, rateLimit })
   } catch (err: unknown) {
-    const error = err as AxiosError
-
-    if (error.response?.status === 404) {
+    if (err instanceof GraphQLNotFoundError) {
       return res.status(404).json({
         user: {} as GitHubUser,
         repos: [],
@@ -468,18 +512,42 @@ export default async function handler(
       })
     }
 
-    if (error.response?.status === 403) {
-      return res.status(403).json({
+    // A timeout aborts with code ECONNABORTED and carries no response — surface it
+    // as a distinct network error rather than falling through to a generic failure.
+    if ((err as { code?: string }).code === 'ECONNABORTED') {
+      logWarn('api/github', 'request to GitHub timed out', { username })
+      return res.status(504).json({
         user: {} as GitHubUser,
         repos: [],
         contributions: null,
         engagement: null,
         productivity: null,
-        error: 'GitHub API rate limit reached. Please try again in a few minutes.',
-        errorType: 'rate_limited',
+        error: 'The request to GitHub timed out. Please try again.',
+        errorType: 'network',
       })
     }
 
+    const axiosErr = err as { response?: { status?: number; headers?: Record<string, unknown> } }
+    if (axiosErr.response?.status === 403 || axiosErr.response?.status === 429) {
+      // Only the status goes into the log — never `axiosErr.response.headers`, and never the
+      // error object itself, whose request config carries the Authorization header.
+      logWarn('api/github', 'GitHub rate limit reached', { username, status: axiosErr.response.status })
+      const rateLimit = parseRestRateLimit(axiosErr.response.headers as unknown as Record<string, unknown>)
+      return res.status(axiosErr.response?.status || 403).json({
+        user: {} as GitHubUser,
+        repos: [],
+        contributions: null,
+        engagement: null,
+        productivity: null,
+        error: 'GitHub API rate limit reached. Please try again later or add GITHUB_TOKEN.',
+        errorType: 'rate_limited',
+        rateLimit,
+      })
+    }
+
+    // Everything above is an expected outcome — an unknown username, a timeout, a rate limit.
+    // Reaching here means something we didn't anticipate, which is exactly what the log is for.
+    logError('api/github', err, { username })
     return res.status(500).json({
       user: {} as GitHubUser,
       repos: [],

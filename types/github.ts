@@ -81,7 +81,75 @@ export interface UserData {
   pinnedRepos?: Repository[]
   rateLimit?: RateLimitInfo
   error?: string
-  errorType?: 'not_found' | 'rate_limited' | 'unknown'
+  errorType?: 'not_found' | 'rate_limited' | 'network' | 'unknown'
+}
+
+export interface StarEntry {
+  date: string
+  count: number
+}
+
+export interface ActivityEvent {
+  id: string
+  type: string
+  repo: string
+  repoUrl: string
+  createdAt: string
+  payload: string
+}
+
+export interface FollowerUser {
+  login: string
+  avatarUrl: string
+  htmlUrl: string
+  type: string
+}
+
+export interface CommitActivity {
+  days: number[]
+  total: number
+  week: number
+}
+
+export interface LanguageBreakdown {
+  name: string
+  bytes: number
+  percentage: number
+  color: string
+}
+
+export interface CompareResult {
+  repoName: string
+  owner: string
+  stars: number
+  forks: number
+  openIssues: number
+  language: string
+  description: string
+  url: string
+}
+
+export interface WatchlistItem {
+  id: string
+  type: 'user' | 'repo'
+  name: string
+  addedAt: string
+  data?: Record<string, unknown>
+}
+
+export interface SponsorInfo {
+  login: string
+  avatarUrl: string
+  htmlUrl: string
+  tierName?: string
+  isSponsoring: boolean
+}
+
+export interface CodeFrequency {
+  week: number
+  additions: number
+  deletions: number
+  total: number
 }
 
 export type SortOption = 'stars' | 'updated' | 'forks'

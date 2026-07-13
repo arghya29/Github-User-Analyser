@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { resolveBaseUrl } from '@/lib/siteUrl'
 import { useRouter } from 'next/router'
@@ -8,21 +8,13 @@ import type { AxiosError } from 'axios'
 import ThemeToggle from '@/components/ThemeToggle'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import Footer from '@/components/Footer'
+import MobileNav from '@/components/MobileNav'
 import ProfileDashboard from '@/components/ProfileDashboard'
+import RateLimitBanner from '@/components/RateLimitBanner'
+import ErrorState, { type ErrorType } from '@/components/ErrorState'
 import { fetchUserData } from '@/lib/github'
 import { recordSearch } from '@/lib/searchHistory'
 import type { UserData } from '@/types/github'
-
-type ErrorType = 'not_found' | 'rate_limited' | 'unknown'
-
-const errorStyles: Record<ErrorType, string> = {
-  not_found:
-    'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-  rate_limited:
-    'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-500 text-amber-600 dark:text-amber-400',
-  unknown:
-    'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500 text-red-600 dark:text-red-400',
-}
 
 interface OgMeta {
   title: string
@@ -33,9 +25,10 @@ interface OgMeta {
 
 interface UserProfilePageProps {
   og: OgMeta
+  jsonLd: string
 }
 
-export default function UserProfilePage({ og }: UserProfilePageProps) {
+export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
   const router = useRouter()
   const usernameParam = router.query.username
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
@@ -44,6 +37,8 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<ErrorType>('unknown')
+  const [retryCount, setRetryCount] = useState(0)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
     if (!router.isReady) return
@@ -73,8 +68,15 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
       .catch((err: unknown) => {
         if (cancelled) return
         const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
-        setError(axiosError.response?.data?.error || 'Failed to fetch user data')
-        setErrorType(axiosError.response?.data?.errorType || 'unknown')
+        if (axiosError.response) {
+          // The server responded with an error payload.
+          setError(axiosError.response.data?.error || 'Failed to fetch user data')
+          setErrorType(axiosError.response.data?.errorType || 'unknown')
+        } else {
+          // No response at all → a connectivity/network failure.
+          setError('We couldn’t reach GitHub. Check your internet connection and try again.')
+          setErrorType('network')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -83,7 +85,9 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
     return () => {
       cancelled = true
     }
-  }, [router.isReady, username])
+  }, [router.isReady, username, retryCount])
+
+  const handleRetry = useCallback(() => setRetryCount((count) => count + 1), [])
 
   return (
     <>
@@ -95,13 +99,13 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
 
         {/* Open Graph */}
         <meta property="og:type" content="profile" />
-        <meta property="og:site_name" content="GitHub User Analyzer" />
+        <meta property="og:site_name" content="GitHub User Analyser" />
         <meta property="og:title" content={og.title} />
         <meta property="og:description" content={og.description} />
         <meta property="og:image" content={og.image} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="GitHub User Analyzer" />
+        <meta property="og:image:alt" content="GitHub User Analyser" />
         <meta property="og:url" content={og.url} />
 
         {/* Twitter */}
@@ -109,21 +113,83 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
         <meta name="twitter:title" content={og.title} />
         <meta name="twitter:description" content={og.description} />
         <meta name="twitter:image" content={og.image} />
+        {jsonLd ? (
+          <script
+            type="application/ld+json"
+            // Server-serialized + `<`-escaped in getServerSideProps; safe to embed.
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+          />
+        ) : null}
       </Head>
 
       <div className="flex flex-col min-h-screen">
         <main className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800">
-          <div className="container mx-auto px-4 py-12">
+          <div className="container mx-auto px-4 pt-0 pb-12">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <Link
-                href="/"
-                className="text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity"
-              >
-                GitHub User Analyzer
-              </Link>
-              <ThemeToggle />
+            <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border-b border-gray-200/80 dark:border-slate-800/80 py-4 mb-0 -mx-4">
+              <div className="flex flex-nowrap items-center justify-between gap-2 w-full px-2 md:px-4">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(true)}
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
+                    aria-label="Open navigation menu"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
+                      aria-label="Home"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      </svg>
+                    </Link>
+                    <Link
+                      href="/"
+                      className="min-w-0 text-lg md:text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity truncate"
+                    >
+                      GitHub User Analyser
+                    </Link>
+                    <Link
+                      href="/"
+                      className="hidden md:inline-flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-semibold text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      </svg>
+                      Home
+                    </Link>
+                  </div>
+                </div>
+
+                <nav className="hidden md:flex flex-wrap items-center gap-4 text-base font-semibold text-gray-700 dark:text-gray-300">
+                  <a href="#profile" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                    Profile
+                  </a>
+                  <a href="#activity" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                    Activity
+                  </a>
+                  <a href="#techstack" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                    Techstack
+                  </a>
+                  <a href="#repo-health" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                    Repo Health
+                  </a>
+                  <a href="#repositories" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                    Repositories
+                  </a>
+                </nav>
+
+                <ThemeToggle />
+              </div>
             </div>
+
+            <MobileNav isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
             {loading && (
               <div className="mt-12">
@@ -132,11 +198,18 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
             )}
 
             {!loading && error && (
-              <div
-                className={`mt-6 max-w-2xl mx-auto p-4 border rounded-lg ${errorStyles[errorType]}`}
-              >
-                {error}
-              </div>
+              errorType === 'rate_limited' ? (
+                <RateLimitBanner
+                  resetAt={data?.rateLimit?.resetAt}
+                  onRetry={handleRetry}
+                />
+              ) : (
+                <ErrorState
+                  errorType={errorType}
+                  message={error}
+                  onRetry={errorType === 'not_found' ? undefined : handleRetry}
+                />
+              )
             )}
 
             {!loading && data && <ProfileDashboard data={data} />}
@@ -160,17 +233,38 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
 
   // Per-profile tags are derived from the login (already in the route), so the
   // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyzer` : 'GitHub User Analyzer'
+  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
   const description = username
-    ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyzer.`
+    ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
     : 'Analyze GitHub users and view their repositories'
 
   const og: OgMeta = {
     title,
     description,
     url: baseUrl ? `${baseUrl}/${encodeURIComponent(username)}` : `/${username}`,
-    image: baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png',
+    image: baseUrl
+      ? `${baseUrl}/api/og/${encodeURIComponent(username)}`
+      : `/api/og/${encodeURIComponent(username)}`,
   }
 
-  return { props: { og } }
+  // schema.org Person markup for richer search results. Built server-side from
+  // the login already in the route (no extra GitHub call). `<` is escaped to
+  // `\u003c` so the serialized JSON can never break out of the <script> tag it
+  // is embedded in, even if a value contained the sequence "</script>".
+  const personLd = username
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: username,
+        alternateName: username,
+        url: og.url,
+        image: `${baseUrl || ''}/api/og/${encodeURIComponent(username)}`,
+        sameAs: [`https://github.com/${encodeURIComponent(username)}`],
+      }
+    : null
+  const jsonLd = personLd
+    ? JSON.stringify(personLd).replace(/</g, '\\u003c')
+    : ''
+
+  return { props: { og, jsonLd } }
 }

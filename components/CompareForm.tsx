@@ -3,11 +3,24 @@ import { useState } from 'react'
 interface CompareFormProps {
   onCompare: (userA: string, userB: string) => void
   loading: boolean
+  /**
+   * Seed values for the two fields. /compare passes the pair from the URL so the form reflects
+   * what's on screen — otherwise you'd have to retype both names just to swap one of them.
+   *
+   * Optional and defaulted, so the home page's usage is unchanged.
+   */
+  initialUserA?: string
+  initialUserB?: string
 }
 
-export default function CompareForm({ onCompare, loading }: CompareFormProps) {
-  const [userA, setUserA] = useState('')
-  const [userB, setUserB] = useState('')
+export default function CompareForm({
+  onCompare,
+  loading,
+  initialUserA = '',
+  initialUserB = '',
+}: CompareFormProps) {
+  const [userA, setUserA] = useState(initialUserA)
+  const [userB, setUserB] = useState(initialUserB)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,6 +35,7 @@ export default function CompareForm({ onCompare, loading }: CompareFormProps) {
           value={userA}
           onChange={(e) => setUserA(e.target.value)}
           placeholder="First username..."
+          aria-label="First username to compare"
           className="flex-1 w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 dark:placeholder-gray-400"
           disabled={loading}
         />
@@ -31,12 +45,14 @@ export default function CompareForm({ onCompare, loading }: CompareFormProps) {
           value={userB}
           onChange={(e) => setUserB(e.target.value)}
           placeholder="Second username..."
+          aria-label="Second username to compare"
           className="flex-1 w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 dark:placeholder-gray-400"
           disabled={loading}
         />
         <button
           type="submit"
-          disabled={loading}
+          // FIXED: Disable the button if either input is empty or just spaces
+          disabled={loading || !userA.trim() || !userB.trim()}
           className="w-full sm:w-auto shrink-0 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors"
         >
           {loading ? 'Comparing...' : 'Compare'}

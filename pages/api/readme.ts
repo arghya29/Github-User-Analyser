@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { type AxiosError } from 'axios'
 import { getCached, setCached } from '@/lib/cache'
+import { sanitizeUsername, sanitizeRepoName } from '@/lib/securitySanitizer'
+import { env } from '@/lib/env'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 interface ReadmeResponse {
   content: string | null
@@ -13,14 +16,24 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ReadmeResponse>
 ) {
-  const { owner, repo } = req.query
+  const { owner: rawOwner, repo: rawRepo } = req.query
 
-  if (!owner || !repo || typeof owner !== 'string' || typeof repo !== 'string') {
+  if (!rawOwner || !rawRepo || typeof rawOwner !== 'string' || typeof rawRepo !== 'string') {
     return res.status(400).json({ content: null, error: 'owner and repo are required' })
   }
 
+  let owner: string
+  let repo: string
+  try {
+    owner = sanitizeUsername(rawOwner)
+    repo = sanitizeRepoName(rawRepo)
+  } catch {
+    return res.status(400).json({ content: null, error: 'Invalid owner or repository name query format.' })
+  }
+
   const cacheKey = `readme:${owner}/${repo}`
-  const cached = getCached<ReadmeResponse>(cacheKey)
+  // FIXED: Added await here
+  const cached = await getCached<ReadmeResponse>(cacheKey)
   if (cached) {
     return res.status(200).json(cached)
   }
@@ -28,12 +41,12 @@ export default async function handler(
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
   }
-  if (process.env.GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`
+  if (env.GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
   }
 
   try {
-    const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+    const response = await axios.get(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`, {
       headers,
     })
 
@@ -41,17 +54,26 @@ export default async function handler(
     const decoded = Buffer.from(base64Content, 'base64').toString('utf-8')
     const result: ReadmeResponse = { content: decoded }
 
-    setCached(cacheKey, result, README_CACHE_TTL_MS)
+    // FIXED: Added await here
+    await setCached(cacheKey, result, README_CACHE_TTL_MS)
     return res.status(200).json(result)
   } catch (err: unknown) {
     const error = err as AxiosError
 
+    // A 404 is a normal answer here ("this repo has no README"), not a failure — and logging
+    // it would let anyone flush the 50-entry queue just by asking for READMEs that don't exist.
     if (error.response?.status === 404) {
       return res.status(404).json({ content: null, error: 'No README found for this repository' })
     }
-    if (error.response?.status === 403) {
-      return res.status(403).json({ content: null, error: 'GitHub API rate limit reached' })
+    // GitHub answers 403 for the primary rate limit and 429 for secondary limits. Only 403 was
+    // handled, so a 429 fell through to a 500 — which reads as "we broke" rather than "slow down".
+    // github.ts already checks both; this brings readme.ts in line and propagates the real status.
+    const rateLimitStatus = error.response?.status
+    if (rateLimitStatus === 403 || rateLimitStatus === 429) {
+      logWarn('api/readme', 'GitHub rate limit reached', { owner, repo, status: rateLimitStatus })
+      return res.status(rateLimitStatus).json({ content: null, error: 'GitHub API rate limit reached' })
     }
+    logError('api/readme', error, { owner, repo, status: error.response?.status })
     return res.status(500).json({ content: null, error: 'Failed to fetch README' })
   }
 }

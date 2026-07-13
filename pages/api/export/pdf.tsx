@@ -13,8 +13,11 @@ import {
 import axios from 'axios'
 import type { UserData } from '@/types/github'
 import { getCached } from '@/lib/cache'
+import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
+import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
+import { logError } from '@/lib/errorLogger'
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+// ─── Styles ─────────────────────────────────────────────────────────────
 
 const BLUE = '#2563eb'
 const DARK = '#0f172a'
@@ -49,7 +52,9 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     marginRight: 18,
-    border: `3px solid ${BLUE}`,
+    borderWidth: 3,
+    borderStyle: 'solid',
+    borderColor: BLUE,
   },
   headerRight: { flex: 1 },
   name: {
@@ -57,8 +62,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     color: DARK,
     marginBottom: 2,
+    lineHeight: 1.2,
   },
-  username: { fontSize: 12, color: BLUE, marginBottom: 6 },
+  username: {
+    fontSize: 12,
+    color: BLUE,
+    marginBottom: 6,
+    lineHeight: 1.2,
+  },
   bio: { fontSize: 10, color: MID, marginBottom: 8, lineHeight: 1.5 },
   contactRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   contactItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
@@ -84,6 +95,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     color: DARK,
     marginBottom: 2,
+    lineHeight: 1.2,
   },
   statLabel: { fontSize: 8, color: LIGHT, textAlign: 'center' },
 
@@ -153,7 +165,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   repoDesc: { fontSize: 9, color: MID, marginBottom: 4, lineHeight: 1.4 },
-  repoStats: { flexDirection: 'row', gap: 12 },
+  repoStats: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   repoStat: { fontSize: 8, color: LIGHT },
 
   // ── Footer ──
@@ -176,7 +188,8 @@ const styles = StyleSheet.create({
   footerBadgeText: { fontSize: 8, color: WHITE, fontFamily: 'Helvetica-Bold' },
 })
 
-// ── Language colour map (keep in sync with languageColors.ts) ─────────────────
+// ── Language colour map (keep in sync with languageColors.ts) ──────────
+
 const LANG_COLORS: Record<string, string> = {
   JavaScript: '#eab308',
   TypeScript: '#2563eb',
@@ -192,18 +205,41 @@ const LANG_COLORS: Record<string, string> = {
   Ruby: '#b91c1c',
 }
 
-// ── Fetch avatar as base64 ────────────────────────────────────────────────────
-async function avatarToDataUrl(url: string): Promise<string | null> {
+const ALLOWED_AVATAR_HOSTS = new Set(['avatars.githubusercontent.com'])
+
+function isAllowedAvatarUrl(rawUrl: unknown): rawUrl is string {
+  if (typeof rawUrl !== 'string' || rawUrl.length === 0) return false
+  let parsed: URL
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 })
+    parsed = new URL(rawUrl)
+  } catch {
+    return false
+  }
+  return parsed.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(parsed.hostname)
+}
+
+async function avatarToDataUrl(url: string): Promise<string | null> {
+  // Validate against SSRF: only allow HTTPS URLs from whitelisted GitHub domains
+  if (!isAllowedAvatarUrl(url)) {
+    return null
+  }
+  
+  try {
+    // Reconstruct URL from validated components to prevent SSRF
+    const validatedUrl = new URL(url)
+    const response = await axios.get(validatedUrl.toString(), { responseType: 'arraybuffer', timeout: 5000 })
+    const contentType = response.headers['content-type'] || 'image/jpeg'
     const base64 = Buffer.from(response.data as ArrayBuffer).toString('base64')
-    return `data:image/jpeg;base64,${base64}`
+    return `data:${contentType};base64,${base64}`
   } catch {
     return null
   }
 }
 
-// ── Resume document ───────────────────────────────────────────────────────────
+const RATE_LIMIT_WINDOW_MS = 60000
+const RATE_LIMIT_MAX = 5
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
+
 interface ResumeDocProps {
   userData: UserData
   avatarDataUrl: string | null
@@ -217,12 +253,10 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
     month: 'long',
   })
 
-  // Top 6 repos by stars
   const topRepos = [...repos]
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
     .slice(0, 6)
 
-  // Language distribution
   const langCounts = new Map<string, number>()
   for (const repo of repos) {
     if (!repo.language) continue
@@ -238,12 +272,10 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
   return (
     <Document
       title={`${user.name || user.login} - GitHub Profile`}
-      author="GitHub User Analyzer"
+      author="GitHub User Analyser"
       subject="Developer Profile"
     >
       <Page size="A4" style={styles.page}>
-
-        {/* ── Header ── */}
         <View style={styles.header}>
           {avatarDataUrl && (
             // eslint-disable-next-line jsx-a11y/alt-text
@@ -261,7 +293,9 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
               ) : null}
               {user.blog ? (
                 <View style={styles.contactItem}>
-                  <Link style={styles.contactLink} src={user.blog}>{user.blog}</Link>
+                  <Link style={styles.contactLink} src={user.blog}>
+                    {user.blog}
+                  </Link>
                 </View>
               ) : null}
               {user.twitter_username ? (
@@ -272,7 +306,9 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
                 </View>
               ) : null}
               <View style={styles.contactItem}>
-                <Link style={styles.contactLink} src={user.html_url}>{user.html_url}</Link>
+                <Link style={styles.contactLink} src={user.html_url}>
+                  {user.html_url}
+                </Link>
               </View>
               <View style={styles.contactItem}>
                 <Text style={styles.contactText}>Joined {joinDate}</Text>
@@ -281,7 +317,6 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
           </View>
         </View>
 
-        {/* ── Stats row ── */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{user.public_repos}</Text>
@@ -307,9 +342,8 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
           ) : null}
         </View>
 
-        {/* ── Languages ── */}
         {topLangs.length > 0 && (
-          <View style={styles.section}>
+          <View style={styles.section} wrap={false}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Languages & Technologies</Text>
               <View style={styles.sectionLine} />
@@ -318,16 +352,17 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
               {topLangs.map(([lang, count]) => (
                 <View key={lang} style={styles.langPill}>
                   <View style={[styles.langDot, { backgroundColor: LANG_COLORS[lang] || '#94a3b8' }]} />
-                  <Text style={styles.langText}>{lang} ({count})</Text>
+                  <Text style={styles.langText}>
+                    {lang} ({count})
+                  </Text>
                 </View>
               ))}
             </View>
           </View>
         )}
 
-        {/* ── Productivity (only if GraphQL data was available) ── */}
         {productivity && engagement && (
-          <View style={styles.section}>
+          <View style={styles.section} wrap={false}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Productivity (last year)</Text>
               <View style={styles.sectionLine} />
@@ -357,7 +392,6 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
           </View>
         )}
 
-        {/* ── Top Repositories ── */}
         {topRepos.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -365,16 +399,14 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
               <View style={styles.sectionLine} />
             </View>
             {topRepos.map((repo) => (
-              <View key={repo.name} style={styles.repoEntry}>
+              <View key={repo.name} style={styles.repoEntry} wrap={false}>
                 <View style={styles.repoTop}>
-                  <Link src={repo.html_url} style={styles.repoName}>{repo.name}</Link>
-                  {repo.language ? (
-                    <Text style={styles.repoLang}>{repo.language}</Text>
-                  ) : null}
+                  <Link src={repo.html_url} style={styles.repoName}>
+                    {repo.name}
+                  </Link>
+                  {repo.language ? <Text style={styles.repoLang}>{repo.language}</Text> : null}
                 </View>
-                {repo.description ? (
-                  <Text style={styles.repoDesc}>{repo.description}</Text>
-                ) : null}
+                {repo.description ? <Text style={styles.repoDesc}>{repo.description}</Text> : null}
                 <View style={styles.repoStats}>
                   <Text style={styles.repoStat}>★ {repo.stargazers_count} stars</Text>
                   <Text style={styles.repoStat}>⑂ {repo.forks_count} forks</Text>
@@ -382,7 +414,11 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
                     <Text style={styles.repoStat}>◎ {repo.open_issues_count} open issues</Text>
                   )}
                   <Text style={styles.repoStat}>
-                    Updated {new Date(repo.updated_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    Updated{' '}
+                    {new Date(repo.updated_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      year: 'numeric',
+                    })}
                   </Text>
                 </View>
               </View>
@@ -390,10 +426,10 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
           </View>
         )}
 
-        {/* ── Footer ── */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            Generated by GitHub User Analyzer · {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            Generated by GitHub User Analyser ·{' '}
+            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </Text>
           <View style={styles.footerBadge}>
             <Text style={styles.footerBadgeText}>github-user-analyser.vercel.app</Text>
@@ -404,48 +440,62 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
   )
 }
 
-// ── API handler ───────────────────────────────────────────────────────────────
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const clientIp = getClientIp(req)
+  const retryAfter = rateLimiter.check(clientIp)
+  if (retryAfter !== null) {
+    res.setHeader('Retry-After', String(retryAfter))
+    return res.status(429).json({ error: `Too many requests — please wait ${retryAfter}s and try again` })
+  }
+
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    res.setHeader('Allow', 'GET, POST')
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
   const { username } = req.query
   if (!username || typeof username !== 'string') {
     return res.status(400).json({ error: 'username is required' })
   }
 
-  // Re-use the cached profile data if it exists — if not, we'd need a fresh
-  // fetch. For simplicity the frontend passes the data it already has as POST body.
   let userData: UserData | null = null
 
   if (req.method === 'POST') {
-    try {
-      userData = req.body as UserData
-    } catch {
-      userData = null
+    // Reject a malformed posted body with a clear 400 before it is used below.
+    // This gate only rejects; the userData assignment that follows is unchanged.
+    if (req.body != null && validateRequest(res, exportUserDataSchema, req.body) === null) {
+      return
     }
+    // `as UserData` is a compile-time assertion with no runtime behaviour, and Next's body
+    // parser has already run by the time the handler is invoked — so this is a plain
+    // assignment that cannot throw. The try/catch around it was unreachable, and the
+    // malformed-body case is already handled by the validateRequest gate directly above.
+    userData = req.body as UserData
   }
 
   if (!userData) {
     const cacheKey = `github-profile:${username.toLowerCase()}`
-    userData = getCached<UserData>(cacheKey)
+    // FIXED: Added await and parentheses to handle the async call properly
+    userData = (await getCached<UserData>(cacheKey)) ?? null
   }
 
   if (!userData || !userData.user?.login) {
-    return res.status(404).json({ error: 'Profile data not found. Search for the user first.' })
+    return res.status(404).json({ error: 'User data not found. Please analyze the user first.' })
   }
 
   try {
     const avatarDataUrl = await avatarToDataUrl(userData.user.avatar_url)
-    const element =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      React.createElement(ResumeDocument, { userData, avatarDataUrl }) as any
-    const buffer = await renderToBuffer(element)
+    const pdfBuffer = await renderToBuffer(
+      <ResumeDocument userData={userData} avatarDataUrl={avatarDataUrl} />
+    )
 
-    const safeLogin = userData.user.login.replace(/[^a-zA-Z0-9_-]/g, '')
+    const safeLogin = userData.user.login.replace(/[^a-zA-Z0-9-_]/g, '')
     res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${safeLogin}-github-profile.pdf"`)
-    res.setHeader('Content-Length', buffer.length)
-    res.status(200).end(buffer)
-  } catch (err) {
-    console.error('PDF generation error:', err)
-    res.status(500).json({ error: 'Failed to generate PDF' })
+    res.setHeader('Content-Disposition', `attachment; filename="${safeLogin || 'github-user'}-profile.pdf"`)
+    res.setHeader('Cache-Control', 'no-store')
+    return res.status(200).send(pdfBuffer)
+  } catch (error) {
+    logError('api/export/pdf', error, { username })
+    return res.status(500).json({ error: 'Failed to generate PDF' })
   }
 }

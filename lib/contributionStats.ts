@@ -88,7 +88,7 @@ export function computeProductivityStats(weeks: ContributionWeek[]): Productivit
   const monthlyMap = new Map<string, number>()
 
   for (const day of days) {
-    if (!mostProductiveDay || day.count > mostProductiveDay.count) {
+    if (day.count > 0 && (!mostProductiveDay || day.count > mostProductiveDay.count)) {
       mostProductiveDay = { date: day.date, count: day.count }
     }
 

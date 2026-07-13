@@ -1,4 +1,6 @@
+import { memo } from 'react'
 import type { ContributionsData } from '@/types/github'
+import CustomChartContainer from './charts/CustomChartContainer'
 
 interface ActivityHeatmapProps {
   data: ContributionsData
@@ -15,6 +17,7 @@ const LEVEL_COLORS = [
 function levelFor(count: number, max: number): number {
   if (count === 0) return 0
   if (max <= 4) return count >= max ? 4 : 3
+
   const ratio = count / max
   if (ratio > 0.75) return 4
   if (ratio > 0.5) return 3
@@ -23,72 +26,67 @@ function levelFor(count: number, max: number): number {
 }
 
 function monthLabel(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short' })
+  const date = new Date(dateStr)
+  return date.toLocaleString('default', { month: 'short', timeZone: 'UTC' })
 }
 
-export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
-  const { weeks, totalContributions } = data
+function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+  const weeks = data?.weeks ?? []
+  const max = Math.max(
+    0,
+    // FIXED 1: Changed day.contributionCount to day.count
+    ...weeks.flatMap((week) => week.contributionDays.map((day) => day.count))
+  )
 
-  const allCounts = weeks.flatMap((w) => w.contributionDays.map((d) => d.count))
-  const maxCount = Math.max(...allCounts, 1)
-
-  let lastMonth = ''
-  const monthMarkers = weeks.map((week) => {
-    const firstDay = week.contributionDays[0]
-    if (!firstDay) return ''
-    const label = monthLabel(firstDay.date)
-    if (label !== lastMonth) {
-      lastMonth = label
-      return label
-    }
-    return ''
-  })
+  // Show month label only on first week that contains a day from that month
+  const shownMonths = new Set<string>()
 
   return (
-    <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity</h3>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {totalContributions.toLocaleString()} contributions in the last year
-        </span>
-      </div>
+    <CustomChartContainer title="Contribution Activity">
+      <div className="overflow-x-auto">
+        <div className="inline-flex gap-[2px]">
+          {weeks.map((week, weekIndex) => {
+            const firstDay = week.contributionDays[0]
+            const month = firstDay ? monthLabel(firstDay.date) : ''
+            const showMonth = month && !shownMonths.has(month)
 
-      <div
-        className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        tabIndex={0}
-        role="region"
-        aria-label="Activity contributions heatmap"
-      >
-        <div className="inline-flex gap-[3px] min-w-full">
-          {weeks.map((week, weekIdx) => (
-            <div key={weekIdx} className="flex flex-col gap-[3px]">
-              <div className="h-3 text-[10px] text-gray-400 dark:text-gray-500 leading-3 whitespace-nowrap">
-                {monthMarkers[weekIdx]}
+            if (showMonth) shownMonths.add(month)
+
+            return (
+              <div key={weekIndex} className="flex flex-col gap-[2px]">
+                <div className="h-4 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+                  {showMonth ? month : ''}
+                </div>
+
+                {week.contributionDays.map((day) => {
+                  // FIXED 2: Changed day.contributionCount to day.count
+                  const level = levelFor(day.count, max)
+                  return (
+                    <div
+                      key={day.date}
+                      className={`h-3 w-3 rounded-sm ${LEVEL_COLORS[level]}`}
+                      // FIXED 3: Changed day.contributionCount to day.count
+                      title={`${day.count} contributions on ${day.date}`}
+                    />
+                  )
+                })}
               </div>
-              {week.contributionDays.map((day) => {
-                const level = levelFor(day.count, maxCount)
-                return (
-                  <div
-                    key={day.date}
-                    title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${new Date(
-                      day.date
-                    ).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                    className={`w-3 h-3 rounded-sm ${LEVEL_COLORS[level]}`}
-                  />
-                )
-              })}
-            </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span>Less</span>
+          {LEVEL_COLORS.map((color, idx) => (
+            <div key={idx} className={`h-3 w-3 rounded-sm ${color}`} />
           ))}
+          <span>More</span>
         </div>
       </div>
-
-      <div className="flex items-center justify-end gap-1.5 mt-4 text-[11px] text-gray-400 dark:text-gray-400">
-        <span>Less</span>
-        {LEVEL_COLORS.map((color, i) => (
-          <span key={i} className={`w-3 h-3 rounded-sm ${color}`} />
-        ))}
-        <span>More</span>
-      </div>
-    </div>
+    </CustomChartContainer>
   )
 }
+
+// renders a full year of contribution cells — the most expensive render on the
+// dashboard, and its data never changes while the user filters or sorts.
+export default memo(ActivityHeatmap)

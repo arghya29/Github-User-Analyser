@@ -1,10 +1,15 @@
+import { useState, memo } from 'react'
+import Image from 'next/image'
 import type { GitHubUser } from '@/types/github'
+import FollowersExplorer from '@/components/FollowersExplorer'
+import FavoriteButton from '@/components/FavoriteButton'
 
 interface UserCardProps {
   user: GitHubUser
 }
 
-export default function UserCard({ user }: UserCardProps) {
+function UserCard({ user }: UserCardProps) {
+  const [showFollowers, setShowFollowers] = useState(false)
   const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -17,20 +22,24 @@ export default function UserCard({ user }: UserCardProps) {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={user.avatar_url}
               alt={user.login}
-              className="w-32 h-32 rounded-full border-4 border-blue-500"
+              width={128}
+              height={128}
+              className="w-32 h-32 rounded-full border-4 border-blue-500 object-cover"
             />
           </div>
 
           {/* User Info */}
           <div className="flex-1">
             <div className="mb-4">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                {user.name || user.login}
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  {user.name || user.login}
+                </h2>
+                <FavoriteButton username={user.login} />
+              </div>
               <p className="text-blue-600 dark:text-blue-400 text-lg">@{user.login}</p>
             </div>
 
@@ -46,18 +55,26 @@ export default function UserCard({ user }: UserCardProps) {
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Repositories</div>
               </div>
-              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+              <button
+                type="button"
+                onClick={() => setShowFollowers(true)}
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.followers}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
-              </div>
-              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFollowers(true)}
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.following}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
-              </div>
+              </button>
             </div>
 
             {/* Details */}
@@ -117,6 +134,17 @@ export default function UserCard({ user }: UserCardProps) {
           </div>
         </div>
       </div>
+      {showFollowers && (
+        <FollowersExplorer
+          username={user.login}
+          followersCount={user.followers}
+          followingCount={user.following}
+          onClose={() => setShowFollowers(false)}
+        />
+      )}
     </div>
   )
 }
+
+// static profile summary; nothing about it changes while the user filters repos.
+export default memo(UserCard)
