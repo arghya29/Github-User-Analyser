@@ -115,13 +115,15 @@ export default function FollowersExplorer({
               {users.map((u) => (
                 <a
                   key={u.login}
-                  href={u.htmlUrl}
+                  // 🛠️ FIX: Updated to use html_url
+                  href={u.html_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <Image
-                    src={u.avatarUrl}
+                    // 🛠️ FIX: Updated to use avatar_url
+                    src={u.avatar_url}
                     alt={u.login}
                     width={40}
                     height={40}
