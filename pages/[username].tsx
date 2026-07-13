@@ -42,7 +42,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!username) {
+    
+    // 🛠️ FIX: Explicitly block the literal string 'undefined'
+    if (!username || username === 'undefined') {
       setLoading(false)
       setError('No username provided')
       setErrorType('not_found')
@@ -69,11 +71,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
         if (cancelled) return
         const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
         if (axiosError.response) {
-          // The server responded with an error payload.
           setError(axiosError.response.data?.error || 'Failed to fetch user data')
           setErrorType(axiosError.response.data?.errorType || 'unknown')
         } else {
-          // No response at all → a connectivity/network failure.
           setError('We couldn’t reach GitHub. Check your internet connection and try again.')
           setErrorType('network')
         }
@@ -116,7 +116,6 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
         {jsonLd ? (
           <script
             type="application/ld+json"
-            // Server-serialized + `<`-escaped in getServerSideProps; safe to embed.
             dangerouslySetInnerHTML={{ __html: jsonLd }}
           />
         ) : null}
@@ -228,13 +227,14 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
 }) => {
   const raw = params?.username
   const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
+  
+  // 🛠️ FIX: Only treat the username as valid if it's not the string 'undefined'
+  const isValidUser = username && username !== 'undefined'
 
   const baseUrl = resolveBaseUrl(req)
 
-  // Per-profile tags are derived from the login (already in the route), so the
-  // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
-  const description = username
+  const title = isValidUser ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
+  const description = isValidUser
     ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
     : 'Analyze GitHub users and view their repositories'
 
@@ -247,11 +247,7 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
       : `/api/og/${encodeURIComponent(username)}`,
   }
 
-  // schema.org Person markup for richer search results. Built server-side from
-  // the login already in the route (no extra GitHub call). `<` is escaped to
-  // `\u003c` so the serialized JSON can never break out of the <script> tag it
-  // is embedded in, even if a value contained the sequence "</script>".
-  const personLd = username
+  const personLd = isValidUser
     ? {
         '@context': 'https://schema.org',
         '@type': 'Person',
@@ -262,9 +258,7 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
         sameAs: [`https://github.com/${encodeURIComponent(username)}`],
       }
     : null
-  const jsonLd = personLd
-    ? JSON.stringify(personLd).replace(/</g, '\\u003c')
-    : ''
+  const jsonLd = personLd ? JSON.stringify(personLd).replace(/</g, '\\u003c') : ''
 
   return { props: { og, jsonLd } }
 }
