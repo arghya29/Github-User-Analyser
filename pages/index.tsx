@@ -135,8 +135,8 @@ export default function Home({ baseUrl }: HomePageProps) {
             <div className="space-y-10">
               <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
                 <div className="space-y-4 max-w-lg">
-                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">GitHub insights made simple</p>
-                  <p className="text-slate-300 text-base sm:text-lg">
+                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-800 dark:text-cyan-300">GitHub insights made simple</p>
+                  <p className="text-slate-800 dark:text-slate-300 text-base sm:text-lg">
                     Quickly inspect public profiles and compare two users with a clean, modern interface.
                   </p>
                 </div>
@@ -185,14 +185,14 @@ export default function Home({ baseUrl }: HomePageProps) {
                         <SearchBar onSearch={handleSearch} loading={false} />
                         <SearchHistory history={history} onSelect={handleSearch} onClear={clearHistory} />
                         <Favorites favorites={favorites} onSelect={handleSearch} onRemove={handleRemoveFavorite} />
-                        {error && <div className="text-sm text-rose-200">{error}</div>}
+                        {error && <div className="text-sm text-rose-600 dark:text-rose-400">{error}</div>}
                       </>
                     ) : (
                       <>
                         <CompareForm onCompare={handleCompare} loading={compareNavigating} />
 
                         {compareError && (
-                          <div role="alert" className="text-sm text-rose-200">
+                          <div role="alert" className="text-sm text-rose-600 dark:text-rose-400">
                             {compareError}
                           </div>
                         )}
