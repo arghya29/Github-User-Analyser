@@ -54,19 +54,28 @@ function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
             return (
               <div key={weekIndex} className="flex flex-col gap-[2px]">
-                <div className="h-4 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
-                  {showMonth ? month : ''}
+                <div className="relative h-4 w-3">
+                  {showMonth && (
+                    <span className="absolute left-0 top-0 text-[10px] leading-4 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {month}
+                    </span>
+                  )}
                 </div>
 
                 {week.contributionDays.map((day) => {
                   // FIXED 2: Changed day.contributionCount to day.count
                   const level = levelFor(day.count, max)
+                  const dateStr = new Date(day.date).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
                   return (
                     <div
                       key={day.date}
                       className={`h-3 w-3 rounded-sm ${LEVEL_COLORS[level]}`}
                       // FIXED 3: Changed day.contributionCount to day.count
-                      title={`${day.count} contributions on ${day.date}`}
+                      title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${dateStr}`}
                     />
                   )
                 })}
