@@ -135,8 +135,8 @@ export default function Home({ baseUrl }: HomePageProps) {
             <div className="space-y-10">
               <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
                 <div className="space-y-4 max-w-lg">
-                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-700 dark:text-cyan-300">GitHub insights made simple</p>
-                  <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg">
+                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-800 dark:text-cyan-300">GitHub insights made simple</p>
+                  <p className="text-slate-800 dark:text-slate-300 text-base sm:text-lg">
                     Quickly inspect public profiles and compare two users with a clean, modern interface.
                   </p>
                 </div>
