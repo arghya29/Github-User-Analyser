@@ -355,7 +355,7 @@ export default async function handler(
   }
 
   const clientIp = getClientIp(req)
-  const retryAfter = rateLimiter.check(clientIp)
+  const retryAfter = await rateLimiter.check(clientIp)
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
     return res.status(429).json({

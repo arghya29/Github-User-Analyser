@@ -1,5 +1,6 @@
 import type { NextApiRequest } from 'next'
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
+import { env } from '@/lib/env'
 
 interface RateWindow {
   count: number
@@ -45,17 +46,27 @@ export interface RateLimiter {
 }
 
 export function createRateLimiter(windowMs: number, max: number, maxKeys = 5000): RateLimiter {
-  // Check if Vercel KV environment variables are present
-  const useKV = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN
+  const redis =
+    process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+      ? new Redis({
+          url: process.env.KV_REST_API_URL,
+          token: process.env.KV_REST_API_TOKEN,
+        })
+      : env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+        ? new Redis({
+            url: env.UPSTASH_REDIS_REST_URL,
+            token: env.UPSTASH_REDIS_REST_TOKEN,
+          })
+        : null
 
-  if (useKV) {
-    // 🌍 PRODUCTION: Use Vercel KV (Redis)
+  if (redis) {
+    // 🌍 PRODUCTION: Use Redis-backed rate limiting when configured
     return {
       async check(ip: string, path?: string): Promise<number | null> {
         const key = path ? `ratelimit:${ip}:${path}` : `ratelimit:${ip}`
         const now = Date.now()
-        
-        const bucket = await kv.get<RateWindow>(key)
+
+        const bucket = await redis.get<RateWindow>(key)
 
         if (bucket && now < bucket.resetAt) {
           if (bucket.count >= max) {
@@ -63,18 +74,18 @@ export function createRateLimiter(windowMs: number, max: number, maxKeys = 5000)
           }
           bucket.count += 1
           // Update the count and preserve the original expiration time
-          await kv.set(key, bucket, { px: bucket.resetAt - now })
+          await redis.set(key, bucket, { px: bucket.resetAt - now })
           return null
         }
 
         // Create a new rate limit bucket
-        await kv.set(key, { count: 1, resetAt: now + windowMs, path }, { px: windowMs })
+        await redis.set(key, { count: 1, resetAt: now + windowMs, path }, { px: windowMs })
         return null
       },
 
       async getRemaining(ip: string): Promise<number> {
         const key = `ratelimit:${ip}`
-        const bucket = await kv.get<RateWindow>(key)
+        const bucket = await redis.get<RateWindow>(key)
         const now = Date.now()
         if (!bucket || now >= bucket.resetAt) return max
         return Math.max(0, max - bucket.count)
