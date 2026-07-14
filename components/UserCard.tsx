@@ -48,32 +48,32 @@ function UserCard({ user }: UserCardProps) {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+              <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-2 sm:p-4 text-center min-w-0">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {user.public_repos}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Repositories</div>
+                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Repos</div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFollowers(true)}
-                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-2 sm:p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer min-w-0"
               >
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {user.followers}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
+                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Followers</div>
               </button>
               <button
                 type="button"
                 onClick={() => setShowFollowers(true)}
-                className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer"
+                className="bg-gray-100 dark:bg-slate-600/50 rounded p-2 sm:p-4 text-center hover:bg-gray-200 dark:hover:bg-slate-500/50 transition-colors cursor-pointer min-w-0"
               >
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {user.following}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
+                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Following</div>
               </button>
             </div>
 
