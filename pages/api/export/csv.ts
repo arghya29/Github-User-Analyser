@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const retryAfter = rateLimiter.check(getClientIp(req))
+  const retryAfter = await rateLimiter.check(getClientIp(req))
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
     return res
