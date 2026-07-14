@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
@@ -25,8 +25,12 @@ export function useMediaQuery(query: string): boolean {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mql = window.matchMedia(query)
-    setMatches(mql.matches)
+
+    const mql = typeof window.matchMedia === 'function' ? window.matchMedia(query) : null
+    setMatches(mql?.matches ?? false)
+
+    if (!mql || typeof mql.addEventListener !== 'function') return
+
     const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
@@ -35,20 +39,35 @@ export function useMediaQuery(query: string): boolean {
   return matches
 }
 
-function throttle<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {
+// 🛠️ FIX 1: Upgraded throttle to include a trailing-edge execution
+function throttle<T extends (...args: any[]) => void>(fn: T, delay: number): T {
   let last = 0
-  return ((...args: unknown[]) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+
+  return ((...args: Parameters<T>) => {
     const now = Date.now()
+    
     if (now - last >= delay) {
+      if (timeout) {
+        clearTimeout(timeout)
+        timeout = null
+      }
       last = now
       fn(...args)
+    } else if (!timeout) {
+      timeout = setTimeout(() => {
+        last = Date.now()
+        timeout = null
+        fn(...args)
+      }, delay - (now - last))
     }
-  }) as T
+  }) as unknown as T
 }
 
 export function useBreakpoint(): Breakpoint {
   const [bp, setBp] = useState<Breakpoint>('xs')
-  const rafId = useRef<number>()
+  
+  // 🛠️ FIX 2: Removed unused rafId reference
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -57,7 +76,7 @@ export function useBreakpoint(): Breakpoint {
     window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('resize', onResize)
-      if (rafId.current) cancelAnimationFrame(rafId.current)
+      // 🛠️ FIX 2: Removed unused cancelAnimationFrame logic
     }
   }, [])
 

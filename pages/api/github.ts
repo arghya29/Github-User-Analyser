@@ -12,12 +12,35 @@ import { computeProductivityStats } from '@/lib/contributionStats'
 import { getCachedWithFallback } from '@/lib/cache'
 import { sanitizeUsername } from '@/lib/securitySanitizer'
 import { env } from '@/lib/env'
+import { withRetry, type RetryInfo } from '@/lib/retry'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 // Abort a hung GitHub request instead of letting it hang until the platform kills
 // the invocation, leaving the user on an indefinite loading state.
 const GITHUB_TIMEOUT_MS = 10000
+
+/**
+ * Logs a retry with enough context to tell causes apart. `context` is always a
+ * hardcoded literal and no user-controlled value is interpolated, so this stays
+ * clear of log-injection.
+ */
+function retryLogger(context: string) {
+  return ({ attempt, delayMs, error }: RetryInfo) => {
+    const status = (error as { response?: { status?: number } })?.response?.status
+    const code = (error as { code?: string })?.code
+    // Only the derived status/code go into the log — never the error object or the request
+    // config, which carries the Authorization header.
+    logWarn('api/github', 'transient failure; retrying request', {
+      context,
+      attempt,
+      delayMs,
+      status,
+      code,
+    })
+  }
+}
 
 class GraphQLNotFoundError extends Error {}
 class GraphQLOtherError extends Error {}
@@ -233,23 +256,27 @@ async function fetchViaGraphQL(username: string): Promise<{
   const fromDate = new Date()
   fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
 
-  const response = await axios.post(
-    'https://api.github.com/graphql',
-    { 
-      query: GRAPHQL_QUERY, 
-      variables: { 
-        username,
-        from: fromDate.toISOString(),
-        to: toDate.toISOString()
-      } 
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: GITHUB_TIMEOUT_MS,
-    }
+  const response = await withRetry(
+    () =>
+      axios.post(
+        'https://api.github.com/graphql',
+        {
+          query: GRAPHQL_QUERY,
+          variables: {
+            username,
+            from: fromDate.toISOString(),
+            to: toDate.toISOString()
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: GITHUB_TIMEOUT_MS,
+        }
+      ),
+    { onRetry: retryLogger('graphql') }
   )
 
   const errors = response.data?.errors as { type?: string; message?: string }[] | undefined
@@ -424,10 +451,13 @@ export default async function handler(
             : err instanceof GraphQLOtherError
               ? 'graphql-error'
               : 'transient'
-          console.error(
-            `[github] GraphQL fetch failed for @${username} [${kind}]; falling back to REST:`,
-            message
-          )
+          // A warning, not an error: the REST fallback below still serves the request.
+          // console.error overstated it.
+          logWarn('api/github', 'GraphQL fetch failed; falling back to REST', {
+            username,
+            kind,
+            reason: message,
+          })
         }
       }
 
@@ -439,13 +469,21 @@ export default async function handler(
       }
 
       const [userResponse, reposResponse] = await Promise.all([
-        axios.get(`https://api.github.com/users/${username}`, {
-          headers,
-          timeout: GITHUB_TIMEOUT_MS,
-        }),
-        axios.get(
-          `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
-          { headers, timeout: GITHUB_TIMEOUT_MS }
+        withRetry(
+          () =>
+            axios.get(`https://api.github.com/users/${username}`, {
+              headers,
+              timeout: GITHUB_TIMEOUT_MS,
+            }),
+          { onRetry: retryLogger('rest:user') }
+        ),
+        withRetry(
+          () =>
+            axios.get(
+              `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+              { headers, timeout: GITHUB_TIMEOUT_MS }
+            ),
+          { onRetry: retryLogger('rest:repos') }
         ),
       ])
 
@@ -477,6 +515,7 @@ export default async function handler(
     // A timeout aborts with code ECONNABORTED and carries no response — surface it
     // as a distinct network error rather than falling through to a generic failure.
     if ((err as { code?: string }).code === 'ECONNABORTED') {
+      logWarn('api/github', 'request to GitHub timed out', { username })
       return res.status(504).json({
         user: {} as GitHubUser,
         repos: [],
@@ -490,6 +529,9 @@ export default async function handler(
 
     const axiosErr = err as { response?: { status?: number; headers?: Record<string, unknown> } }
     if (axiosErr.response?.status === 403 || axiosErr.response?.status === 429) {
+      // Only the status goes into the log — never `axiosErr.response.headers`, and never the
+      // error object itself, whose request config carries the Authorization header.
+      logWarn('api/github', 'GitHub rate limit reached', { username, status: axiosErr.response.status })
       const rateLimit = parseRestRateLimit(axiosErr.response.headers as unknown as Record<string, unknown>)
       return res.status(axiosErr.response?.status || 403).json({
         user: {} as GitHubUser,
@@ -503,6 +545,9 @@ export default async function handler(
       })
     }
 
+    // Everything above is an expected outcome — an unknown username, a timeout, a rate limit.
+    // Reaching here means something we didn't anticipate, which is exactly what the log is for.
+    logError('api/github', err, { username })
     return res.status(500).json({
       user: {} as GitHubUser,
       repos: [],

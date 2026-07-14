@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { fetchSponsors } from '@/lib/sponsors'
 import type { SponsorInfo } from '@/types/github'
 
@@ -55,10 +56,12 @@ export default function SponsorsDisplay({ username }: SponsorsDisplayProps) {
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors"
             >
-              <img
+              <Image
                 src={sponsor.avatarUrl}
                 alt={sponsor.login}
-                className="w-12 h-12 rounded-full"
+                width={48}
+                height={48}
+                className="w-12 h-12 rounded-full object-cover"
               />
               <div className="text-center min-w-0">
                 <p className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-full">

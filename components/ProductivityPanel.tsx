@@ -1,9 +1,16 @@
+import { memo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 import type { ProductivityStats } from '@/types/github'
 import { useTheme } from '@/lib/ThemeContext'
 
 interface ProductivityPanelProps {
   data: ProductivityStats
+}
+
+type ProductivityTooltipProps = {
+  active?: boolean
+  payload?: ReadonlyArray<{ value?: number | string | readonly (string | number)[] }>
+  label?: string | number
 }
 
 function formatDate(dateStr: string): string {
@@ -15,7 +22,7 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default function ProductivityPanel({ data }: ProductivityPanelProps) {
+function ProductivityPanel({ data }: ProductivityPanelProps) {
   const { theme } = useTheme()
   const tickColor = theme === 'dark' ? '#94a3b8' : '#64748b'
   const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0'
@@ -68,8 +75,7 @@ export default function ProductivityPanel({ data }: ProductivityPanelProps) {
             <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <Tooltip
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              content={({ active, payload, label }: any) => {
+              content={({ active, payload, label }: ProductivityTooltipProps) => {
                 if (!active || !payload || !payload.length) return null
                 return (
                   <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">
@@ -86,3 +92,6 @@ export default function ProductivityPanel({ data }: ProductivityPanelProps) {
     </div>
   )
 }
+
+// recharts-backed panel; its stats don't change while the user filters or sorts repos.
+export default memo(ProductivityPanel)

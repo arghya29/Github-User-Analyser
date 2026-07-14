@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import {
   LineChart,
   Line,
@@ -20,7 +20,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
 }
 
-export default function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
+function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
   const chartData = useMemo(() => {
     if (data.length > 50) {
       const sampled: StarEntry[] = []
@@ -76,3 +76,6 @@ export default function StarHistoryChart({ data, repoName }: StarHistoryChartPro
     </div>
   )
 }
+
+// recharts line chart; its data is fetched once and then never changes while open.
+export default memo(StarHistoryChart)

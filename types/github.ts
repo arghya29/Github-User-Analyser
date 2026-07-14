@@ -17,11 +17,11 @@ export interface GitHubUser {
 
 export interface Repository {
   name: string
-  description: string
+  description: string | null // 🛠️ FIX: Added null safety
   html_url: string
   stargazers_count: number
   forks_count: number
-  language: string
+  language: string | null // 🛠️ FIX: Added null safety
   updated_at: string
   watchers_count?: number
   open_issues_count?: number
@@ -119,14 +119,14 @@ export interface LanguageBreakdown {
 }
 
 export interface CompareResult {
-  repoName: string
-  owner: string
-  stars: number
-  forks: number
-  openIssues: number
-  language: string
-  description: string
-  url: string
+  name: string // 🛠️ FIX: Standardized from repoName
+  owner_login: string // 🛠️ FIX: Standardized from owner
+  stargazers_count: number // 🛠️ FIX: Standardized from stars
+  forks_count: number // 🛠️ FIX: Standardized from forks
+  open_issues_count: number // 🛠️ FIX: Standardized from openIssues
+  language: string | null // 🛠️ FIX: Added null safety
+  description: string | null // 🛠️ FIX: Added null safety
+  html_url: string // 🛠️ FIX: Standardized from url
 }
 
 export interface WatchlistItem {

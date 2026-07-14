@@ -39,8 +39,8 @@ describe('rate limiter cannot be bypassed by spoofing the leftmost XFF entry', (
     const limiter = createRateLimiter(60_000, 2)
     const ipFor = (forged: string) =>
       getClientIp(mockReq({ 'x-forwarded-for': `${forged}, 203.0.113.9` }))
-    expect(limiter.check(ipFor('a'))).toBeNull() // request 1 — allowed
-    expect(limiter.check(ipFor('b'))).toBeNull() // request 2 — allowed
-    expect(limiter.check(ipFor('c'))).not.toBeNull() // request 3 — blocked (same real IP)
+    expect(limiter.check(ipFor('a'))).resolves.toBeNull() // request 1 — allowed
+    expect(limiter.check(ipFor('b'))).resolves.toBeNull() // request 2 — allowed
+    expect(limiter.check(ipFor('c'))).resolves.not.toBeNull() // request 3 — blocked (same real IP)
   })
 })

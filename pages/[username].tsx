@@ -25,9 +25,10 @@ interface OgMeta {
 
 interface UserProfilePageProps {
   og: OgMeta
+  jsonLd: string
 }
 
-export default function UserProfilePage({ og }: UserProfilePageProps) {
+export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
   const router = useRouter()
   const usernameParam = router.query.username
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
@@ -41,7 +42,9 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!username) {
+    
+    // 🛠️ FIX: Explicitly block the literal string 'undefined'
+    if (!username || username === 'undefined') {
       setLoading(false)
       setError('No username provided')
       setErrorType('not_found')
@@ -68,11 +71,9 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
         if (cancelled) return
         const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
         if (axiosError.response) {
-          // The server responded with an error payload.
           setError(axiosError.response.data?.error || 'Failed to fetch user data')
           setErrorType(axiosError.response.data?.errorType || 'unknown')
         } else {
-          // No response at all → a connectivity/network failure.
           setError('We couldn’t reach GitHub. Check your internet connection and try again.')
           setErrorType('network')
         }
@@ -112,6 +113,12 @@ export default function UserProfilePage({ og }: UserProfilePageProps) {
         <meta name="twitter:title" content={og.title} />
         <meta name="twitter:description" content={og.description} />
         <meta name="twitter:image" content={og.image} />
+        {jsonLd ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+          />
+        ) : null}
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -220,13 +227,14 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
 }) => {
   const raw = params?.username
   const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
+  
+  // 🛠️ FIX: Only treat the username as valid if it's not the string 'undefined'
+  const isValidUser = username && username !== 'undefined'
 
   const baseUrl = resolveBaseUrl(req)
 
-  // Per-profile tags are derived from the login (already in the route), so the
-  // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
-  const description = username
+  const title = isValidUser ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
+  const description = isValidUser
     ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
     : 'Analyze GitHub users and view their repositories'
 
@@ -239,5 +247,18 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
       : `/api/og/${encodeURIComponent(username)}`,
   }
 
-  return { props: { og } }
+  const personLd = isValidUser
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: username,
+        alternateName: username,
+        url: og.url,
+        image: `${baseUrl || ''}/api/og/${encodeURIComponent(username)}`,
+        sameAs: [`https://github.com/${encodeURIComponent(username)}`],
+      }
+    : null
+  const jsonLd = personLd ? JSON.stringify(personLd).replace(/</g, '\\u003c') : ''
+
+  return { props: { og, jsonLd } }
 }

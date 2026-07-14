@@ -1,4 +1,4 @@
-import { useState, useId } from 'react'
+import { useState, useId, memo } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { getLanguageColor } from '@/lib/languageColors'
 import CustomChartContainer from './charts/CustomChartContainer'
@@ -8,10 +8,15 @@ interface LanguageChartProps {
   mode?: 'bytes' | 'count'
 }
 
+type LanguageTooltipProps = {
+  active?: boolean
+  payload?: Array<{ name?: string | number; value?: number | string | readonly (string | number)[] }>
+  mode?: 'bytes' | 'count'
+}
+
 const MAX_INLINE_LANGUAGES = 4
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ChartTooltip({ active, payload, mode }: any) {
+function ChartTooltip({ active, payload, mode }: LanguageTooltipProps) {
   if (!active || !payload || !payload.length) return null
   const entry = payload[0]
   const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
@@ -28,7 +33,7 @@ function valueLabel(value: number, mode: 'bytes' | 'count'): string {
   return value === 1 ? '1 repo' : `${value} repos`
 }
 
-export default function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
+function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
   const [showAll, setShowAll] = useState(false)
   const panelId = useId()
 
@@ -73,7 +78,9 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
                 <Cell key={entry.name} fill={getLanguageColor(entry.name)} />
               ))}
             </Pie>
-            <Tooltip content={<ChartTooltip mode={mode} />} />
+            <Tooltip
+              content={(props) => <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -130,3 +137,7 @@ export default function LanguageChart({ data, mode = 'count' }: LanguageChartPro
     </CustomChartContainer>
   )
 }
+
+// recharts pie; re-rendered by every dashboard state change (search, sort, modal)
+// even though its aggregated language data is unchanged.
+export default memo(LanguageChart)

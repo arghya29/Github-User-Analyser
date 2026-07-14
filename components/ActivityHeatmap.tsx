@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { ContributionsData } from '@/types/github'
 import CustomChartContainer from './charts/CustomChartContainer'
 
@@ -29,7 +30,7 @@ function monthLabel(dateStr: string): string {
   return date.toLocaleString('default', { month: 'short', timeZone: 'UTC' })
 }
 
-export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const weeks = data?.weeks ?? []
   const max = Math.max(
     0,
@@ -85,3 +86,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
     </CustomChartContainer>
   )
 }
+
+// renders a full year of contribution cells — the most expensive render on the
+// dashboard, and its data never changes while the user filters or sorts.
+export default memo(ActivityHeatmap)

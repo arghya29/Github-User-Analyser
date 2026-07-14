@@ -1,6 +1,7 @@
 import SortFilterBar from '@/components/SortFilterBar'
 import RepositoryCard from '@/components/RepositoryCard'
 import PinnedRepos from '@/components/PinnedRepos'
+import EmptyState from '@/components/EmptyState'
 import type { Repository, SortOption } from '@/types/github'
 
 interface RepoListSectionProps {
@@ -67,16 +68,23 @@ export default function RepoListSection({
                   <RepositoryCard
                     key={repo.name}
                     repo={repo}
-                    onClick={() => onRepoClick(repo)}
+                    onSelect={onRepoClick}
                   />
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No repositories match this filter</p>
+              <EmptyState
+                type="search"
+                title="No Matches"
+                message="No repositories match this filter. Try adjusting your search or clearing filters."
+              />
             )}
           </>
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">No repositories found</p>
+          <EmptyState
+            type="repositories"
+            message="This user doesn't have any public repositories yet."
+          />
         )}
       </div>
     </section>

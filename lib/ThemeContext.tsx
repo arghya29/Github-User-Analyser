@@ -20,11 +20,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let initial: Theme = 'dark'
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved === 'light' || saved === 'dark') {
-        initial = saved
-      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        initial = 'light'
+      if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+        const saved = window.localStorage.getItem(STORAGE_KEY)
+        if (saved === 'light' || saved === 'dark') {
+          initial = saved
+        } else if (
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-color-scheme: light)').matches
+        ) {
+          initial = 'light'
+        }
       }
     } catch {
       // localStorage unavailable — fall back to dark
@@ -34,7 +39,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || typeof document === 'undefined') return
     const root = document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
@@ -42,7 +47,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('dark')
     }
     try {
-      window.localStorage.setItem(STORAGE_KEY, theme)
+      if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+        window.localStorage.setItem(STORAGE_KEY, theme)
+      }
     } catch {
       // ignore write failures
     }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -21,7 +21,7 @@ function formatWeek(ts: number): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function CommitActivityChart({ data, repoName }: CommitActivityChartProps) {
+function CommitActivityChart({ data, repoName }: CommitActivityChartProps) {
   const chartData = useMemo(() => {
     if (data.length > 52) {
       const step = Math.floor(data.length / 52)
@@ -78,3 +78,6 @@ export default function CommitActivityChart({ data, repoName }: CommitActivityCh
     </div>
   )
 }
+
+// recharts chart; its data is fetched once and then never changes while open.
+export default memo(CommitActivityChart)

@@ -11,7 +11,11 @@ export default function RateLimitBanner({ resetAt, onRetry }: RateLimitBannerPro
   useEffect(() => {
     if (!resetAt) return
 
-    const resetTime = new Date(resetAt).getTime()
+    const resetTime = Date.parse(resetAt)
+    if (Number.isNaN(resetTime)) {
+      setTimeLeft('Quota reset time unavailable.')
+      return
+    }
 
     const updateTimer = () => {
       const now = Date.now()

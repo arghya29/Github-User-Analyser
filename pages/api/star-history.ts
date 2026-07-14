@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { env } from '@/lib/env'
+import { logError } from '@/lib/errorLogger'
 
 interface StarEntry {
   date: string
@@ -69,7 +70,8 @@ export default async function handler(
     }
 
     return res.status(200).json(timeline)
-  } catch {
+  } catch (error) {
+    logError('api/star-history', error, { owner, repo })
     return res.status(500).json({ error: 'Failed to fetch star history', errorType: 'unknown' })
   }
 }

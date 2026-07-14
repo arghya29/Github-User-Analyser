@@ -1,6 +1,11 @@
 const FAVORITES_KEY = 'github-analyzer-favorites'
 const MAX_FAVORITES = 50
 
+function getStorage(): Storage | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  return window.localStorage
+}
+
 /**
  * Reads the saved favorite usernames from localStorage. Returns an empty list
  * when storage is unavailable (e.g. private browsing) or the stored value is
@@ -8,7 +13,8 @@ const MAX_FAVORITES = 50
  */
 export function getFavorites(): string[] {
   try {
-    const saved = window.localStorage.getItem(FAVORITES_KEY)
+    const storage = getStorage()
+    const saved = storage?.getItem(FAVORITES_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed)) {
@@ -43,7 +49,7 @@ export function addFavorite(username: string): string[] {
   }
   const next = [username, ...current].slice(0, MAX_FAVORITES)
   try {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next))
+    getStorage()?.setItem(FAVORITES_KEY, JSON.stringify(next))
   } catch {
     // ignore write failures
   }
@@ -54,7 +60,7 @@ export function addFavorite(username: string): string[] {
 export function removeFavorite(username: string): string[] {
   const next = getFavorites().filter((f) => f.toLowerCase() !== username.toLowerCase())
   try {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next))
+    getStorage()?.setItem(FAVORITES_KEY, JSON.stringify(next))
   } catch {
     // ignore write failures
   }

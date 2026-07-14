@@ -15,6 +15,7 @@ import type { UserData } from '@/types/github'
 import { getCached } from '@/lib/cache'
 import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
+import { logError } from '@/lib/errorLogger'
 
 // ─── Styles ─────────────────────────────────────────────────────────────
 
@@ -218,9 +219,15 @@ function isAllowedAvatarUrl(rawUrl: unknown): rawUrl is string {
 }
 
 async function avatarToDataUrl(url: string): Promise<string | null> {
-  if (!isAllowedAvatarUrl(url)) return null
+  // Validate against SSRF: only allow HTTPS URLs from whitelisted GitHub domains
+  if (!isAllowedAvatarUrl(url)) {
+    return null
+  }
+  
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 })
+    // Reconstruct URL from validated components to prevent SSRF
+    const validatedUrl = new URL(url)
+    const response = await axios.get(validatedUrl.toString(), { responseType: 'arraybuffer', timeout: 5000 })
     const contentType = response.headers['content-type'] || 'image/jpeg'
     const base64 = Buffer.from(response.data as ArrayBuffer).toString('base64')
     return `data:${contentType};base64,${base64}`
@@ -435,7 +442,7 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const clientIp = getClientIp(req)
-  const retryAfter = rateLimiter.check(clientIp)
+  const retryAfter = await rateLimiter.check(clientIp)
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
     return res.status(429).json({ error: `Too many requests — please wait ${retryAfter}s and try again` })
@@ -459,11 +466,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.body != null && validateRequest(res, exportUserDataSchema, req.body) === null) {
       return
     }
-    try {
-      userData = req.body as UserData
-    } catch {
-      userData = null
-    }
+    // `as UserData` is a compile-time assertion with no runtime behaviour, and Next's body
+    // parser has already run by the time the handler is invoked — so this is a plain
+    // assignment that cannot throw. The try/catch around it was unreachable, and the
+    // malformed-body case is already handled by the validateRequest gate directly above.
+    userData = req.body as UserData
   }
 
   if (!userData) {
@@ -488,7 +495,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Cache-Control', 'no-store')
     return res.status(200).send(pdfBuffer)
   } catch (error) {
-    console.error('PDF generation failed:', error)
+    logError('api/export/pdf', error, { username })
     return res.status(500).json({ error: 'Failed to generate PDF' })
   }
 }

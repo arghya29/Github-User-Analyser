@@ -4,6 +4,7 @@ import { getCached, setCached } from '@/lib/cache'
 import { computeCurrentStreak } from '@/lib/contributionStats'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 import { env } from '@/lib/env'
+import { logError } from '@/lib/errorLogger'
 
 const BADGE_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour — badges are embedded in READMEs so cache aggressively
 const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 min — don't re-hit GitHub for known-missing usernames
@@ -197,7 +198,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Added await so the cache write completes before the serverless function exits.
       await setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
-    } catch {
+    } catch (error) {
+      logError('api/badge', error, { username })
       return res.status(500).send('Failed to fetch GitHub data')
     }
   }

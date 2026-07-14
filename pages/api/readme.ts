@@ -3,6 +3,7 @@ import axios, { type AxiosError } from 'axios'
 import { getCached, setCached } from '@/lib/cache'
 import { sanitizeUsername, sanitizeRepoName } from '@/lib/securitySanitizer'
 import { env } from '@/lib/env'
+import { logError, logWarn } from '@/lib/errorLogger'
 
 interface ReadmeResponse {
   content: string | null
@@ -59,12 +60,20 @@ export default async function handler(
   } catch (err: unknown) {
     const error = err as AxiosError
 
+    // A 404 is a normal answer here ("this repo has no README"), not a failure — and logging
+    // it would let anyone flush the 50-entry queue just by asking for READMEs that don't exist.
     if (error.response?.status === 404) {
       return res.status(404).json({ content: null, error: 'No README found for this repository' })
     }
-    if (error.response?.status === 403) {
-      return res.status(403).json({ content: null, error: 'GitHub API rate limit reached' })
+    // GitHub answers 403 for the primary rate limit and 429 for secondary limits. Only 403 was
+    // handled, so a 429 fell through to a 500 — which reads as "we broke" rather than "slow down".
+    // github.ts already checks both; this brings readme.ts in line and propagates the real status.
+    const rateLimitStatus = error.response?.status
+    if (rateLimitStatus === 403 || rateLimitStatus === 429) {
+      logWarn('api/readme', 'GitHub rate limit reached', { owner, repo, status: rateLimitStatus })
+      return res.status(rateLimitStatus).json({ content: null, error: 'GitHub API rate limit reached' })
     }
+    logError('api/readme', error, { owner, repo, status: error.response?.status })
     return res.status(500).json({ content: null, error: 'Failed to fetch README' })
   }
 }

@@ -3,6 +3,7 @@ import type { Repository } from '@/types/github'
 import { sanitizeUsername, escapeCsvCell } from '@/lib/securitySanitizer'
 import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 import { validateRequest, exportUserDataSchema } from '@/lib/apiValidation'
+import { logError } from '@/lib/errorLogger'
 
 // Align with the other export/AI routes: a per-IP limiter on this metered route.
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -14,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const retryAfter = rateLimiter.check(getClientIp(req))
+  const retryAfter = await rateLimiter.check(getClientIp(req))
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
     return res
@@ -66,7 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // RFC 6266: the filename is quoted (and the value is sanitized above).
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
     return res.status(200).send(csvContent)
-  } catch {
+  } catch (error) {
+    logError('api/export/csv', error)
     return res.status(500).json({ error: 'Failed to generate CSV export' })
   }
 }

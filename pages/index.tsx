@@ -6,15 +6,11 @@ import Head from 'next/head'
 import SearchBar from '@/components/SearchBar'
 import SearchHistory from '@/components/SearchHistory'
 import Favorites from '@/components/Favorites'
-import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
-import CompareResult from '@/components/CompareResult'
 import Footer from '@/components/Footer'
-import { fetchUserData } from '@/lib/github'
 import { loadHistory, clearHistory as clearStoredHistory } from '@/lib/searchHistory'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
-import type { UserData } from '@/types/github'
 
 type Mode = 'search' | 'compare'
 
@@ -34,10 +30,11 @@ export default function Home({ baseUrl }: HomePageProps) {
   const [favorites, setFavorites] = useState<string[]>([])
 
   // --- Compare mode state ---
-  const [compareLoading, setCompareLoading] = useState(false)
+  // The results themselves now live on /compare, which reads the pair from the URL. All the home
+  // page needs is the message for a submission it can't turn into a URL, plus a flag while the
+  // navigation is in flight.
+  const [compareNavigating, setCompareNavigating] = useState(false)
   const [compareError, setCompareError] = useState('')
-  const [compareUserA, setCompareUserA] = useState<UserData | null>(null)
-  const [compareUserB, setCompareUserB] = useState<UserData | null>(null)
 
   // Load search history once on mount
   useEffect(() => {
@@ -67,26 +64,24 @@ export default function Home({ baseUrl }: HomePageProps) {
       return
     }
 
-    setCompareLoading(true)
     setCompareError('')
-    setCompareUserA(null)
-    setCompareUserB(null)
+    setCompareNavigating(true)
 
+    // A comparison is now a place, not a piece of state. Everything the result page needs lives in
+    // the URL, which is what makes it refreshable, bookmarkable and shareable — and it leaves the
+    // home page clean once you've run one.
+    //
+    // No fetching here: /compare fetches from the query string, so the pair on screen always
+    // matches the pair in the address bar.
     try {
-      const [dataA, dataB] = await Promise.all([fetchUserData(usernameA), fetchUserData(usernameB)])
-
-      if (dataA.error) {
-        setCompareError(`${usernameA}: ${dataA.error}`)
-      } else if (dataB.error) {
-        setCompareError(`${usernameB}: ${dataB.error}`)
-      } else {
-        setCompareUserA(dataA)
-        setCompareUserB(dataB)
-      }
+      await router.push({
+        pathname: '/compare',
+        query: { user1: usernameA, user2: usernameB },
+      })
     } catch {
-      setCompareError('Failed to fetch one or both profiles')
+      setCompareError('Could not open the comparison page')
     } finally {
-      setCompareLoading(false)
+      setCompareNavigating(false)
     }
   }
 
@@ -194,19 +189,15 @@ export default function Home({ baseUrl }: HomePageProps) {
                       </>
                     ) : (
                       <>
-                        <CompareForm onCompare={handleCompare} loading={compareLoading} />
+                        <CompareForm onCompare={handleCompare} loading={compareNavigating} />
 
-                        {compareError && <div className="text-sm text-rose-600 dark:text-rose-400">{compareError}</div>}
-
-                        {compareLoading && <LoadingSkeleton />}
-
-                        {!compareLoading && compareUserA && compareUserB && (
-                          <CompareResult userA={compareUserA} userB={compareUserB} />
+                        {compareError && (
+                          <div role="alert" className="text-sm text-rose-600 dark:text-rose-400">
+                            {compareError}
+                          </div>
                         )}
 
-                        {!compareLoading && !compareUserA && !compareUserB && !compareError && (
-                          <div className="text-slate-600 dark:text-slate-300">Add two usernames to compare their public GitHub stats.</div>
-                        )}
+                        <div className="text-slate-600 dark:text-slate-300">Add two usernames to compare their public GitHub stats.</div>
                       </>
                     )}
                   </div>

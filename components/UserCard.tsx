@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
+import Image from 'next/image'
 import type { GitHubUser } from '@/types/github'
 import FollowersExplorer from '@/components/FollowersExplorer'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -7,7 +8,7 @@ interface UserCardProps {
   user: GitHubUser
 }
 
-export default function UserCard({ user }: UserCardProps) {
+function UserCard({ user }: UserCardProps) {
   const [showFollowers, setShowFollowers] = useState(false)
   const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -21,11 +22,12 @@ export default function UserCard({ user }: UserCardProps) {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={user.avatar_url}
               alt={user.login}
-              className="w-32 h-32 rounded-full border-4 border-blue-500"
+              width={128}
+              height={128}
+              className="w-32 h-32 rounded-full border-4 border-blue-500 object-cover"
             />
           </div>
 
@@ -143,3 +145,6 @@ export default function UserCard({ user }: UserCardProps) {
     </div>
   )
 }
+
+// static profile summary; nothing about it changes while the user filters repos.
+export default memo(UserCard)
