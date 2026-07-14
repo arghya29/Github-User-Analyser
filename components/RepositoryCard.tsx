@@ -27,7 +27,8 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
     day: 'numeric',
   })
 
-  const langColor = getLanguageColorClass(repo.language)
+  const langColor = getLanguageColorClass(repo.language ?? '')
+  const descriptionText = repo.description?.trim() || 'No description provided.'
 
   const openModal = useCallback((trigger?: HTMLElement | null) => {
     previousFocusRef.current = trigger ?? (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null)
@@ -94,21 +95,17 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
         </h3>
 
         {/* Description */}
-        {repo.description && (
-          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
-            {repo.description}
-          </p>
-        )}
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
+          {descriptionText}
+        </p>
 
-        {/* Language */}
-        {repo.language && (
+        {repo.language ? (
           <div className="mb-4 flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${langColor}`}></div>
+            <div className={`w-3 h-3 rounded-full ${langColor}`} />
             <span className="text-sm text-gray-500 dark:text-gray-400">{repo.language}</span>
           </div>
-        )}
+        ) : null}
 
-        {/* Stats */}
         <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -142,7 +139,6 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
         </div>
       </button>
 
-      {/* Action box modal */}
       {showActionBox && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -162,16 +158,18 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
             >
               {repo.name}
             </h3>
-            {repo.description && (
+            {repo.description ? (
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-5 line-clamp-2">
                 {repo.description}
               </p>
-            )}
-
+            ) : null}
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => { closeModal(); onSelect(repo) }}
+                onClick={() => {
+                  closeModal()
+                  onSelect(repo)
+                }}
                 className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 📖 Preview README
@@ -208,3 +206,4 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
 // Rendered once per repository in a grid, so it re-renders on every dashboard state
 // change (search box, sort, opening the readme modal) even when its own repo hasn't moved.
 export default memo(RepositoryCard)
+
