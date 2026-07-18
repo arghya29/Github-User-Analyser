@@ -48,7 +48,7 @@ function UserCard({ user }: UserCardProps) {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-100 dark:bg-slate-600/50 rounded p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.public_repos}
