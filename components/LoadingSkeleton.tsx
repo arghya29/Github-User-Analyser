@@ -12,7 +12,7 @@ export function UserCardSkeleton() {
             <ShimmerBlock className="h-8 w-48" />
             <ShimmerBlock className="h-4 w-32" />
             <ShimmerBlock className="h-4 w-full max-w-md" />
-            <div className="grid grid-cols-3 gap-4 mt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
               <ShimmerBlock className="h-16" />
               <ShimmerBlock className="h-16" />
               <ShimmerBlock className="h-16" />
