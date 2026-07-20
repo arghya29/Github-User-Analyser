@@ -36,8 +36,8 @@ const baseUserData: UserData = {
 describe('ExportPanel', () => {
   it('does not throw when download helpers run without document support', () => {
     const anchorStub = {
-      set href(value: string) {},
-      set download(value: string) {},
+      set href(_value: string) {},
+      set download(_value: string) {},
       click() {},
     }
 
