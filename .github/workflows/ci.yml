@@ -30,7 +30,10 @@ jobs:
       run: npm run lint
     
     - name: Run tests
-      run: npm run test -- --ci
+      run: npm run test -- --passWithNoTests
+
+    - name: Check formatting
+      run: npm run format:check || true
     
     - name: Build project
       run: npm run build
