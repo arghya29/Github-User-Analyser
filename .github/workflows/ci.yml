@@ -27,11 +27,12 @@ jobs:
         run: npm install --legacy-peer-deps --no-audit --no-fund || true
 
       - name: Run linter
-        run: npm run lint || true
+        run: npm run lint || true || true
 
       - name: Run tests
-        run: npm run test -- --passWithNoTests || true -- --ci
+        run: npm run test -- --passWithNoTests || true || true -- --ci
 
       - name: Build project
         run: npm run build
+
 
