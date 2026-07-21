@@ -1,4 +1,7 @@
-import { computeContributionTrend, computeLanguageProfile } from '@/lib/insightSignals'
+import {
+  computeContributionTrend,
+  computeLanguageProfile,
+} from '@/lib/insightSignals'
 import type { Repository } from '@/types/github'
 
 const month = (m: string, count: number) => ({ month: m, count })
@@ -32,21 +35,28 @@ describe('computeContributionTrend', () => {
 
   it('reports steady when the change is inside the noise threshold', () => {
     // 100 -> 105 is +5%, below the 15% threshold.
-    const trend = computeContributionTrend(series(100, 100, 100, 105, 105, 105, 1))
+    const trend = computeContributionTrend(
+      series(100, 100, 100, 105, 105, 105, 1)
+    )
     expect(trend!.direction).toBe('steady')
   })
 
   it('excludes the in-progress final month, which would otherwise fake a decline', () => {
     // Six identical months, then a partial current month with almost nothing in it.
     // Included, it would drag the recent average down and report a false "cooling".
-    const withPartial = computeContributionTrend(series(30, 30, 30, 30, 30, 30, 2))
+    const withPartial = computeContributionTrend(
+      series(30, 30, 30, 30, 30, 30, 2)
+    )
     expect(withPartial!.direction).toBe('steady')
     expect(withPartial!.recentAvgPerMonth).toBe(30)
 
     // Opting out proves the partial month is what would have skewed it.
-    const notExcluded = computeContributionTrend(series(30, 30, 30, 30, 30, 30, 2), {
-      excludeCurrentMonth: false,
-    })
+    const notExcluded = computeContributionTrend(
+      series(30, 30, 30, 30, 30, 30, 2),
+      {
+        excludeCurrentMonth: false,
+      }
+    )
     expect(notExcluded!.direction).toBe('cooling')
   })
 
@@ -129,7 +139,10 @@ describe('computeLanguageProfile', () => {
   it('reports only recently-touched repos as current focus', () => {
     const profile = computeLanguageProfile(
       [
-        repo({ updated_at: recently, languages: [{ name: 'Rust', bytes: 100 }] }),
+        repo({
+          updated_at: recently,
+          languages: [{ name: 'Rust', bytes: 100 }],
+        }),
         repo({ updated_at: longAgo, languages: [{ name: 'PHP', bytes: 100 }] }),
       ],
       { now }
@@ -143,7 +156,11 @@ describe('computeLanguageProfile', () => {
   it('falls back to the repo primary language when byte detail is absent (REST path)', () => {
     const profile = computeLanguageProfile(
       [
-        repo({ language: 'Python', updated_at: recently, languages: undefined }),
+        repo({
+          language: 'Python',
+          updated_at: recently,
+          languages: undefined,
+        }),
         repo({ language: 'Python', updated_at: longAgo, languages: undefined }),
         repo({ language: 'Ruby', updated_at: longAgo, languages: undefined }),
       ],

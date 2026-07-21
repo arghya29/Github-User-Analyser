@@ -39,7 +39,9 @@ export default function RepoListSection({
   return (
     <section id="repositories" className="scroll-mt-24">
       <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Repositories</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Repositories
+        </h2>
       </div>
 
       {pinnedRepos && (
@@ -49,7 +51,9 @@ export default function RepoListSection({
       )}
 
       <div className="mt-12">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Repositories</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          Top Repositories
+        </h3>
 
         {repos.length > 0 ? (
           <>

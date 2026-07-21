@@ -39,7 +39,9 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider>
-      <ErrorBoundary onError={(err, errorInfo) => logError('App', err, errorInfo)}>
+      <ErrorBoundary
+        onError={(err, errorInfo) => logError('App', err, errorInfo)}
+      >
         <Component {...pageProps} />
         <ScrollToTop />
       </ErrorBoundary>

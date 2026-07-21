@@ -2,11 +2,7 @@ import type { UserData } from '@/types/github'
 
 /** Selectable sections of a profile export. */
 export type ExportSection =
-  | 'profile'
-  | 'repositories'
-  | 'contributions'
-  | 'engagement'
-  | 'productivity'
+  'profile' | 'repositories' | 'contributions' | 'engagement' | 'productivity'
 
 /** All sections, in the canonical output order. */
 export const ALL_EXPORT_SECTIONS: ExportSection[] = [
@@ -80,7 +76,9 @@ export function formatAsMarkdown(userData: UserData): string {
   const user = userData.user
   const lines: string[] = []
 
-  lines.push(`# ${escapeMarkdownCell(user.name || user.login)} (@${user.login})`)
+  lines.push(
+    `# ${escapeMarkdownCell(user.name || user.login)} (@${user.login})`
+  )
   lines.push('')
   if (user.bio) {
     lines.push(`> ${escapeMarkdownCell(user.bio)}`)
@@ -99,7 +97,9 @@ export function formatAsMarkdown(userData: UserData): string {
   lines.push(`- **Public repositories:** ${user.public_repos}`)
   lines.push(`- **Total stars:** ${totalStars}`)
   if (userData.contributions?.totalContributions) {
-    lines.push(`- **Total contributions:** ${userData.contributions.totalContributions}`)
+    lines.push(
+      `- **Total contributions:** ${userData.contributions.totalContributions}`
+    )
   }
   lines.push('')
 

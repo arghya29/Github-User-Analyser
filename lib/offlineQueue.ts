@@ -13,7 +13,10 @@ function getStorage(): Storage | null {
   return window.localStorage
 }
 
-export function queueOfflineContribution(username: string, day: ContributionDay): void {
+export function queueOfflineContribution(
+  username: string,
+  day: ContributionDay
+): void {
   try {
     const storage = getStorage()
     const raw = storage?.getItem(PENDING_KEY)

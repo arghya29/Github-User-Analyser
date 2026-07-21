@@ -5,7 +5,9 @@ import {
   type BeforeInstallPromptEvent,
 } from '@/lib/pwa'
 
-function mockPrompt(outcome: 'accepted' | 'dismissed'): BeforeInstallPromptEvent {
+function mockPrompt(
+  outcome: 'accepted' | 'dismissed'
+): BeforeInstallPromptEvent {
   return {
     prompt: jest.fn().mockResolvedValue(undefined),
     userChoice: Promise.resolve({ outcome }),

@@ -44,7 +44,11 @@ export default function FollowersExplorer({
   }, [load])
 
   useEffect(() => {
-    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      typeof document === 'undefined' ||
+      typeof document.addEventListener !== 'function'
+    )
+      return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -102,13 +106,20 @@ export default function FollowersExplorer({
           {loading && (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"
+                />
               ))}
             </div>
           )}
-          {error && <p className="text-sm text-red-500 text-center py-4">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-500 text-center py-4">{error}</p>
+          )}
           {!loading && !error && users.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No users found.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No users found.
+            </p>
           )}
           {!loading && !error && users.length > 0 && (
             <div className="space-y-2">
@@ -128,8 +139,12 @@ export default function FollowersExplorer({
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{u.login}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{u.type}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {u.login}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {u.type}
+                    </p>
                   </div>
                 </a>
               ))}

@@ -16,7 +16,9 @@ export default async function handler(
   const { username } = req.query
 
   if (!username || typeof username !== 'string') {
-    return res.status(400).json({ error: 'Missing username parameter', errorType: 'unknown' })
+    return res
+      .status(400)
+      .json({ error: 'Missing username parameter', errorType: 'unknown' })
   }
 
   const token = env.GITHUB_TOKEN
@@ -35,30 +37,41 @@ export default async function handler(
     )
 
     if (response.status === 404) {
-      return res.status(404).json({ error: 'User not found', errorType: 'not_found' })
+      return res
+        .status(404)
+        .json({ error: 'User not found', errorType: 'not_found' })
     }
     if (response.status === 403) {
-      return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      return res
+        .status(403)
+        .json({ error: 'Rate limited', errorType: 'rate_limited' })
     }
     if (response.status !== 200) {
-      return res.status(500).json({ error: 'Failed to fetch activity', errorType: 'unknown' })
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch activity', errorType: 'unknown' })
     }
 
-    const events: ActivityEvent[] = response.data.map((ev: Record<string, unknown>) => {
-      const repo = ev.repo as { name: string; url: string }
-      return {
-        id: ev.id as string,
-        type: ev.type as string,
-        repo: repo?.name || '',
-        repoUrl: repo?.url?.replace('api.github.com/repos', 'github.com') || '',
-        createdAt: ev.created_at as string,
-        payload: JSON.stringify(ev.payload),
+    const events: ActivityEvent[] = response.data.map(
+      (ev: Record<string, unknown>) => {
+        const repo = ev.repo as { name: string; url: string }
+        return {
+          id: ev.id as string,
+          type: ev.type as string,
+          repo: repo?.name || '',
+          repoUrl:
+            repo?.url?.replace('api.github.com/repos', 'github.com') || '',
+          createdAt: ev.created_at as string,
+          payload: JSON.stringify(ev.payload),
+        }
       }
-    })
+    )
 
     return res.status(200).json(events)
   } catch (error) {
     logError('api/activity', error, { username })
-    return res.status(500).json({ error: 'Failed to fetch activity', errorType: 'unknown' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch activity', errorType: 'unknown' })
   }
 }

@@ -59,7 +59,10 @@ function CommitActivityChart({ data, repoName }: CommitActivityChartProps) {
               tick={{ fontSize: 10, fill: '#94a3b8' }}
               interval="preserveStartEnd"
             />
-            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
+            <YAxis
+              tick={{ fontSize: 10, fill: '#94a3b8' }}
+              allowDecimals={false}
+            />
             <Tooltip
               labelFormatter={(label) => formatWeek(Number(label))}
               contentStyle={{
@@ -70,8 +73,18 @@ function CommitActivityChart({ data, repoName }: CommitActivityChartProps) {
               }}
             />
             <Legend wrapperStyle={{ fontSize: '11px' }} />
-            <Bar dataKey="additions" fill="#22c55e" name="Additions" radius={[2, 2, 0, 0]} />
-            <Bar dataKey="deletions" fill="#ef4444" name="Deletions" radius={[2, 2, 0, 0]} />
+            <Bar
+              dataKey="additions"
+              fill="#22c55e"
+              name="Additions"
+              radius={[2, 2, 0, 0]}
+            />
+            <Bar
+              dataKey="deletions"
+              fill="#ef4444"
+              name="Deletions"
+              radius={[2, 2, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

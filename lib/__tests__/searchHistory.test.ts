@@ -45,7 +45,10 @@ describe('loadHistory', () => {
   })
 
   it('filters out non-string entries from a corrupt array', () => {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(['ok', 42, null, 'fine']))
+    window.localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(['ok', 42, null, 'fine'])
+    )
     expect(loadHistory()).toEqual(['ok', 'fine'])
   })
 })

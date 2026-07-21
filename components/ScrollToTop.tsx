@@ -4,7 +4,11 @@ export default function ScrollToTop() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+    if (
+      typeof window === 'undefined' ||
+      typeof window.addEventListener !== 'function'
+    )
+      return
 
     const toggleVisibility = () => {
       if (typeof window.scrollY === 'number') {
@@ -23,11 +27,12 @@ export default function ScrollToTop() {
   }, [])
 
   const scrollToTop = () => {
-    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
+    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function')
+      return
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  if (!visible) return null;
+  if (!visible) return null
 
   return (
     <button
@@ -49,5 +54,5 @@ export default function ScrollToTop() {
         />
       </svg>
     </button>
-  );
+  )
 }

@@ -33,7 +33,11 @@ describe('computeLanguageDashboardStats', () => {
 
   it('identifies the most versatile repo by language count', () => {
     const stats = computeLanguageDashboardStats([
-      repo({ name: 'mono', language: 'JS', languages: [{ name: 'JS', bytes: 100 }] }),
+      repo({
+        name: 'mono',
+        language: 'JS',
+        languages: [{ name: 'JS', bytes: 100 }],
+      }),
       repo({
         name: 'poly',
         language: 'JS',
@@ -83,13 +87,17 @@ describe('getRepoLanguageBreakdown', () => {
   })
 
   it('falls back to a single 100% entry when only a primary language exists', () => {
-    const breakdown = getRepoLanguageBreakdown(repo({ language: 'Python', languages: undefined }))
+    const breakdown = getRepoLanguageBreakdown(
+      repo({ language: 'Python', languages: undefined })
+    )
     expect(breakdown).toHaveLength(1)
     expect(breakdown[0].name).toBe('Python')
     expect(breakdown[0].percentage).toBe(100)
   })
 
   it('returns an empty array when there is no language data at all', () => {
-    expect(getRepoLanguageBreakdown(repo({ language: '', languages: undefined }))).toEqual([])
+    expect(
+      getRepoLanguageBreakdown(repo({ language: '', languages: undefined }))
+    ).toEqual([])
   })
 })

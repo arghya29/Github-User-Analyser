@@ -15,8 +15,15 @@ export default async function handler(
 ) {
   const { owner, repo } = req.query
 
-  if (!owner || !repo || typeof owner !== 'string' || typeof repo !== 'string') {
-    return res.status(400).json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
+  if (
+    !owner ||
+    !repo ||
+    typeof owner !== 'string' ||
+    typeof repo !== 'string'
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
   }
 
   const token = env.GITHUB_TOKEN
@@ -33,30 +40,43 @@ export default async function handler(
     )
 
     if (response.status === 404) {
-      return res.status(404).json({ error: 'Repository not found', errorType: 'not_found' })
+      return res
+        .status(404)
+        .json({ error: 'Repository not found', errorType: 'not_found' })
     }
     if (response.status === 403) {
-      return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      return res
+        .status(403)
+        .json({ error: 'Rate limited', errorType: 'rate_limited' })
     }
     if (response.status === 202) {
       return res.status(200).json([])
     }
     if (response.status !== 200 || !Array.isArray(response.data)) {
-      return res.status(500).json({ error: 'Failed to fetch commit activity', errorType: 'unknown' })
+      return res
+        .status(500)
+        .json({
+          error: 'Failed to fetch commit activity',
+          errorType: 'unknown',
+        })
     }
 
     const raw = response.data as [number, number, number][]
 
-    const activities: CodeFrequency[] = raw.map(([week, additions, deletions]) => ({
-      week: week * 1000,
-      additions,
-      deletions,
-      total: additions - deletions,
-    }))
+    const activities: CodeFrequency[] = raw.map(
+      ([week, additions, deletions]) => ({
+        week: week * 1000,
+        additions,
+        deletions,
+        total: additions - deletions,
+      })
+    )
 
     return res.status(200).json(activities)
   } catch (error) {
     logError('api/commit-activity', error, { owner, repo })
-    return res.status(500).json({ error: 'Failed to fetch commit activity', errorType: 'unknown' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch commit activity', errorType: 'unknown' })
   }
 }

@@ -58,7 +58,9 @@ export function addFavorite(username: string): string[] {
 
 /** Removes `username` (case-insensitive), persists, and returns the new list. */
 export function removeFavorite(username: string): string[] {
-  const next = getFavorites().filter((f) => f.toLowerCase() !== username.toLowerCase())
+  const next = getFavorites().filter(
+    (f) => f.toLowerCase() !== username.toLowerCase()
+  )
   try {
     getStorage()?.setItem(FAVORITES_KEY, JSON.stringify(next))
   } catch {

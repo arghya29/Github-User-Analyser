@@ -35,7 +35,9 @@ describe('UserCard profile rendering', () => {
   it('renders the display name, handle, and bio', () => {
     render(<UserCard user={buildUser()} />)
 
-    expect(screen.getByRole('heading', { name: 'The Octocat' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'The Octocat' })
+    ).toBeInTheDocument()
     expect(screen.getByText('@octocat')).toBeInTheDocument()
     expect(screen.getByText('Building things on GitHub.')).toBeInTheDocument()
   })
@@ -48,7 +50,11 @@ describe('UserCard profile rendering', () => {
   })
 
   it('renders the repo, follower, and following counts', () => {
-    render(<UserCard user={buildUser({ public_repos: 42, followers: 1500, following: 12 })} />)
+    render(
+      <UserCard
+        user={buildUser({ public_repos: 42, followers: 1500, following: 12 })}
+      />
+    )
 
     expect(screen.getByText('42')).toBeInTheDocument()
     expect(screen.getByText('1500')).toBeInTheDocument()
@@ -64,23 +70,37 @@ describe('UserCard profile rendering', () => {
   })
 
   it('omits the optional fields a profile has not filled in', () => {
-    render(<UserCard user={buildUser({ bio: '', company: '', location: '' })} />)
+    render(
+      <UserCard user={buildUser({ bio: '', company: '', location: '' })} />
+    )
 
-    expect(screen.queryByText('Building things on GitHub.')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Building things on GitHub.')
+    ).not.toBeInTheDocument()
     expect(screen.queryByText(/company:/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/location:/i)).not.toBeInTheDocument()
     // The identity still renders — an empty bio must not blank the card.
-    expect(screen.getByRole('heading', { name: 'The Octocat' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'The Octocat' })
+    ).toBeInTheDocument()
   })
 
   it('renders company and location when present', () => {
-    render(<UserCard user={buildUser({ company: '@github', location: 'San Francisco' })} />)
+    render(
+      <UserCard
+        user={buildUser({ company: '@github', location: 'San Francisco' })}
+      />
+    )
 
     // The label and its value are separate nodes (`<span>Company:</span> {value}`),
     // and a bare "@github" also appears elsewhere on the card — so assert against the
     // labelled row rather than the raw string.
-    expect(screen.getByText('Company:').parentElement).toHaveTextContent('@github')
-    expect(screen.getByText('Location:').parentElement).toHaveTextContent('San Francisco')
+    expect(screen.getByText('Company:').parentElement).toHaveTextContent(
+      '@github'
+    )
+    expect(screen.getByText('Location:').parentElement).toHaveTextContent(
+      'San Francisco'
+    )
   })
 
   it('does not mount the followers explorer until it is opened', () => {

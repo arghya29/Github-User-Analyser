@@ -21,8 +21,12 @@ describe('ScrollToTop', () => {
 
     try {
       render(<ScrollToTop />)
-      expect(screen.getByRole('button', { name: /scroll to top/i })).toBeInTheDocument()
-      expect(() => fireEvent.click(screen.getByRole('button', { name: /scroll to top/i }))).not.toThrow()
+      expect(
+        screen.getByRole('button', { name: /scroll to top/i })
+      ).toBeInTheDocument()
+      expect(() =>
+        fireEvent.click(screen.getByRole('button', { name: /scroll to top/i }))
+      ).not.toThrow()
     } finally {
       Object.defineProperty(window, 'scrollY', {
         configurable: true,

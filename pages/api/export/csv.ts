@@ -10,7 +10,10 @@ const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_MAX = 20
 const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -20,7 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Retry-After', String(retryAfter))
     return res
       .status(429)
-      .json({ error: `Too many requests \u2014 please wait ${retryAfter}s and try again` })
+      .json({
+        error: `Too many requests \u2014 please wait ${retryAfter}s and try again`,
+      })
   }
 
   try {

@@ -10,7 +10,10 @@ interface LanguageChartProps {
 
 type LanguageTooltipProps = {
   active?: boolean
-  payload?: Array<{ name?: string | number; value?: number | string | readonly (string | number)[] }>
+  payload?: Array<{
+    name?: string | number
+    value?: number | string | readonly (string | number)[]
+  }>
   mode?: 'bytes' | 'count'
 }
 
@@ -19,7 +22,8 @@ const MAX_INLINE_LANGUAGES = 4
 function ChartTooltip({ active, payload, mode }: LanguageTooltipProps) {
   if (!active || !payload || !payload.length) return null
   const entry = payload[0]
-  const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
+  const suffix =
+    mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
   return (
     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">
       <span className="font-semibold">{entry.name}</span>: {entry.value}
@@ -39,7 +43,11 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
 
   if (data.length === 0) {
     return (
-      <CustomChartContainer title="Language Distribution" isEmpty={true} emptyMessage="No language data available.">
+      <CustomChartContainer
+        title="Language Distribution"
+        isEmpty={true}
+        emptyMessage="No language data available."
+      >
         <div />
       </CustomChartContainer>
     )
@@ -79,7 +87,12 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
               ))}
             </Pie>
             <Tooltip
-              content={(props) => <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />}
+              content={(props) => (
+                <ChartTooltip
+                  {...(props as unknown as LanguageTooltipProps)}
+                  mode={mode}
+                />
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -116,7 +129,10 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
 
       {/* Expanded box */}
       {showAll && overflowCount > 0 && (
-        <div id={panelId} className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
+        <div
+          id={panelId}
+          className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto"
+        >
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {sorted.map((entry) => (
               <div
@@ -127,8 +143,12 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
                   className="w-2.5 h-2.5 rounded-full inline-block"
                   style={{ backgroundColor: getLanguageColor(entry.name) }}
                 />
-                <span className="font-medium text-gray-700 dark:text-gray-200">{entry.name}</span>
-                <span className="text-gray-400 dark:text-gray-500">{valueLabel(entry.value, mode)}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-200">
+                  {entry.name}
+                </span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  {valueLabel(entry.value, mode)}
+                </span>
               </div>
             ))}
           </div>

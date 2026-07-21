@@ -10,16 +10,21 @@ import { fetchCommitActivity } from '@/lib/commitActivity'
 // `ssr: false` is safe here rather than a behaviour change: the dashboard only
 // renders after the client-side profile fetch resolves, so this never rendered
 // on the server to begin with.
-const CommitActivityChart = dynamic(() => import('@/components/CommitActivityChart'), {
-  loading: () => <ChartSkeleton />,
-  ssr: false,
-})
+const CommitActivityChart = dynamic(
+  () => import('@/components/CommitActivityChart'),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+)
 
 interface CommitActivityButtonProps {
   repo: Repository
 }
 
-export default function CommitActivityButton({ repo }: CommitActivityButtonProps) {
+export default function CommitActivityButton({
+  repo,
+}: CommitActivityButtonProps) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<CodeFrequency[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +59,11 @@ export default function CommitActivityButton({ repo }: CommitActivityButtonProps
         disabled={loading}
         className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
       >
-        {loading ? 'Loading...' : data ? 'Hide Commit Activity' : '📊 Commit Activity'}
+        {loading
+          ? 'Loading...'
+          : data
+            ? 'Hide Commit Activity'
+            : '📊 Commit Activity'}
       </button>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       {data && (

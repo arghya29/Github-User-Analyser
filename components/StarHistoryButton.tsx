@@ -10,10 +10,13 @@ import { fetchStarHistory } from '@/lib/starHistory'
 // `ssr: false` is safe here rather than a behaviour change: the dashboard only
 // renders after the client-side profile fetch resolves, so this never rendered
 // on the server to begin with.
-const StarHistoryChart = dynamic(() => import('@/components/StarHistoryChart'), {
-  loading: () => <ChartSkeleton />,
-  ssr: false,
-})
+const StarHistoryChart = dynamic(
+  () => import('@/components/StarHistoryChart'),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+)
 
 interface StarHistoryButtonProps {
   repo: Repository
@@ -54,7 +57,11 @@ export default function StarHistoryButton({ repo }: StarHistoryButtonProps) {
         disabled={loading}
         className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50"
       >
-        {loading ? 'Loading...' : data ? 'Hide Star History' : '⭐ Star History'}
+        {loading
+          ? 'Loading...'
+          : data
+            ? 'Hide Star History'
+            : '⭐ Star History'}
       </button>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       {data && (

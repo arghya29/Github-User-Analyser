@@ -42,7 +42,11 @@ export interface RateLimiter {
   getRemaining(ip: string): number
 }
 
-export function createRateLimiter(windowMs: number, max: number, maxKeys = 5000): RateLimiter {
+export function createRateLimiter(
+  windowMs: number,
+  max: number,
+  maxKeys = 5000
+): RateLimiter {
   const buckets = new Map<string, RateWindow>()
 
   function cleanup(): void {

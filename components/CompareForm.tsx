@@ -39,7 +39,9 @@ export default function CompareForm({
           className="flex-1 w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 dark:placeholder-gray-400"
           disabled={loading}
         />
-        <span className="text-gray-400 dark:text-gray-500 font-semibold text-sm shrink-0">vs</span>
+        <span className="text-gray-400 dark:text-gray-500 font-semibold text-sm shrink-0">
+          vs
+        </span>
         <input
           type="text"
           value={userB}

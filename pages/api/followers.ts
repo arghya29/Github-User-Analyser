@@ -16,7 +16,9 @@ export default async function handler(
   const { username, type } = req.query
 
   if (!username || typeof username !== 'string') {
-    return res.status(400).json({ error: 'Missing username parameter', errorType: 'unknown' })
+    return res
+      .status(400)
+      .json({ error: 'Missing username parameter', errorType: 'unknown' })
   }
 
   const listType = type === 'following' ? 'following' : 'followers'
@@ -36,25 +38,35 @@ export default async function handler(
     )
 
     if (response.status === 404) {
-      return res.status(404).json({ error: 'User not found', errorType: 'not_found' })
+      return res
+        .status(404)
+        .json({ error: 'User not found', errorType: 'not_found' })
     }
     if (response.status === 403) {
-      return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      return res
+        .status(403)
+        .json({ error: 'Rate limited', errorType: 'rate_limited' })
     }
     if (response.status !== 200) {
-      return res.status(500).json({ error: `Failed to fetch ${listType}`, errorType: 'unknown' })
+      return res
+        .status(500)
+        .json({ error: `Failed to fetch ${listType}`, errorType: 'unknown' })
     }
 
-    const users: FollowerUser[] = response.data.map((u: Record<string, unknown>) => ({
-      login: u.login as string,
-      avatarUrl: u.avatar_url as string,
-      htmlUrl: u.html_url as string,
-      type: u.type as string,
-    }))
+    const users: FollowerUser[] = response.data.map(
+      (u: Record<string, unknown>) => ({
+        login: u.login as string,
+        avatarUrl: u.avatar_url as string,
+        htmlUrl: u.html_url as string,
+        type: u.type as string,
+      })
+    )
 
     return res.status(200).json(users)
   } catch (error) {
     logError('api/followers', error, { username, listType })
-    return res.status(500).json({ error: `Failed to fetch ${listType}`, errorType: 'unknown' })
+    return res
+      .status(500)
+      .json({ error: `Failed to fetch ${listType}`, errorType: 'unknown' })
   }
 }

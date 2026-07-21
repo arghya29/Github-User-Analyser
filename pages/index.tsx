@@ -9,7 +9,10 @@ import Favorites from '@/components/Favorites'
 import ThemeToggle from '@/components/ThemeToggle'
 import CompareForm from '@/components/CompareForm'
 import Footer from '@/components/Footer'
-import { loadHistory, clearHistory as clearStoredHistory } from '@/lib/searchHistory'
+import {
+  loadHistory,
+  clearHistory as clearStoredHistory,
+} from '@/lib/searchHistory'
 import { getFavorites, removeFavorite } from '@/lib/favorites'
 
 type Mode = 'search' | 'compare'
@@ -53,7 +56,8 @@ export default function Home({ baseUrl }: HomePageProps) {
   }
 
   const clearHistory = () => setHistory(clearStoredHistory())
-  const handleRemoveFavorite = (username: string) => setFavorites(removeFavorite(username))
+  const handleRemoveFavorite = (username: string) =>
+    setFavorites(removeFavorite(username))
 
   const handleCompare = async (rawA: string, rawB: string) => {
     const usernameA = rawA.trim()
@@ -104,7 +108,10 @@ export default function Home({ baseUrl }: HomePageProps) {
         <meta property="og:site_name" content="GitHub User Analyser" />
         <meta property="og:title" content="GitHub User Analyser" />
         <meta property="og:description" content={SITE_DESCRIPTION} />
-        <meta property="og:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
+        <meta
+          property="og:image"
+          content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'}
+        />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="GitHub User Analyser" />
@@ -114,7 +121,10 @@ export default function Home({ baseUrl }: HomePageProps) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="GitHub User Analyser" />
         <meta name="twitter:description" content={SITE_DESCRIPTION} />
-        <meta name="twitter:image" content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'} />
+        <meta
+          name="twitter:image"
+          content={baseUrl ? `${baseUrl}/og-default.png` : '/og-default.png'}
+        />
       </Head>
 
       <div className="flex min-h-screen flex-col bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
@@ -126,7 +136,9 @@ export default function Home({ baseUrl }: HomePageProps) {
                   <span className="text-xl font-semibold">GH</span>
                 </div>
                 <div>
-                  <p className="text-2xl sm:text-3xl font-semibold text-cyan-700 dark:text-cyan-300">GitHub User Analyser</p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-cyan-700 dark:text-cyan-300">
+                    GitHub User Analyser
+                  </p>
                 </div>
               </div>
               <ThemeToggle />
@@ -135,15 +147,20 @@ export default function Home({ baseUrl }: HomePageProps) {
             <div className="space-y-10">
               <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
                 <div className="space-y-4 max-w-lg">
-                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">GitHub insights made simple</p>
+                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
+                    GitHub insights made simple
+                  </p>
                   <p className="text-slate-300 text-base sm:text-lg">
-                    Quickly inspect public profiles and compare two users with a clean, modern interface.
+                    Quickly inspect public profiles and compare two users with a
+                    clean, modern interface.
                   </p>
                 </div>
 
                 <div className="relative rounded-[2rem] border border-slate-200/20 bg-white/90 pt-5 pb-6 px-8 shadow-2xl shadow-slate-900/5 min-h-[280px] dark:border-white/10 dark:bg-slate-900/90 dark:shadow-slate-950/30">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{mode === 'search' ? 'Search' : 'Compare'}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+                      {mode === 'search' ? 'Search' : 'Compare'}
+                    </p>
                     <div className="inline-flex rounded-full bg-slate-100/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700 dark:bg-white/5 dark:text-slate-300">
                       {mode === 'search' ? 'Search' : 'Compare'}
                     </div>
@@ -183,13 +200,26 @@ export default function Home({ baseUrl }: HomePageProps) {
                     {mode === 'search' ? (
                       <>
                         <SearchBar onSearch={handleSearch} loading={false} />
-                        <SearchHistory history={history} onSelect={handleSearch} onClear={clearHistory} />
-                        <Favorites favorites={favorites} onSelect={handleSearch} onRemove={handleRemoveFavorite} />
-                        {error && <div className="text-sm text-rose-200">{error}</div>}
+                        <SearchHistory
+                          history={history}
+                          onSelect={handleSearch}
+                          onClear={clearHistory}
+                        />
+                        <Favorites
+                          favorites={favorites}
+                          onSelect={handleSearch}
+                          onRemove={handleRemoveFavorite}
+                        />
+                        {error && (
+                          <div className="text-sm text-rose-200">{error}</div>
+                        )}
                       </>
                     ) : (
                       <>
-                        <CompareForm onCompare={handleCompare} loading={compareNavigating} />
+                        <CompareForm
+                          onCompare={handleCompare}
+                          loading={compareNavigating}
+                        />
 
                         {compareError && (
                           <div role="alert" className="text-sm text-rose-200">
@@ -197,7 +227,10 @@ export default function Home({ baseUrl }: HomePageProps) {
                           </div>
                         )}
 
-                        <div className="text-slate-600 dark:text-slate-300">Add two usernames to compare their public GitHub stats.</div>
+                        <div className="text-slate-600 dark:text-slate-300">
+                          Add two usernames to compare their public GitHub
+                          stats.
+                        </div>
                       </>
                     )}
                   </div>
@@ -208,29 +241,45 @@ export default function Home({ baseUrl }: HomePageProps) {
             <div className="mt-10 space-y-10">
               <section className="space-y-6 max-w-3xl">
                 <div>
-                  <h2 className="text-2xl font-semibold text-slate-950 dark:text-white">What makes this app useful?</h2>
+                  <h2 className="text-2xl font-semibold text-slate-950 dark:text-white">
+                    What makes this app useful?
+                  </h2>
                   <p className="mt-3 text-slate-600 dark:text-slate-400 text-base leading-7">
-                    GitHub User Analyser helps you find profiles quickly, understand key repository metrics, and compare two developers side by side with instant clarity.
+                    GitHub User Analyser helps you find profiles quickly,
+                    understand key repository metrics, and compare two
+                    developers side by side with instant clarity.
                   </p>
                 </div>
 
                 <div className="space-y-5 text-slate-700 dark:text-slate-300">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">Fast profile search</h3>
+                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
+                      Fast profile search
+                    </h3>
                     <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-6">
-                      Type in any GitHub username and get immediate access to public profile data, repository trends, and activity signals in one clean view.
+                      Type in any GitHub username and get immediate access to
+                      public profile data, repository trends, and activity
+                      signals in one clean view.
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">Smart comparison mode</h3>
+                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
+                      Smart comparison mode
+                    </h3>
                     <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-6">
-                      Compare two users side by side to spot strengths, repo health, and contribution patterns without switching between tabs.
+                      Compare two users side by side to spot strengths, repo
+                      health, and contribution patterns without switching
+                      between tabs.
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">Clear insights</h3>
+                    <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
+                      Clear insights
+                    </h3>
                     <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-6">
-                      Explore follower growth, languages, and repo activity with simple visuals and concise summaries tailored for developers and recruiters.
+                      Explore follower growth, languages, and repo activity with
+                      simple visuals and concise summaries tailored for
+                      developers and recruiters.
                     </p>
                   </div>
                 </div>
@@ -245,6 +294,8 @@ export default function Home({ baseUrl }: HomePageProps) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<HomePageProps> = async ({ req }) => {
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async ({
+  req,
+}) => {
   return { props: { baseUrl: resolveBaseUrl(req) } }
 }

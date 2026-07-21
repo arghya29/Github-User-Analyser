@@ -13,7 +13,8 @@ export interface RepoHealthSummary {
 export function computeHealthScore(repo: Repository): number {
   let score = 50
 
-  const daysSinceUpdate = (Date.now() - new Date(repo.updated_at).getTime()) / 86400000
+  const daysSinceUpdate =
+    (Date.now() - new Date(repo.updated_at).getTime()) / 86400000
   if (daysSinceUpdate < 30) score += 20
   else if (daysSinceUpdate < 90) score += 10
   else if (daysSinceUpdate > 365) score -= 15
@@ -56,7 +57,8 @@ export function getHealthBg(score: number): string {
 export function summarizeReposHealth(repos: Repository[]): RepoHealthSummary[] {
   return repos.map((repo) => {
     const score = computeHealthScore(repo)
-    const daysSinceUpdate = (Date.now() - new Date(repo.updated_at).getTime()) / 86400000
+    const daysSinceUpdate =
+      (Date.now() - new Date(repo.updated_at).getTime()) / 86400000
     return {
       repoName: repo.name,
       score,

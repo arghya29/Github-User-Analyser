@@ -30,7 +30,12 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
   const langColor = getLanguageColorClass(repo.language)
 
   const openModal = useCallback((trigger?: HTMLElement | null) => {
-    previousFocusRef.current = trigger ?? (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null)
+    previousFocusRef.current =
+      trigger ??
+      (typeof document !== 'undefined' &&
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null)
     setShowActionBox(true)
   }, [])
 
@@ -42,7 +47,12 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
   }, [])
 
   useEffect(() => {
-    if (!showActionBox || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      !showActionBox ||
+      typeof document === 'undefined' ||
+      typeof document.addEventListener !== 'function'
+    )
+      return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -104,7 +114,9 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
         {repo.language && (
           <div className="mb-4 flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${langColor}`}></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">{repo.language}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {repo.language}
+            </span>
           </div>
         )}
 
@@ -171,7 +183,10 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => { closeModal(); onSelect(repo) }}
+                onClick={() => {
+                  closeModal()
+                  onSelect(repo)
+                }}
                 className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 📖 Preview README

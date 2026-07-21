@@ -3,7 +3,12 @@ import { getLanguageColor } from '@/lib/languageColors'
 
 export interface LanguageRepoEntry {
   repoName: string
-  languages: { name: string; bytes: number; percentage: number; color: string }[]
+  languages: {
+    name: string
+    bytes: number
+    percentage: number
+    color: string
+  }[]
 }
 
 export interface LanguageDashboardStats {
@@ -13,7 +18,9 @@ export interface LanguageDashboardStats {
   languageRepoTotals: { name: string; count: number; color: string }[]
 }
 
-export function computeLanguageDashboardStats(repos: Repository[]): LanguageDashboardStats {
+export function computeLanguageDashboardStats(
+  repos: Repository[]
+): LanguageDashboardStats {
   const langSet = new Set<string>()
   const langRepoCount = new Map<string, number>()
   let maxLangCount = 0
@@ -22,7 +29,10 @@ export function computeLanguageDashboardStats(repos: Repository[]): LanguageDash
   for (const repo of repos) {
     if (repo.language) {
       langSet.add(repo.language)
-      langRepoCount.set(repo.language, (langRepoCount.get(repo.language) || 0) + 1)
+      langRepoCount.set(
+        repo.language,
+        (langRepoCount.get(repo.language) || 0) + 1
+      )
     }
     if (repo.languages && repo.languages.length > maxLangCount) {
       maxLangCount = repo.languages.length
@@ -42,10 +52,19 @@ export function computeLanguageDashboardStats(repos: Repository[]): LanguageDash
   }
 }
 
-export function getRepoLanguageBreakdown(repo: Repository): LanguageRepoEntry['languages'] {
+export function getRepoLanguageBreakdown(
+  repo: Repository
+): LanguageRepoEntry['languages'] {
   if (!repo.languages || repo.languages.length === 0) {
     if (repo.language) {
-      return [{ name: repo.language, bytes: 0, percentage: 100, color: getLanguageColor(repo.language) }]
+      return [
+        {
+          name: repo.language,
+          bytes: 0,
+          percentage: 100,
+          color: getLanguageColor(repo.language),
+        },
+      ]
     }
     return []
   }

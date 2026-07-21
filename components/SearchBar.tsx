@@ -48,7 +48,9 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
 
   const filtered = useMemo(() => {
     const q = input.trim().toLowerCase()
-    const pool = q ? suggestions.filter((s) => s.toLowerCase().includes(q)) : suggestions
+    const pool = q
+      ? suggestions.filter((s) => s.toLowerCase().includes(q))
+      : suggestions
     return pool.slice(0, MAX_SUGGESTIONS)
   }, [input, suggestions])
 
@@ -61,10 +63,17 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
 
   // Close the dropdown on an outside click.
   useEffect(() => {
-    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      typeof document === 'undefined' ||
+      typeof document.addEventListener !== 'function'
+    )
+      return
 
     function onClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
       }
     }
@@ -136,7 +145,9 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
             aria-controls={listboxId}
             aria-autocomplete="list"
             aria-activedescendant={
-              activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+              activeIndex >= 0
+                ? `${listboxId}-option-${activeIndex}`
+                : undefined
             }
             className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 transition-shadow"
             disabled={loading}

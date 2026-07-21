@@ -2,7 +2,9 @@ import { withRetry, classifyError, RETRY_DEFAULTS } from '@/lib/retry'
 
 /** Builds an axios-shaped HTTP error. */
 function httpError(status: number, headers: Record<string, unknown> = {}) {
-  return Object.assign(new Error(`HTTP ${status}`), { response: { status, headers } })
+  return Object.assign(new Error(`HTTP ${status}`), {
+    response: { status, headers },
+  })
 }
 
 /** Builds an axios-shaped transport error (no HTTP response). */
@@ -26,7 +28,12 @@ const noJitter = () => 1
 
 describe('classifyError', () => {
   it('retries transient transport failures', () => {
-    for (const code of ['ECONNABORTED', 'ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN']) {
+    for (const code of [
+      'ECONNABORTED',
+      'ECONNRESET',
+      'ETIMEDOUT',
+      'EAI_AGAIN',
+    ]) {
       expect(classifyError(networkError(code)).retryable).toBe(true)
     }
   })
@@ -103,7 +110,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(httpError(503))
       .mockResolvedValue('recovered')
 
-    await expect(withRetry(fn, { sleep, random: noJitter })).resolves.toBe('recovered')
+    await expect(withRetry(fn, { sleep, random: noJitter })).resolves.toBe(
+      'recovered'
+    )
     expect(fn).toHaveBeenCalledTimes(2)
     expect(delays).toHaveLength(1)
   })
@@ -211,7 +220,10 @@ describe('withRetry', () => {
   it('reports each retry through onRetry', async () => {
     const { sleep } = fakeSleeper()
     const onRetry = jest.fn()
-    const fn = jest.fn().mockRejectedValueOnce(httpError(502)).mockResolvedValue('ok')
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(httpError(502))
+      .mockResolvedValue('ok')
 
     await withRetry(fn, { sleep, random: noJitter, onRetry })
 

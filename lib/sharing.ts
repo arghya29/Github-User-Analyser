@@ -1,5 +1,6 @@
 export function getShareUrl(username: string): string {
-  if (typeof window === 'undefined') return `https://github-user-analyser.vercel.app/${username}`
+  if (typeof window === 'undefined')
+    return `https://github-user-analyser.vercel.app/${username}`
   return `${window.location.origin}/${username}`
 }
 
@@ -58,9 +59,17 @@ export async function copyProfileLink(username: string): Promise<boolean> {
   }
 }
 
-export async function shareNative(username: string, name?: string): Promise<void> {
+export async function shareNative(
+  username: string,
+  name?: string
+): Promise<void> {
   const url = getShareUrl(username)
   const text = getShareText(username, name)
-  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return
-  await navigator.share({ title: `GitHub Profile: ${name || username}`, text, url })
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function')
+    return
+  await navigator.share({
+    title: `GitHub Profile: ${name || username}`,
+    text,
+    url,
+  })
 }

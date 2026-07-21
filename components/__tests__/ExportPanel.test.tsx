@@ -55,7 +55,9 @@ describe('ExportPanel', () => {
 
     try {
       render(<ExportPanel userData={baseUserData} />)
-      fireEvent.click(screen.getByRole('button', { name: /download resume pdf/i }))
+      fireEvent.click(
+        screen.getByRole('button', { name: /download resume pdf/i })
+      )
       fireEvent.click(screen.getByRole('button', { name: /export repos csv/i }))
       fireEvent.click(screen.getByRole('button', { name: /export raw json/i }))
       fireEvent.click(screen.getByRole('button', { name: /export markdown/i }))

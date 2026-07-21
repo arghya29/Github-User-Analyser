@@ -1,4 +1,7 @@
-import { computeCurrentStreak, computeProductivityStats } from '@/lib/contributionStats'
+import {
+  computeCurrentStreak,
+  computeProductivityStats,
+} from '@/lib/contributionStats'
 import type { ContributionDay, ContributionWeek } from '@/types/github'
 
 /**
@@ -51,7 +54,9 @@ describe('computeCurrentStreak', () => {
   it('does NOT skip a trailing zero more than a day in the past (genuine gap → streak 0)', () => {
     // Data ends 10 days ago with a zero. That trailing zero is a real gap, not
     // an in-progress today, so the streak has ended → 0.
-    const staleEnd = new Date(NOW_MS - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const staleEnd = new Date(NOW_MS - 10 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10)
     const days = consecutiveDays(staleEnd, [5, 5, 5, 0])
     expect(computeCurrentStreak(days)).toBe(0)
   })
@@ -69,7 +74,9 @@ describe('computeCurrentStreak', () => {
 
   it('treats the final day within +1 day of today (yesterday) as current when zero', () => {
     // Ends yesterday with a zero → within ±1 day → skipped → counts back from the day before
-    const yesterday = new Date(NOW_MS - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const yesterday = new Date(NOW_MS - 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10)
     const days = consecutiveDays(yesterday, [7, 7, 0])
     expect(computeCurrentStreak(days)).toBe(2)
   })
@@ -93,7 +100,11 @@ describe('computeProductivityStats', () => {
   })
 
   it('selects the single most productive day by count', () => {
-    const days = [day('2026-06-01', 3), day('2026-06-02', 11), day('2026-06-03', 7)]
+    const days = [
+      day('2026-06-01', 3),
+      day('2026-06-02', 11),
+      day('2026-06-03', 7),
+    ]
     const stats = computeProductivityStats([weekOf(days)])
     expect(stats.mostProductiveDay).toEqual({ date: '2026-06-02', count: 11 })
   })
@@ -106,14 +117,22 @@ describe('computeProductivityStats', () => {
   it('returns null for mostProductiveDay when every day has zero contributions', () => {
     // A brand-new / inactive account: a full window of zero-count days must not
     // report a bogus "most productive day" (the first day) with count 0.
-    const days = [day('2026-06-01', 0), day('2026-06-02', 0), day('2026-06-03', 0)]
+    const days = [
+      day('2026-06-01', 0),
+      day('2026-06-02', 0),
+      day('2026-06-03', 0),
+    ]
     const stats = computeProductivityStats([weekOf(days)])
     expect(stats.mostProductiveDay).toBeNull()
   })
 
   it('splits weekday vs weekend totals using UTC day-of-week', () => {
     // 2026-06-13 is a Saturday, 2026-06-14 a Sunday (weekend); 2026-06-15 Monday (weekday).
-    const days = [day('2026-06-13', 4), day('2026-06-14', 6), day('2026-06-15', 5)]
+    const days = [
+      day('2026-06-13', 4),
+      day('2026-06-14', 6),
+      day('2026-06-15', 5),
+    ]
     const stats = computeProductivityStats([weekOf(days)])
     expect(stats.weekendCount).toBe(10) // 4 + 6
     expect(stats.weekdayCount).toBe(5) // Monday

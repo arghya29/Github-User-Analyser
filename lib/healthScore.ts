@@ -12,7 +12,8 @@ export interface HealthScoreResult {
 }
 
 function recencyScore(updatedAt: string): number {
-  const daysSinceUpdate = (Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+  const daysSinceUpdate =
+    (Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24)
   if (daysSinceUpdate <= 30) return 40
   if (daysSinceUpdate <= 90) return 32
   if (daysSinceUpdate <= 180) return 22
@@ -29,9 +30,13 @@ function issueHealthScore(open?: number, closed?: number): number {
 
 export function computeHealthScore(repo: Repository): HealthScoreResult {
   const recency = recencyScore(repo.updated_at)
-  const issueHealth = issueHealthScore(repo.open_issues_count, repo.closed_issues_count)
+  const issueHealth = issueHealthScore(
+    repo.open_issues_count,
+    repo.closed_issues_count
+  )
   const license = repo.license ? 15 : 0
-  const documentation = repo.description && repo.description.trim().length > 0 ? 15 : 0
+  const documentation =
+    repo.description && repo.description.trim().length > 0 ? 15 : 0
 
   const score = Math.min(100, recency + issueHealth + license + documentation)
 
@@ -40,5 +45,9 @@ export function computeHealthScore(repo: Repository): HealthScoreResult {
   else if (score >= 60) label = 'Good'
   else if (score >= 40) label = 'Fair'
 
-  return { score, label, breakdown: { recency, issueHealth, license, documentation } }
+  return {
+    score,
+    label,
+    breakdown: { recency, issueHealth, license, documentation },
+  }
 }

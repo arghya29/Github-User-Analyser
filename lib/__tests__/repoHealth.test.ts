@@ -19,7 +19,8 @@ function repo(overrides: Partial<Repository> = {}): Repository {
   } as Repository
 }
 
-const daysAgo = (days: number) => new Date(Date.now() - days * 86400000).toISOString()
+const daysAgo = (days: number) =>
+  new Date(Date.now() - days * 86400000).toISOString()
 
 describe('computeHealthScore', () => {
   it('scores a well-maintained repo high', () => {
@@ -53,7 +54,9 @@ describe('computeHealthScore', () => {
   })
 
   it('always stays within 0..100', () => {
-    const score = computeHealthScore(repo({ updated_at: daysAgo(5), stargazers_count: 999 }))
+    const score = computeHealthScore(
+      repo({ updated_at: daysAgo(5), stargazers_count: 999 })
+    )
     expect(score).toBeGreaterThanOrEqual(0)
     expect(score).toBeLessThanOrEqual(100)
   })
@@ -86,7 +89,13 @@ describe('getHealthLabel / Color / Bg boundaries', () => {
 describe('summarizeReposHealth', () => {
   it('summarizes each repo with the expected shape', () => {
     const summaries = summarizeReposHealth([
-      repo({ name: 'alpha', updated_at: daysAgo(5), description: 'd', license: 'MIT', open_issues_count: 2 }),
+      repo({
+        name: 'alpha',
+        updated_at: daysAgo(5),
+        description: 'd',
+        license: 'MIT',
+        open_issues_count: 2,
+      }),
       repo({ name: 'beta', updated_at: daysAgo(400), open_issues_count: 0 }),
     ])
     expect(summaries).toHaveLength(2)

@@ -37,7 +37,11 @@ function openDb(): Promise<IDBDatabase> {
   })
 }
 
-export async function persistToIndexedDB<T>(key: string, value: T, ttlMs: number): Promise<void> {
+export async function persistToIndexedDB<T>(
+  key: string,
+  value: T,
+  ttlMs: number
+): Promise<void> {
   if (!isIndexedDbAvailable()) return
   try {
     const db = await openDb()
@@ -62,10 +66,12 @@ export async function readFromIndexedDB<T>(key: string): Promise<T | null> {
     const tx = db.transaction(STORE_NAME, 'readonly')
     const store = tx.objectStore(STORE_NAME)
     const req = store.get(key)
-    const result = await new Promise<StoreEntry<T> | undefined>((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
-    })
+    const result = await new Promise<StoreEntry<T> | undefined>(
+      (resolve, reject) => {
+        req.onsuccess = () => resolve(req.result)
+        req.onerror = () => reject(req.error)
+      }
+    )
     db.close()
 
     if (!result) return null

@@ -8,10 +8,13 @@ import EngagementStats from '@/components/EngagementStats'
 // `ssr: false` is safe here rather than a behaviour change: the dashboard only
 // renders after the client-side profile fetch resolves, so this never rendered
 // on the server to begin with.
-const ProductivityPanel = dynamic(() => import('@/components/ProductivityPanel'), {
-  loading: () => <ChartSkeleton />,
-  ssr: false,
-})
+const ProductivityPanel = dynamic(
+  () => import('@/components/ProductivityPanel'),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+)
 import AchievementsPanel from '@/components/AchievementsPanel'
 import AiInsightPanel from '@/components/AiInsightPanel'
 import ExportPanel from '@/components/ExportPanel'
@@ -38,7 +41,15 @@ interface ProfileDashboardProps {
  * /[username] route so both render identically.
  */
 export default function ProfileDashboard({ data }: ProfileDashboardProps) {
-  const { user, repos, contributions, engagement, productivity, pinnedRepos, rateLimit } = data
+  const {
+    user,
+    repos,
+    contributions,
+    engagement,
+    productivity,
+    pinnedRepos,
+    rateLimit,
+  } = data
 
   const {
     sortBy,
@@ -65,7 +76,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
       <div className="space-y-12">
         <section id="profile" className="scroll-mt-24">
           <div className="flex items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Profile</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Profile
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-6">
@@ -85,12 +98,22 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
               </ErrorBoundary>
 
               <ErrorBoundary fallback={ErrorFallback}>
-                <ExportPanel userData={{ user, repos, contributions, engagement, productivity }} />
+                <ExportPanel
+                  userData={{
+                    user,
+                    repos,
+                    contributions,
+                    engagement,
+                    productivity,
+                  }}
+                />
               </ErrorBoundary>
             </div>
           </div>
 
-          {contributions !== null && engagement !== null && productivity !== null ? (
+          {contributions !== null &&
+          engagement !== null &&
+          productivity !== null ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
               <ErrorBoundary fallback={ErrorFallback}>
                 <EngagementStats data={engagement} />
@@ -109,8 +132,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
           ) : (
             <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Engagement, productivity, and achievement stats require server-side GraphQL access (a
-                configured GITHUB_TOKEN) or are temporarily unavailable.
+                Engagement, productivity, and achievement stats require
+                server-side GraphQL access (a configured GITHUB_TOKEN) or are
+                temporarily unavailable.
               </p>
             </div>
           )}
@@ -118,7 +142,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
 
         <section id="activity" className="scroll-mt-24">
           <div className="flex items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Activity</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Activity
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -129,8 +155,9 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
             ) : (
               <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex items-center justify-center text-center">
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Activity heatmap unavailable. This data requires server-side GraphQL access (a
-                  configured GITHUB_TOKEN) or may be temporarily unavailable.
+                  Activity heatmap unavailable. This data requires server-side
+                  GraphQL access (a configured GITHUB_TOKEN) or may be
+                  temporarily unavailable.
                 </p>
               </div>
             )}
@@ -141,11 +168,17 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
           </div>
         </section>
 
-        <TechStackSection repos={repos} pieData={pieData} usingByteData={usingByteData} />
+        <TechStackSection
+          repos={repos}
+          pieData={pieData}
+          usingByteData={usingByteData}
+        />
 
         <section id="repo-health" className="scroll-mt-24">
           <div className="flex items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Repo Health</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Repo Health
+            </h2>
           </div>
 
           <ErrorBoundary fallback={ErrorFallback}>

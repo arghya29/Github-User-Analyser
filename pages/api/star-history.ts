@@ -19,8 +19,15 @@ export default async function handler(
 ) {
   const { owner, repo } = req.query
 
-  if (!owner || !repo || typeof owner !== 'string' || typeof repo !== 'string') {
-    return res.status(400).json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
+  if (
+    !owner ||
+    !repo ||
+    typeof owner !== 'string' ||
+    typeof repo !== 'string'
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'Missing owner or repo parameter', errorType: 'unknown' })
   }
 
   const token = env.GITHUB_TOKEN
@@ -39,13 +46,19 @@ export default async function handler(
     )
 
     if (response.status === 404) {
-      return res.status(404).json({ error: 'Repository not found', errorType: 'not_found' })
+      return res
+        .status(404)
+        .json({ error: 'Repository not found', errorType: 'not_found' })
     }
     if (response.status === 403) {
-      return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      return res
+        .status(403)
+        .json({ error: 'Rate limited', errorType: 'rate_limited' })
     }
     if (response.status !== 200) {
-      return res.status(500).json({ error: 'Failed to fetch star history', errorType: 'unknown' })
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch star history', errorType: 'unknown' })
     }
 
     const stargazers: { starred_at: string }[] = response.data
@@ -72,6 +85,8 @@ export default async function handler(
     return res.status(200).json(timeline)
   } catch (error) {
     logError('api/star-history', error, { owner, repo })
-    return res.status(500).json({ error: 'Failed to fetch star history', errorType: 'unknown' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch star history', errorType: 'unknown' })
   }
 }

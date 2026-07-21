@@ -17,7 +17,11 @@ interface StarHistoryChartProps {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+  })
 }
 
 function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
@@ -52,7 +56,10 @@ function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
             tick={{ fontSize: 10, fill: '#94a3b8' }}
             interval="preserveStartEnd"
           />
-          <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
+          <YAxis
+            tick={{ fontSize: 10, fill: '#94a3b8' }}
+            allowDecimals={false}
+          />
           <Tooltip
             labelFormatter={(label) => formatDate(String(label))}
             formatter={(value) => [value, 'Stars']}

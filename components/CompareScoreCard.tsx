@@ -5,7 +5,10 @@ interface CompareScoreCardProps {
   userB: UserData
 }
 
-export default function CompareScoreCard({ userA, userB }: CompareScoreCardProps) {
+export default function CompareScoreCard({
+  userA,
+  userB,
+}: CompareScoreCardProps) {
   const starsA = userA.repos.reduce((sum, r) => sum + r.stargazers_count, 0)
   const starsB = userB.repos.reduce((sum, r) => sum + r.stargazers_count, 0)
 
@@ -51,21 +54,27 @@ export default function CompareScoreCard({ userA, userB }: CompareScoreCardProps
       </h4>
       <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">Score @{userA.user.login}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Score @{userA.user.login}
+          </div>
           <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
             {scoreA.toFixed(1)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 rounded-xl">
-          <div className="text-xs text-gray-400 dark:text-gray-400">Activity Compatibility</div>
+          <div className="text-xs text-gray-400 dark:text-gray-400">
+            Activity Compatibility
+          </div>
           <div className="text-lg font-bold text-gray-800 dark:text-gray-100 mt-0.5">
             {displayCompatibility}% Matching
           </div>
         </div>
 
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">Score @{userB.user.login}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Score @{userB.user.login}
+          </div>
           <div className="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">
             {scoreB.toFixed(1)}
           </div>

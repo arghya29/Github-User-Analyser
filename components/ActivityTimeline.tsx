@@ -48,7 +48,10 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.floor(hours / 24)
   if (days < 30) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
 export default function ActivityTimeline({ username }: ActivityTimelineProps) {
@@ -83,7 +86,10 @@ export default function ActivityTimeline({ username }: ActivityTimelineProps) {
       <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 animate-pulse">
         <div className="h-5 bg-slate-200 dark:bg-slate-600 rounded w-1/3 mb-4" />
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-full mb-3" />
+          <div
+            key={i}
+            className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-full mb-3"
+          />
         ))}
       </div>
     )
@@ -92,7 +98,9 @@ export default function ActivityTimeline({ username }: ActivityTimelineProps) {
   if (error) {
     return (
       <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Recent Activity</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          Recent Activity
+        </h3>
         <p className="text-sm text-red-500">{error}</p>
       </div>
     )
@@ -101,8 +109,12 @@ export default function ActivityTimeline({ username }: ActivityTimelineProps) {
   if (!events.length) {
     return (
       <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Recent Activity</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">No recent public activity.</p>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          Recent Activity
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          No recent public activity.
+        </p>
       </div>
     )
   }
@@ -114,14 +126,20 @@ export default function ActivityTimeline({ username }: ActivityTimelineProps) {
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between mb-3"
       >
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent Activity</h3>
-        <span className="text-xs text-gray-400">{collapsed ? 'Expand' : 'Collapse'}</span>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          Recent Activity
+        </h3>
+        <span className="text-xs text-gray-400">
+          {collapsed ? 'Expand' : 'Collapse'}
+        </span>
       </button>
       {!collapsed && (
         <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
           {events.map((ev) => (
             <div key={ev.id} className="flex items-start gap-3 text-sm">
-              <span className="text-base mt-0.5 shrink-0">{eventIcon(ev.type)}</span>
+              <span className="text-base mt-0.5 shrink-0">
+                {eventIcon(ev.type)}
+              </span>
               <div className="min-w-0">
                 <p className="text-gray-700 dark:text-gray-300">
                   <span className="font-medium">{eventLabel(ev.type)}</span>
@@ -135,7 +153,9 @@ export default function ActivityTimeline({ username }: ActivityTimelineProps) {
                     {ev.repo}
                   </a>
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">{timeAgo(ev.createdAt)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {timeAgo(ev.createdAt)}
+                </p>
               </div>
             </div>
           ))}

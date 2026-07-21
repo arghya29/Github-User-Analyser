@@ -1,4 +1,8 @@
-import { sanitizeUsername, sanitizeRepoName, validateUsername } from '@/lib/validation'
+import {
+  sanitizeUsername,
+  sanitizeRepoName,
+  validateUsername,
+} from '@/lib/validation'
 
 describe('validateUsername', () => {
   it('accepts a valid handle', () => {
@@ -8,14 +12,22 @@ describe('validateUsername', () => {
   })
 
   it('rejects an empty or whitespace-only username', () => {
-    expect(validateUsername('')).toEqual({ valid: false, reason: 'Username is required' })
-    expect(validateUsername('   ')).toEqual({ valid: false, reason: 'Username is required' })
+    expect(validateUsername('')).toEqual({
+      valid: false,
+      reason: 'Username is required',
+    })
+    expect(validateUsername('   ')).toEqual({
+      valid: false,
+      reason: 'Username is required',
+    })
   })
 
   it('rejects a username longer than 39 characters', () => {
     const result = validateUsername('a'.repeat(40))
     expect(result.valid).toBe(false)
-    expect(result.reason).toBe('Username exceeds maximum length (39 characters)')
+    expect(result.reason).toBe(
+      'Username exceeds maximum length (39 characters)'
+    )
   })
 
   it('rejects leading, trailing, and consecutive hyphens', () => {

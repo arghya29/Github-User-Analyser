@@ -24,7 +24,7 @@ interface BadgeData {
 
 async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3+json',
+    Accept: 'application/vnd.github.v3+json',
   }
   if (env.GITHUB_TOKEN) {
     headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
@@ -57,13 +57,13 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     `
     const response = await axios.post(
       'https://api.github.com/graphql',
-      { 
-        query, 
-        variables: { 
+      {
+        query,
+        variables: {
           username,
           from: fromDate.toISOString(),
-          to: toDate.toISOString()
-        } 
+          to: toDate.toISOString(),
+        },
       },
       {
         headers: {
@@ -80,8 +80,13 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     // Flatten to chronological { date, count } days so we can reuse the shared
     // streak helper (which skips a zero-count today instead of resetting to 0).
     const days = calendar.weeks.flatMap(
-      (w: { contributionDays: { contributionCount: number; date: string }[] }) =>
-        w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
+      (w: {
+        contributionDays: { contributionCount: number; date: string }[]
+      }) =>
+        w.contributionDays.map((d) => ({
+          date: d.date,
+          count: d.contributionCount,
+        }))
     )
 
     const currentStreak = computeCurrentStreak(days)
@@ -116,8 +121,9 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
 
 function buildSvg(data: BadgeData): string {
   const { name, totalContributions, currentStreak } = data
-  const safeName = name.replace(/[<>&"]/g, (c) =>
-    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c] || c)
+  const safeName = name.replace(
+    /[<>&"]/g,
+    (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c] || c
   )
 
   return `<svg width="420" height="130" viewBox="0 0 420 130" xmlns="http://www.w3.org/2000/svg">
@@ -162,7 +168,10 @@ function buildSvg(data: BadgeData): string {
   <text x="252" y="109" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b">contributions this year</text>
 </svg>`
 }
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { username } = req.query
   if (!username || typeof username !== 'string') {
     return res.status(400).send('username is required')
@@ -171,18 +180,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const retryAfter = rateLimiter.check(getClientIp(req))
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
-    return res.status(429).send(`Too many requests \u2014 please wait ${retryAfter}s and try again`)
+    return res
+      .status(429)
+      .send(`Too many requests \u2014 please wait ${retryAfter}s and try again`)
   }
 
   const cacheKey = `badge:${username.toLowerCase()}`
   const notFoundKey = `badge:404:${username.toLowerCase()}`
-  
+
   let data = await getCached<BadgeData>(cacheKey)
 
   if (!data) {
     // Short-circuit known-missing usernames so repeated requests for the same
     // invalid user don't keep hitting GitHub.
-    
+
     // FIXED: Added await here
     if (await getCached<boolean>(notFoundKey)) {
       return res.status(404).send('User not found')
@@ -195,7 +206,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).send('User not found')
       }
       data = fetched
-      
+
       // Added await so the cache write completes before the serverless function exits.
       await setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
     } catch (error) {

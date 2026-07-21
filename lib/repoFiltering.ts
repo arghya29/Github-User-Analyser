@@ -14,7 +14,9 @@ export function filterAndSortRepos(
 ): Repository[] {
   let filtered = repos
   if (languageFilter.length > 0) {
-    filtered = repos.filter((repo) => repo.language && languageFilter.includes(repo.language))
+    filtered = repos.filter(
+      (repo) => repo.language && languageFilter.includes(repo.language)
+    )
   }
 
   const q = repoQuery.trim().toLowerCase()
@@ -28,7 +30,10 @@ export function filterAndSortRepos(
   } else if (sortBy === 'forks') {
     sorted.sort((a, b) => b.forks_count - a.forks_count)
   } else {
-    sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    sorted.sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    )
   }
   return sorted
 }

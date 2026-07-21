@@ -7,10 +7,12 @@ interface HealthScoreBadgeProps {
 }
 
 const TEXT_COLORS: Record<string, string> = {
-  Excellent: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50',
+  Excellent:
+    'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50',
   Good: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50',
   Fair: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50',
-  'Needs attention': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50',
+  'Needs attention':
+    'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50',
 }
 
 export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
@@ -39,7 +41,9 @@ export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
             className="absolute z-20 bottom-full right-0 mb-2 w-56 max-w-[90vw] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg p-3 text-xs text-gray-600 dark:text-gray-300"
           >
             <div className="flex items-center justify-between mb-2">
-              <p className="font-semibold text-gray-900 dark:text-white">Health score breakdown</p>
+              <p className="font-semibold text-gray-900 dark:text-white">
+                Health score breakdown
+              </p>
               <button
                 type="button"
                 onClick={() => setShowBreakdown(false)}

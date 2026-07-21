@@ -36,7 +36,9 @@ export default async function handler(
   const { username } = req.query
 
   if (!username || typeof username !== 'string') {
-    return res.status(400).json({ error: 'Missing username parameter', errorType: 'unknown' })
+    return res
+      .status(400)
+      .json({ error: 'Missing username parameter', errorType: 'unknown' })
   }
 
   const token = env.GITHUB_TOKEN
@@ -59,7 +61,9 @@ export default async function handler(
     )
 
     if (response.status === 403) {
-      return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      return res
+        .status(403)
+        .json({ error: 'Rate limited', errorType: 'rate_limited' })
     }
 
     if (response.status !== 200) {

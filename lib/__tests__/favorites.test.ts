@@ -1,7 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import { getFavorites, isFavorite, addFavorite, removeFavorite } from '@/lib/favorites'
+import {
+  getFavorites,
+  isFavorite,
+  addFavorite,
+  removeFavorite,
+} from '@/lib/favorites'
 
 const FAVORITES_KEY = 'github-analyzer-favorites'
 
@@ -67,7 +72,10 @@ describe('getFavorites', () => {
   })
 
   it('filters out non-string entries', () => {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(['alice', 42, null, 'bob']))
+    window.localStorage.setItem(
+      FAVORITES_KEY,
+      JSON.stringify(['alice', 42, null, 'bob'])
+    )
     expect(getFavorites()).toEqual(['alice', 'bob'])
   })
 })

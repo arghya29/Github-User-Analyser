@@ -5,7 +5,9 @@ export interface LanguageDistributionEntry {
   value: number
 }
 
-export function aggregateLanguagesByBytes(repos: Repository[]): LanguageDistributionEntry[] {
+export function aggregateLanguagesByBytes(
+  repos: Repository[]
+): LanguageDistributionEntry[] {
   const totals = new Map<string, number>()
   let grandTotal = 0
 
@@ -20,11 +22,16 @@ export function aggregateLanguagesByBytes(repos: Repository[]): LanguageDistribu
   if (grandTotal === 0) return []
 
   return Array.from(totals.entries())
-    .map(([name, bytes]) => ({ name, value: Math.round((bytes / grandTotal) * 1000) / 10 }))
+    .map(([name, bytes]) => ({
+      name,
+      value: Math.round((bytes / grandTotal) * 1000) / 10,
+    }))
     .sort((a, b) => b.value - a.value)
 }
 
-export function aggregateLanguagesByCount(repos: Repository[]): { name: string; count: number }[] {
+export function aggregateLanguagesByCount(
+  repos: Repository[]
+): { name: string; count: number }[] {
   const counts = new Map<string, number>()
   for (const repo of repos) {
     if (!repo.language) continue

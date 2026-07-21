@@ -12,11 +12,16 @@ describe('exportUserDataSchema', () => {
   })
 
   it('rejects a non-string login', () => {
-    expect(exportUserDataSchema.safeParse({ user: { login: 5 }, repos: [] }).success).toBe(false)
+    expect(
+      exportUserDataSchema.safeParse({ user: { login: 5 }, repos: [] }).success
+    ).toBe(false)
   })
 
   it('rejects non-array repos', () => {
-    expect(exportUserDataSchema.safeParse({ user: { login: 'x' }, repos: 'nope' }).success).toBe(false)
+    expect(
+      exportUserDataSchema.safeParse({ user: { login: 'x' }, repos: 'nope' })
+        .success
+    ).toBe(false)
   })
 
   it('rejects a null or empty body', () => {
@@ -26,7 +31,10 @@ describe('exportUserDataSchema', () => {
 })
 
 function createMockRes() {
-  const state: { statusCode: number; body: unknown } = { statusCode: 200, body: undefined }
+  const state: { statusCode: number; body: unknown } = {
+    statusCode: 200,
+    body: undefined,
+  }
   const res = {
     status(code: number) {
       state.statusCode = code
@@ -43,14 +51,20 @@ function createMockRes() {
 describe('validateRequest', () => {
   it('returns parsed data and leaves the response untouched on success', () => {
     const { res, state } = createMockRes()
-    const data = validateRequest(res, exportUserDataSchema, { user: { login: 'x' }, repos: [] })
+    const data = validateRequest(res, exportUserDataSchema, {
+      user: { login: 'x' },
+      repos: [],
+    })
     expect(data).not.toBeNull()
     expect(state.statusCode).toBe(200)
   })
 
   it('returns null and sends a standard 400 shape on failure', () => {
     const { res, state } = createMockRes()
-    const data = validateRequest(res, exportUserDataSchema, { user: {}, repos: [] })
+    const data = validateRequest(res, exportUserDataSchema, {
+      user: {},
+      repos: [],
+    })
     expect(data).toBeNull()
     expect(state.statusCode).toBe(400)
     const body = state.body as { error: string; details: unknown[] }

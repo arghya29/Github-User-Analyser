@@ -16,9 +16,13 @@ export function resolveBaseUrl(req: IncomingMessage): string {
   const forwardedProto = req.headers['x-forwarded-proto']
   const forwardedHost = req.headers['x-forwarded-host']
   const proto =
-    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(',')[0] || 'https'
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(
+      ','
+    )[0] || 'https'
   const host =
-    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)?.split(',')[0] ||
+    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)?.split(
+      ','
+    )[0] ||
     req.headers.host ||
     ''
 

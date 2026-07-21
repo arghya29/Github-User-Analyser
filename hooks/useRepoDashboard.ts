@@ -37,11 +37,17 @@ export function useRepoDashboard(data: UserData) {
   }, [repoQuery])
 
   // Language counts across ALL repos — always available, used for filter pills.
-  const languageCounts = useMemo(() => aggregateLanguagesByCount(repos), [repos])
+  const languageCounts = useMemo(
+    () => aggregateLanguagesByCount(repos),
+    [repos]
+  )
 
   // Byte-accurate distribution when available (GraphQL path), otherwise fall
   // back to repo-count based percentages so the chart still renders.
-  const byteDistribution = useMemo(() => aggregateLanguagesByBytes(repos), [repos])
+  const byteDistribution = useMemo(
+    () => aggregateLanguagesByBytes(repos),
+    [repos]
+  )
   const usingByteData = useMemo(() => hasByteLanguageData(repos), [repos])
 
   const pieData = useMemo(() => {

@@ -26,7 +26,8 @@ export function useMediaQuery(query: string): boolean {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const mql = typeof window.matchMedia === 'function' ? window.matchMedia(query) : null
+    const mql =
+      typeof window.matchMedia === 'function' ? window.matchMedia(query) : null
     setMatches(mql?.matches ?? false)
 
     if (!mql || typeof mql.addEventListener !== 'function') return
@@ -39,7 +40,10 @@ export function useMediaQuery(query: string): boolean {
   return matches
 }
 
-function throttle<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {
+function throttle<T extends (...args: unknown[]) => void>(
+  fn: T,
+  delay: number
+): T {
   let last = 0
   return ((...args: unknown[]) => {
     const now = Date.now()
@@ -56,7 +60,10 @@ export function useBreakpoint(): Breakpoint {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const onResize = throttle(() => setBp(getBreakpoint(window.innerWidth)), 100)
+    const onResize = throttle(
+      () => setBp(getBreakpoint(window.innerWidth)),
+      100
+    )
     onResize()
     window.addEventListener('resize', onResize)
     return () => {

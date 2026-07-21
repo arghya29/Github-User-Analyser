@@ -36,7 +36,9 @@ export const languageColorClasses: { [key: string]: string } = {
   Ruby: 'bg-red-700',
 }
 
-export function getLanguageColorClass(language: string | null | undefined): string {
+export function getLanguageColorClass(
+  language: string | null | undefined
+): string {
   if (!language) return 'bg-gray-400'
   return languageColorClasses[language] || 'bg-gray-500'
 }

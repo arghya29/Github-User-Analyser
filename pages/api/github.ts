@@ -28,7 +28,8 @@ const GITHUB_TIMEOUT_MS = 10000
  */
 function retryLogger(context: string) {
   return ({ attempt, delayMs, error }: RetryInfo) => {
-    const status = (error as { response?: { status?: number } })?.response?.status
+    const status = (error as { response?: { status?: number } })?.response
+      ?.status
     const code = (error as { code?: string })?.code
     // Only the derived status/code go into the log — never the error object or the request
     // config, which carries the Authorization header.
@@ -265,8 +266,8 @@ async function fetchViaGraphQL(username: string): Promise<{
           variables: {
             username,
             from: fromDate.toISOString(),
-            to: toDate.toISOString()
-          }
+            to: toDate.toISOString(),
+          },
         },
         {
           headers: {
@@ -279,10 +280,17 @@ async function fetchViaGraphQL(username: string): Promise<{
     { onRetry: retryLogger('graphql') }
   )
 
-  const errors = response.data?.errors as { type?: string; message?: string }[] | undefined
+  const errors = response.data?.errors as
+    { type?: string; message?: string }[] | undefined
   if (errors && errors.length > 0) {
-    const combinedMessage = errors.map((e) => e.message || '').join(' ').toLowerCase()
-    if (errors.some((e) => e.type === 'NOT_FOUND') || combinedMessage.includes('could not resolve')) {
+    const combinedMessage = errors
+      .map((e) => e.message || '')
+      .join(' ')
+      .toLowerCase()
+    if (
+      errors.some((e) => e.type === 'NOT_FOUND') ||
+      combinedMessage.includes('could not resolve')
+    ) {
       throw new GraphQLNotFoundError()
     }
     throw new GraphQLOtherError(combinedMessage || 'GraphQL error')
@@ -311,17 +319,18 @@ async function fetchViaGraphQL(username: string): Promise<{
   }
 
   const engagement: EngagementStats = {
-    totalCommitContributions: userNode.contributionsCollection.totalCommitContributions,
-    totalIssueContributions: userNode.contributionsCollection.totalIssueContributions,
-    totalPullRequestContributions: userNode.contributionsCollection.totalPullRequestContributions,
+    totalCommitContributions:
+      userNode.contributionsCollection.totalCommitContributions,
+    totalIssueContributions:
+      userNode.contributionsCollection.totalIssueContributions,
+    totalPullRequestContributions:
+      userNode.contributionsCollection.totalPullRequestContributions,
     totalPullRequestReviewContributions:
       userNode.contributionsCollection.totalPullRequestReviewContributions,
   }
 
   const rateLimitNode = response.data?.data?.rateLimit as
-    | { limit?: number; remaining?: number; resetAt?: string }
-    | null
-    | undefined
+    { limit?: number; remaining?: number; resetAt?: string } | null | undefined
   const rateLimit: RateLimitInfo | undefined =
     rateLimitNode &&
     typeof rateLimitNode.limit === 'number' &&
@@ -341,7 +350,9 @@ async function fetchViaGraphQL(username: string): Promise<{
  * (`x-ratelimit-limit` / `-remaining` / `-reset`) and shapes them like the
  * GraphQL `rateLimit` field. Returns `undefined` when the headers are absent.
  */
-function parseRestRateLimit(headers: Record<string, unknown>): RateLimitInfo | undefined {
+function parseRestRateLimit(
+  headers: Record<string, unknown>
+): RateLimitInfo | undefined {
   const limit = Number(headers['x-ratelimit-limit'])
   const remaining = Number(headers['x-ratelimit-remaining'])
   const reset = Number(headers['x-ratelimit-reset'])
@@ -351,7 +362,9 @@ function parseRestRateLimit(headers: Record<string, unknown>): RateLimitInfo | u
   return {
     limit,
     remaining,
-    resetAt: Number.isFinite(reset) ? new Date(reset * 1000).toISOString() : undefined,
+    resetAt: Number.isFinite(reset)
+      ? new Date(reset * 1000).toISOString()
+      : undefined,
   }
 }
 
@@ -380,14 +393,20 @@ async function fetchRateLimitSnapshot(): Promise<RateLimitInfo | undefined> {
       | Record<string, { limit?: number; remaining?: number; reset?: number }>
       | undefined
     const bucket = env.GITHUB_TOKEN ? resources?.graphql : resources?.core
-    if (!bucket || typeof bucket.limit !== 'number' || typeof bucket.remaining !== 'number') {
+    if (
+      !bucket ||
+      typeof bucket.limit !== 'number' ||
+      typeof bucket.remaining !== 'number'
+    ) {
       return undefined
     }
     return {
       limit: bucket.limit,
       remaining: bucket.remaining,
       resetAt:
-        typeof bucket.reset === 'number' ? new Date(bucket.reset * 1000).toISOString() : undefined,
+        typeof bucket.reset === 'number'
+          ? new Date(bucket.reset * 1000).toISOString()
+          : undefined,
     }
   } catch {
     return undefined
@@ -430,72 +449,82 @@ export default async function handler(
   const cacheKey = `github-profile:${username.toLowerCase()}`
 
   try {
-    const cached = await getCachedWithFallback<UserData>(cacheKey, PROFILE_CACHE_TTL_MS, async () => {
-      if (env.GITHUB_TOKEN) {
-        try {
-          const result = await fetchViaGraphQL(username)
-          const productivity = computeProductivityStats(result.contributions.weeks)
-          return { ...result, productivity } as UserData
-        } catch (err) {
-          if (err instanceof GraphQLNotFoundError) {
-            throw err
+    const cached = await getCachedWithFallback<UserData>(
+      cacheKey,
+      PROFILE_CACHE_TTL_MS,
+      async () => {
+        if (env.GITHUB_TOKEN) {
+          try {
+            const result = await fetchViaGraphQL(username)
+            const productivity = computeProductivityStats(
+              result.contributions.weeks
+            )
+            return { ...result, productivity } as UserData
+          } catch (err) {
+            if (err instanceof GraphQLNotFoundError) {
+              throw err
+            }
+            // Non-"not found" GraphQL failures (rate-limit, transient 5xx, partial
+            // GraphQL/schema errors) previously fell through to REST silently,
+            // degrading token-backed deployments (no heatmap/engagement/productivity)
+            // with nothing in the logs. Keep the graceful REST fallback, but log
+            // with enough context to tell the causes apart.
+            const message = err instanceof Error ? err.message : String(err)
+            const kind = /rate limit|secondary rate|api rate/i.test(message)
+              ? 'rate-limit'
+              : err instanceof GraphQLOtherError
+                ? 'graphql-error'
+                : 'transient'
+            // A warning, not an error: the REST fallback below still serves the request.
+            // console.error overstated it.
+            logWarn(
+              'api/github',
+              'GraphQL fetch failed; falling back to REST',
+              {
+                username,
+                kind,
+                reason: message,
+              }
+            )
           }
-          // Non-"not found" GraphQL failures (rate-limit, transient 5xx, partial
-          // GraphQL/schema errors) previously fell through to REST silently,
-          // degrading token-backed deployments (no heatmap/engagement/productivity)
-          // with nothing in the logs. Keep the graceful REST fallback, but log
-          // with enough context to tell the causes apart.
-          const message = err instanceof Error ? err.message : String(err)
-          const kind = /rate limit|secondary rate|api rate/i.test(message)
-            ? 'rate-limit'
-            : err instanceof GraphQLOtherError
-              ? 'graphql-error'
-              : 'transient'
-          // A warning, not an error: the REST fallback below still serves the request.
-          // console.error overstated it.
-          logWarn('api/github', 'GraphQL fetch failed; falling back to REST', {
-            username,
-            kind,
-            reason: message,
-          })
         }
-      }
 
-      const headers: Record<string, string> = {
-        Accept: 'application/vnd.github.v3+json',
-      }
-      if (env.GITHUB_TOKEN) {
-        headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
-      }
+        const headers: Record<string, string> = {
+          Accept: 'application/vnd.github.v3+json',
+        }
+        if (env.GITHUB_TOKEN) {
+          headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
+        }
 
-      const [userResponse, reposResponse] = await Promise.all([
-        withRetry(
-          () =>
-            axios.get(`https://api.github.com/users/${username}`, {
-              headers,
-              timeout: GITHUB_TIMEOUT_MS,
-            }),
-          { onRetry: retryLogger('rest:user') }
-        ),
-        withRetry(
-          () =>
-            axios.get(
-              `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
-              { headers, timeout: GITHUB_TIMEOUT_MS }
-            ),
-          { onRetry: retryLogger('rest:repos') }
-        ),
-      ])
+        const [userResponse, reposResponse] = await Promise.all([
+          withRetry(
+            () =>
+              axios.get(`https://api.github.com/users/${username}`, {
+                headers,
+                timeout: GITHUB_TIMEOUT_MS,
+              }),
+            { onRetry: retryLogger('rest:user') }
+          ),
+          withRetry(
+            () =>
+              axios.get(
+                `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+                { headers, timeout: GITHUB_TIMEOUT_MS }
+              ),
+            { onRetry: retryLogger('rest:repos') }
+          ),
+        ])
 
-      return {
-        user: userResponse.data,
-        repos: reposResponse.data,
-        contributions: null,
-        engagement: null,
-        productivity: null,
-        pinnedRepos: [],
-      } as UserData
-    })
+        return {
+          user: userResponse.data,
+          repos: reposResponse.data,
+          contributions: null,
+          engagement: null,
+          productivity: null,
+          pinnedRepos: [],
+        } as UserData
+      }
+    )
 
     const rateLimit = await fetchRateLimitSnapshot()
     return res.status(200).json({ ...cached, rateLimit })
@@ -527,19 +556,30 @@ export default async function handler(
       })
     }
 
-    const axiosErr = err as { response?: { status?: number; headers?: Record<string, unknown> } }
-    if (axiosErr.response?.status === 403 || axiosErr.response?.status === 429) {
+    const axiosErr = err as {
+      response?: { status?: number; headers?: Record<string, unknown> }
+    }
+    if (
+      axiosErr.response?.status === 403 ||
+      axiosErr.response?.status === 429
+    ) {
       // Only the status goes into the log — never `axiosErr.response.headers`, and never the
       // error object itself, whose request config carries the Authorization header.
-      logWarn('api/github', 'GitHub rate limit reached', { username, status: axiosErr.response.status })
-      const rateLimit = parseRestRateLimit(axiosErr.response.headers as unknown as Record<string, unknown>)
+      logWarn('api/github', 'GitHub rate limit reached', {
+        username,
+        status: axiosErr.response.status,
+      })
+      const rateLimit = parseRestRateLimit(
+        axiosErr.response.headers as unknown as Record<string, unknown>
+      )
       return res.status(axiosErr.response?.status || 403).json({
         user: {} as GitHubUser,
         repos: [],
         contributions: null,
         engagement: null,
         productivity: null,
-        error: 'GitHub API rate limit reached. Please try again later or add GITHUB_TOKEN.',
+        error:
+          'GitHub API rate limit reached. Please try again later or add GITHUB_TOKEN.',
         errorType: 'rate_limited',
         rateLimit,
       })

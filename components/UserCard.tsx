@@ -40,11 +40,15 @@ function UserCard({ user }: UserCardProps) {
                 </h2>
                 <FavoriteButton username={user.login} />
               </div>
-              <p className="text-blue-600 dark:text-blue-400 text-lg">@{user.login}</p>
+              <p className="text-blue-600 dark:text-blue-400 text-lg">
+                @{user.login}
+              </p>
             </div>
 
             {user.bio && (
-              <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">{user.bio}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">
+                {user.bio}
+              </p>
             )}
 
             {/* Stats */}
@@ -53,7 +57,9 @@ function UserCard({ user }: UserCardProps) {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.public_repos}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Repositories</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Repositories
+                </div>
               </div>
               <button
                 type="button"
@@ -63,7 +69,9 @@ function UserCard({ user }: UserCardProps) {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.followers}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Followers
+                </div>
               </button>
               <button
                 type="button"
@@ -73,7 +81,9 @@ function UserCard({ user }: UserCardProps) {
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user.following}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Following
+                </div>
               </button>
             </div>
 
@@ -81,17 +91,25 @@ function UserCard({ user }: UserCardProps) {
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               {user.company && (
                 <p>
-                  <span className="text-gray-500 dark:text-gray-500">Company:</span> {user.company}
+                  <span className="text-gray-500 dark:text-gray-500">
+                    Company:
+                  </span>{' '}
+                  {user.company}
                 </p>
               )}
               {user.location && (
                 <p>
-                  <span className="text-gray-500 dark:text-gray-500">Location:</span> {user.location}
+                  <span className="text-gray-500 dark:text-gray-500">
+                    Location:
+                  </span>{' '}
+                  {user.location}
                 </p>
               )}
               {user.blog && (
                 <p>
-                  <span className="text-gray-500 dark:text-gray-500">Website:</span>{' '}
+                  <span className="text-gray-500 dark:text-gray-500">
+                    Website:
+                  </span>{' '}
                   <a
                     href={user.blog}
                     target="_blank"
@@ -104,7 +122,9 @@ function UserCard({ user }: UserCardProps) {
               )}
               {user.twitter_username && (
                 <p>
-                  <span className="text-gray-500 dark:text-gray-500">Twitter:</span>{' '}
+                  <span className="text-gray-500 dark:text-gray-500">
+                    Twitter:
+                  </span>{' '}
                   <a
                     href={`https://twitter.com/${user.twitter_username}`}
                     target="_blank"
@@ -116,7 +136,10 @@ function UserCard({ user }: UserCardProps) {
                 </p>
               )}
               <p>
-                <span className="text-gray-500 dark:text-gray-500">Joined:</span> {joinDate}
+                <span className="text-gray-500 dark:text-gray-500">
+                  Joined:
+                </span>{' '}
+                {joinDate}
               </p>
             </div>
 

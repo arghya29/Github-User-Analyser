@@ -30,7 +30,9 @@ export default function FavoriteButton({ username }: FavoriteButtonProps) {
       onClick={toggle}
       aria-pressed={favorited}
       aria-label={
-        favorited ? `Remove @${username} from favorites` : `Add @${username} to favorites`
+        favorited
+          ? `Remove @${username} from favorites`
+          : `Add @${username} to favorites`
       }
       title={favorited ? 'Remove from favorites' : 'Add to favorites'}
       className={`inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${

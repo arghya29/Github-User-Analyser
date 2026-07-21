@@ -64,7 +64,9 @@ describe('copyProfileLink', () => {
 
   it('resolves false when the clipboard write rejects', async () => {
     Object.assign(navigator, {
-      clipboard: { writeText: jest.fn().mockRejectedValue(new Error('denied')) },
+      clipboard: {
+        writeText: jest.fn().mockRejectedValue(new Error('denied')),
+      },
     })
     await expect(copyProfileLink('octocat')).resolves.toBe(false)
   })

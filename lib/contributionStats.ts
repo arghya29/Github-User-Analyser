@@ -1,4 +1,8 @@
-import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/types/github'
+import type {
+  ContributionDay,
+  ContributionWeek,
+  ProductivityStats,
+} from '@/types/github'
 
 /**
  * Computes the current contribution streak from a chronologically-ordered
@@ -64,7 +68,9 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
  * `monthlyTotals` — rely on that single sort. All date math is done in UTC to
  * match GitHub's contribution dates.
  */
-export function computeProductivityStats(weeks: ContributionWeek[]): ProductivityStats {
+export function computeProductivityStats(
+  weeks: ContributionWeek[]
+): ProductivityStats {
   const days = weeks
     .flatMap((w) => w.contributionDays)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -88,7 +94,10 @@ export function computeProductivityStats(weeks: ContributionWeek[]): Productivit
   const monthlyMap = new Map<string, number>()
 
   for (const day of days) {
-    if (day.count > 0 && (!mostProductiveDay || day.count > mostProductiveDay.count)) {
+    if (
+      day.count > 0 &&
+      (!mostProductiveDay || day.count > mostProductiveDay.count)
+    ) {
       mostProductiveDay = { date: day.date, count: day.count }
     }
 
@@ -99,19 +108,24 @@ export function computeProductivityStats(weeks: ContributionWeek[]): Productivit
       weekdayCount += day.count
     }
 
-    const monthKey = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-US', {
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    })
+    const monthKey = new Date(`${day.date}T00:00:00Z`).toLocaleDateString(
+      'en-US',
+      {
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }
+    )
     monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + day.count)
   }
 
   // `days` is already chronologically sorted, so Map insertion order is chronological too
-  const monthlyTotals = Array.from(monthlyMap.entries()).map(([month, count]) => ({
-    month,
-    count,
-  }))
+  const monthlyTotals = Array.from(monthlyMap.entries()).map(
+    ([month, count]) => ({
+      month,
+      count,
+    })
+  )
 
   return {
     currentStreak,

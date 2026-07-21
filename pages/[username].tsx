@@ -31,7 +31,9 @@ interface UserProfilePageProps {
 export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
   const router = useRouter()
   const usernameParam = router.query.username
-  const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
+  const username = Array.isArray(usernameParam)
+    ? usernameParam[0]
+    : usernameParam
 
   const [data, setData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -67,14 +69,21 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
+        const axiosError = err as AxiosError<{
+          error: string
+          errorType?: ErrorType
+        }>
         if (axiosError.response) {
           // The server responded with an error payload.
-          setError(axiosError.response.data?.error || 'Failed to fetch user data')
+          setError(
+            axiosError.response.data?.error || 'Failed to fetch user data'
+          )
           setErrorType(axiosError.response.data?.errorType || 'unknown')
         } else {
           // No response at all → a connectivity/network failure.
-          setError('We couldn’t reach GitHub. Check your internet connection and try again.')
+          setError(
+            'We couldn’t reach GitHub. Check your internet connection and try again.'
+          )
           setErrorType('network')
         }
       })
@@ -135,8 +144,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                     className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
                     aria-label="Open navigation menu"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     </svg>
                   </button>
                   <div className="flex items-center gap-3 min-w-0">
@@ -145,8 +164,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                       className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
                       aria-label="Home"
                     >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z"
+                        />
                       </svg>
                     </Link>
                     <Link
@@ -159,8 +188,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                       href="/"
                       className="hidden md:inline-flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-semibold text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z"
+                        />
                       </svg>
                       Home
                     </Link>
@@ -168,19 +207,34 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                 </div>
 
                 <nav className="hidden md:flex flex-wrap items-center gap-4 text-base font-semibold text-gray-700 dark:text-gray-300">
-                  <a href="#profile" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#profile"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Profile
                   </a>
-                  <a href="#activity" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#activity"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Activity
                   </a>
-                  <a href="#techstack" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#techstack"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Techstack
                   </a>
-                  <a href="#repo-health" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#repo-health"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Repo Health
                   </a>
-                  <a href="#repositories" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#repositories"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Repositories
                   </a>
                 </nav>
@@ -189,7 +243,10 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
               </div>
             </div>
 
-            <MobileNav isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+            <MobileNav
+              isOpen={mobileNavOpen}
+              onClose={() => setMobileNavOpen(false)}
+            />
 
             {loading && (
               <div className="mt-12">
@@ -197,8 +254,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
               </div>
             )}
 
-            {!loading && error && (
-              errorType === 'rate_limited' ? (
+            {!loading &&
+              error &&
+              (errorType === 'rate_limited' ? (
                 <RateLimitBanner
                   resetAt={data?.rateLimit?.resetAt}
                   onRetry={handleRetry}
@@ -209,8 +267,7 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                   message={error}
                   onRetry={errorType === 'not_found' ? undefined : handleRetry}
                 />
-              )
-            )}
+              ))}
 
             {!loading && data && <ProfileDashboard data={data} />}
           </div>
@@ -222,10 +279,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = async ({
-  params,
-  req,
-}) => {
+export const getServerSideProps: GetServerSideProps<
+  UserProfilePageProps
+> = async ({ params, req }) => {
   const raw = params?.username
   const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
 
@@ -233,7 +289,9 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
 
   // Per-profile tags are derived from the login (already in the route), so the
   // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
+  const title = username
+    ? `${username} · GitHub User Analyser`
+    : 'GitHub User Analyser'
   const description = username
     ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
     : 'Analyze GitHub users and view their repositories'
@@ -241,7 +299,9 @@ export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = asyn
   const og: OgMeta = {
     title,
     description,
-    url: baseUrl ? `${baseUrl}/${encodeURIComponent(username)}` : `/${username}`,
+    url: baseUrl
+      ? `${baseUrl}/${encodeURIComponent(username)}`
+      : `/${username}`,
     image: baseUrl
       ? `${baseUrl}/api/og/${encodeURIComponent(username)}`
       : `/api/og/${encodeURIComponent(username)}`,

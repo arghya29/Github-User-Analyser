@@ -111,14 +111,18 @@ export function classifyError(error: unknown): Classification {
   // No HTTP response at all → transport failure.
   if (status === undefined) {
     return {
-      retryable: err?.code !== undefined && RETRYABLE_NETWORK_CODES.has(err.code),
+      retryable:
+        err?.code !== undefined && RETRYABLE_NETWORK_CODES.has(err.code),
       retryAfterMs: null,
     }
   }
 
   // Server-side faults are the canonical retryable case.
   if (status >= 500 && status <= 599) {
-    return { retryable: true, retryAfterMs: parseRetryAfter(headers['retry-after']) }
+    return {
+      retryable: true,
+      retryAfterMs: parseRetryAfter(headers['retry-after']),
+    }
   }
 
   if (status === 429 || status === 403) {
@@ -165,13 +169,17 @@ function backoffDelayMs(
   return Math.round(exp / 2 + random() * (exp / 2))
 }
 
-const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+const defaultSleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 /**
  * Runs `fn`, retrying transient failures with bounded, jittered backoff.
  * Rethrows the last error when the attempts, or the time budget, run out.
  */
-export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
   const {
     maxAttempts = RETRY_DEFAULTS.maxAttempts,
     baseDelayMs = RETRY_DEFAULTS.baseDelayMs,

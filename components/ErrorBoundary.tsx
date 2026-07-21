@@ -11,7 +11,10 @@ interface ErrorBoundaryState {
   error: Error | null
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export default class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { error: null }
@@ -37,13 +40,24 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
         const Fallback = this.props.fallback
         return <Fallback error={this.state.error} reset={this.handleReset} />
       }
-      return <DefaultErrorFallback error={this.state.error} reset={this.handleReset} />
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          reset={this.handleReset}
+        />
+      )
     }
     return this.props.children
   }
 }
 
-function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+function DefaultErrorFallback({
+  error,
+  reset,
+}: {
+  error: Error
+  reset: () => void
+}) {
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-500 rounded-lg p-6 text-center">
       <svg

@@ -12,7 +12,13 @@ import SearchBar from '@/components/SearchBar'
 const HISTORY_KEY = 'github-analyzer-history'
 const FAVORITES_KEY = 'github-analyzer-favorites'
 
-function seedStorage({ history = [], favorites = [] }: { history?: string[]; favorites?: string[] }) {
+function seedStorage({
+  history = [],
+  favorites = [],
+}: {
+  history?: string[]
+  favorites?: string[]
+}) {
   window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
   window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
 }
@@ -37,7 +43,9 @@ describe('SearchBar rendering', () => {
 
     expect(button).toBeDisabled()
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'octocat' } })
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'octocat' },
+    })
     expect(button).toBeEnabled()
   })
 
@@ -61,7 +69,9 @@ describe('SearchBar submission', () => {
     const onSearch = jest.fn()
     render(<SearchBar onSearch={onSearch} loading={false} />)
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'octocat' } })
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'octocat' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /search/i }))
 
     expect(onSearch).toHaveBeenCalledTimes(1)
@@ -74,7 +84,9 @@ describe('SearchBar submission', () => {
     const onSearch = jest.fn()
     render(<SearchBar onSearch={onSearch} loading={false} />)
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: '  octocat  ' } })
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '  octocat  ' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /search/i }))
 
     expect(onSearch).toHaveBeenCalledWith('  octocat  ')
@@ -101,7 +113,10 @@ describe('SearchBar suggestions', () => {
     fireEvent.focus(screen.getByRole('combobox'))
 
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-    expect(screen.getByRole('combobox')).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('combobox')).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
   })
 
   it('filters suggestions as the user types, and marks the listbox expanded', () => {
@@ -126,16 +141,20 @@ describe('SearchBar suggestions', () => {
 
     fireEvent.focus(screen.getByRole('combobox'))
 
-    expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(8)
+    expect(
+      within(screen.getByRole('listbox')).getAllByRole('option')
+    ).toHaveLength(8)
   })
 
-  it('surfaces at most 5 history entries, per loadHistory()\'s own cap', () => {
+  it("surfaces at most 5 history entries, per loadHistory()'s own cap", () => {
     seedStorage({ history: Array.from({ length: 20 }, (_, i) => `user${i}`) })
     render(<SearchBar onSearch={jest.fn()} loading={false} />)
 
     fireEvent.focus(screen.getByRole('combobox'))
 
-    expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(5)
+    expect(
+      within(screen.getByRole('listbox')).getAllByRole('option')
+    ).toHaveLength(5)
   })
 
   it('searches for a suggestion when it is clicked', () => {
@@ -194,8 +213,14 @@ describe('SearchBar keyboard navigation', () => {
 
     const active = input.getAttribute('aria-activedescendant')
     expect(active).toBeTruthy()
-    expect(screen.getByRole('option', { name: 'octocat' })).toHaveAttribute('id', active!)
-    expect(screen.getByRole('option', { name: 'octocat' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('option', { name: 'octocat' })).toHaveAttribute(
+      'id',
+      active!
+    )
+    expect(screen.getByRole('option', { name: 'octocat' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
   })
 
   it('closes the dropdown on Escape without searching', () => {

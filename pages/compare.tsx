@@ -31,7 +31,12 @@ interface ComparePageProps {
   og: OgMeta
 }
 
-export default function ComparePage({ user1, user2, invalidReason, og }: ComparePageProps) {
+export default function ComparePage({
+  user1,
+  user2,
+  invalidReason,
+  og,
+}: ComparePageProps) {
   const router = useRouter()
 
   const hasBoth = Boolean(user1 && user2)
@@ -50,10 +55,15 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
   //    changes the props before any effect can clear the old state, so for one frame the previous
   //    result would render beneath the new query string. Tagging the data with its pair makes that
   //    impossible: it simply stops matching.
-  const [result, setResult] = useState<{ pair: string; userA: UserData; userB: UserData } | null>(
-    null
-  )
-  const [failure, setFailure] = useState<{ pair: string; message: string } | null>(null)
+  const [result, setResult] = useState<{
+    pair: string
+    userA: UserData
+    userB: UserData
+  } | null>(null)
+  const [failure, setFailure] = useState<{
+    pair: string
+    message: string
+  } | null>(null)
 
   // Navigation is a separate concern from the fetch. `router.push` returns a promise that can
   // reject, and until it settles the new query hasn't landed — so without this the form stays live
@@ -116,7 +126,10 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
       // `push`, not `replace`, so Back returns to the previous comparison rather than skipping out
       // of the page entirely. Awaited, so the form stays disabled until the new query has actually
       // landed, and a rejected navigation surfaces instead of being swallowed.
-      await router.push({ pathname: '/compare', query: { user1: nextA, user2: nextB } })
+      await router.push({
+        pathname: '/compare',
+        query: { user1: nextA, user2: nextB },
+      })
     } catch {
       setNavError('Could not open that comparison')
     } finally {
@@ -194,19 +207,28 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
                   which already does this; this page simply wasn't following the convention.
                 */}
                 {invalidReason && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {invalidReason}
                   </div>
                 )}
 
                 {navError && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {navError}
                   </div>
                 )}
 
                 {error && !invalidReason && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {error}
                   </div>
                 )}
@@ -232,7 +254,10 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
   )
 }
 
-export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({ query, req }) => {
+export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
+  query,
+  req,
+}) => {
   // A query string is allowed to repeat a key (`?user1=a&user1=b`), which Next surfaces as an array.
   // Take the first, the same way /[username] handles its route param.
   const first = (value: string | string[] | undefined): string =>
@@ -283,7 +308,9 @@ export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
     if (!candidate) return ''
     try {
       const parsed = new URL(candidate)
-      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.origin : ''
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+        ? parsed.origin
+        : ''
     } catch {
       return ''
     }

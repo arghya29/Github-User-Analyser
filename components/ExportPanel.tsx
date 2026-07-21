@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import type { UserData } from '@/types/github'
-import { formatAsJSON, formatAsMarkdown, ALL_EXPORT_SECTIONS, type ExportSection } from '@/lib/exportDataFormatter'
+import {
+  formatAsJSON,
+  formatAsMarkdown,
+  ALL_EXPORT_SECTIONS,
+  type ExportSection,
+} from '@/lib/exportDataFormatter'
 
 const SECTION_LABELS: Record<ExportSection, string> = {
   profile: 'Profile',
@@ -27,7 +32,9 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
 
   const toggleSection = (section: ExportSection) => {
     setSelectedSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
     )
   }
   const [showBadge, setShowBadge] = useState(false)
@@ -55,12 +62,17 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
       })
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const err = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }))
         throw new Error(err.error || 'Failed to generate PDF')
       }
 
       const blob = await response.blob()
-      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      if (
+        typeof URL === 'undefined' ||
+        typeof URL.createObjectURL !== 'function'
+      ) {
         return
       }
       const url = URL.createObjectURL(blob)
@@ -100,7 +112,10 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
       }
 
       const blob = await response.blob()
-      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      if (
+        typeof URL === 'undefined' ||
+        typeof URL.createObjectURL !== 'function'
+      ) {
         return
       }
       const url = URL.createObjectURL(blob)
@@ -129,7 +144,10 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
     try {
       const jsonStr = formatAsJSON(userData, selectedSections)
       const blob = new Blob([jsonStr], { type: 'application/json' })
-      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      if (
+        typeof URL === 'undefined' ||
+        typeof URL.createObjectURL !== 'function'
+      ) {
         return
       }
       const url = URL.createObjectURL(blob)
@@ -156,7 +174,10 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
     try {
       const md = formatAsMarkdown(userData)
       const blob = new Blob([md], { type: 'text/markdown' })
-      if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      if (
+        typeof URL === 'undefined' ||
+        typeof URL.createObjectURL !== 'function'
+      ) {
         return
       }
       const url = URL.createObjectURL(blob)
@@ -180,7 +201,8 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
 
   const handleCopyBadge = async () => {
     try {
-      if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) return
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText)
+        return
       await navigator.clipboard.writeText(badgeMarkdown)
       setBadgeCopied(true)
       setTimeout(() => setBadgeCopied(false), 2000)
@@ -191,9 +213,12 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
 
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Export & Share</h3>
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+        Export & Share
+      </h3>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-        Download a resume PDF of this profile, export repository lists as CSV, or obtain complete JSON metadata.
+        Download a resume PDF of this profile, export repository lists as CSV,
+        or obtain complete JSON metadata.
       </p>
 
       <div className="flex flex-wrap items-start gap-3">
@@ -207,7 +232,9 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
             {pdfLoading ? 'Generating PDF...' : 'Download Resume PDF'}
           </button>
           {pdfError && (
-            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">{pdfError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">
+              {pdfError}
+            </p>
           )}
         </div>
 
@@ -221,7 +248,9 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
             {csvLoading ? 'Generating CSV...' : 'Export Repos CSV'}
           </button>
           {csvError && (
-            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">{csvError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">
+              {csvError}
+            </p>
           )}
         </div>
 
@@ -235,7 +264,9 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
             Export Raw JSON
           </button>
           {jsonError && (
-            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">{jsonError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">
+              {jsonError}
+            </p>
           )}
         </div>
 
@@ -248,7 +279,9 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
             Export Markdown
           </button>
           {mdError && (
-            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">{mdError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 max-w-[14rem]">
+              {mdError}
+            </p>
           )}
         </div>
 

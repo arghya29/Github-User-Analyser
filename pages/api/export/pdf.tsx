@@ -113,7 +113,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  sectionLine: { flex: 1, height: 1, backgroundColor: '#e2e8f0', marginLeft: 8 },
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginLeft: 8,
+  },
 
   // ── Language bars ──
   langRow: {
@@ -154,7 +159,11 @@ const styles = StyleSheet.create({
     borderLeftWidth: 2,
     borderLeftColor: BLUE,
   },
-  repoTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
+  repoTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
   repoName: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: DARK },
   repoLang: {
     fontSize: 8,
@@ -215,7 +224,9 @@ function isAllowedAvatarUrl(rawUrl: unknown): rawUrl is string {
   } catch {
     return false
   }
-  return parsed.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(parsed.hostname)
+  return (
+    parsed.protocol === 'https:' && ALLOWED_AVATAR_HOSTS.has(parsed.hostname)
+  )
 }
 
 async function avatarToDataUrl(url: string): Promise<string | null> {
@@ -223,11 +234,14 @@ async function avatarToDataUrl(url: string): Promise<string | null> {
   if (!isAllowedAvatarUrl(url)) {
     return null
   }
-  
+
   try {
     // Reconstruct URL from validated components to prevent SSRF
     const validatedUrl = new URL(url)
-    const response = await axios.get(validatedUrl.toString(), { responseType: 'arraybuffer', timeout: 5000 })
+    const response = await axios.get(validatedUrl.toString(), {
+      responseType: 'arraybuffer',
+      timeout: 5000,
+    })
     const contentType = response.headers['content-type'] || 'image/jpeg'
     const base64 = Buffer.from(response.data as ArrayBuffer).toString('base64')
     return `data:${contentType};base64,${base64}`
@@ -300,7 +314,10 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
               ) : null}
               {user.twitter_username ? (
                 <View style={styles.contactItem}>
-                  <Link style={styles.contactLink} src={`https://twitter.com/${user.twitter_username}`}>
+                  <Link
+                    style={styles.contactLink}
+                    src={`https://twitter.com/${user.twitter_username}`}
+                  >
                     @{user.twitter_username}
                   </Link>
                 </View>
@@ -336,8 +353,12 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
           </View>
           {contributions ? (
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{contributions.totalContributions}</Text>
-              <Text style={styles.statLabel}>Contributions{'\n'}(last year)</Text>
+              <Text style={styles.statNumber}>
+                {contributions.totalContributions}
+              </Text>
+              <Text style={styles.statLabel}>
+                Contributions{'\n'}(last year)
+              </Text>
             </View>
           ) : null}
         </View>
@@ -351,7 +372,12 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
             <View style={styles.langRow}>
               {topLangs.map(([lang, count]) => (
                 <View key={lang} style={styles.langPill}>
-                  <View style={[styles.langDot, { backgroundColor: LANG_COLORS[lang] || '#94a3b8' }]} />
+                  <View
+                    style={[
+                      styles.langDot,
+                      { backgroundColor: LANG_COLORS[lang] || '#94a3b8' },
+                    ]}
+                  />
                   <Text style={styles.langText}>
                     {lang} ({count})
                   </Text>
@@ -369,19 +395,27 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
             </View>
             <View style={styles.prodRow}>
               <View style={styles.prodBox}>
-                <Text style={styles.prodNum}>{engagement.totalCommitContributions}</Text>
+                <Text style={styles.prodNum}>
+                  {engagement.totalCommitContributions}
+                </Text>
                 <Text style={styles.prodLabel}>Commits</Text>
               </View>
               <View style={styles.prodBox}>
-                <Text style={styles.prodNum}>{engagement.totalPullRequestContributions}</Text>
+                <Text style={styles.prodNum}>
+                  {engagement.totalPullRequestContributions}
+                </Text>
                 <Text style={styles.prodLabel}>Pull Requests</Text>
               </View>
               <View style={styles.prodBox}>
-                <Text style={styles.prodNum}>{engagement.totalIssueContributions}</Text>
+                <Text style={styles.prodNum}>
+                  {engagement.totalIssueContributions}
+                </Text>
                 <Text style={styles.prodLabel}>Issues</Text>
               </View>
               <View style={styles.prodBox}>
-                <Text style={{ ...styles.prodNum, color: GREEN }}>{productivity.currentStreak}</Text>
+                <Text style={{ ...styles.prodNum, color: GREEN }}>
+                  {productivity.currentStreak}
+                </Text>
                 <Text style={styles.prodLabel}>Current Streak (days)</Text>
               </View>
               <View style={styles.prodBox}>
@@ -404,14 +438,24 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
                   <Link src={repo.html_url} style={styles.repoName}>
                     {repo.name}
                   </Link>
-                  {repo.language ? <Text style={styles.repoLang}>{repo.language}</Text> : null}
+                  {repo.language ? (
+                    <Text style={styles.repoLang}>{repo.language}</Text>
+                  ) : null}
                 </View>
-                {repo.description ? <Text style={styles.repoDesc}>{repo.description}</Text> : null}
+                {repo.description ? (
+                  <Text style={styles.repoDesc}>{repo.description}</Text>
+                ) : null}
                 <View style={styles.repoStats}>
-                  <Text style={styles.repoStat}>★ {repo.stargazers_count} stars</Text>
-                  <Text style={styles.repoStat}>⑂ {repo.forks_count} forks</Text>
+                  <Text style={styles.repoStat}>
+                    ★ {repo.stargazers_count} stars
+                  </Text>
+                  <Text style={styles.repoStat}>
+                    ⑂ {repo.forks_count} forks
+                  </Text>
                   {typeof repo.open_issues_count === 'number' && (
-                    <Text style={styles.repoStat}>◎ {repo.open_issues_count} open issues</Text>
+                    <Text style={styles.repoStat}>
+                      ◎ {repo.open_issues_count} open issues
+                    </Text>
                   )}
                   <Text style={styles.repoStat}>
                     Updated{' '}
@@ -429,10 +473,16 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
             Generated by GitHub User Analyser ·{' '}
-            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            {new Date().toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
           </Text>
           <View style={styles.footerBadge}>
-            <Text style={styles.footerBadgeText}>github-user-analyser.vercel.app</Text>
+            <Text style={styles.footerBadgeText}>
+              github-user-analyser.vercel.app
+            </Text>
           </View>
         </View>
       </Page>
@@ -440,12 +490,19 @@ function ResumeDocument({ userData, avatarDataUrl }: ResumeDocProps) {
   )
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const clientIp = getClientIp(req)
   const retryAfter = rateLimiter.check(clientIp)
   if (retryAfter !== null) {
     res.setHeader('Retry-After', String(retryAfter))
-    return res.status(429).json({ error: `Too many requests — please wait ${retryAfter}s and try again` })
+    return res
+      .status(429)
+      .json({
+        error: `Too many requests — please wait ${retryAfter}s and try again`,
+      })
   }
 
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -463,7 +520,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     // Reject a malformed posted body with a clear 400 before it is used below.
     // This gate only rejects; the userData assignment that follows is unchanged.
-    if (req.body != null && validateRequest(res, exportUserDataSchema, req.body) === null) {
+    if (
+      req.body != null &&
+      validateRequest(res, exportUserDataSchema, req.body) === null
+    ) {
       return
     }
     // `as UserData` is a compile-time assertion with no runtime behaviour, and Next's body
@@ -480,7 +540,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!userData || !userData.user?.login) {
-    return res.status(404).json({ error: 'User data not found. Please analyze the user first.' })
+    return res
+      .status(404)
+      .json({ error: 'User data not found. Please analyze the user first.' })
   }
 
   try {
@@ -491,7 +553,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const safeLogin = userData.user.login.replace(/[^a-zA-Z0-9-_]/g, '')
     res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${safeLogin || 'github-user'}-profile.pdf"`)
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${safeLogin || 'github-user'}-profile.pdf"`
+    )
     res.setHeader('Cache-Control', 'no-store')
     return res.status(200).send(pdfBuffer)
   } catch (error) {

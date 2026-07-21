@@ -17,10 +17,16 @@ export default function PinnedRepos({ repos, onRepoClick }: PinnedReposProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">📌 Pinned</h2>
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+        📌 Pinned
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {repos.map((repo) => (
-          <RepositoryCard key={repo.html_url} repo={repo} onSelect={onRepoClick} />
+          <RepositoryCard
+            key={repo.html_url}
+            repo={repo}
+            onSelect={onRepoClick}
+          />
         ))}
       </div>
     </div>

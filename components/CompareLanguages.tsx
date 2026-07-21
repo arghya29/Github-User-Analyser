@@ -9,7 +9,11 @@ interface CompareLanguagesProps {
 
 const TOP_N = 6
 
-function LanguageList({ languages }: { languages: { name: string; count: number }[] }) {
+function LanguageList({
+  languages,
+}: {
+  languages: { name: string; count: number }[]
+}) {
   return (
     <ul className="space-y-1.5">
       {languages.map((lang) => (
@@ -18,20 +22,34 @@ function LanguageList({ languages }: { languages: { name: string; count: number 
             className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: getLanguageColor(lang.name) }}
           />
-          <span className="text-xs text-gray-700 dark:text-gray-200 truncate flex-1">{lang.name}</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{lang.count}</span>
+          <span className="text-xs text-gray-700 dark:text-gray-200 truncate flex-1">
+            {lang.name}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+            {lang.count}
+          </span>
         </li>
       ))}
     </ul>
   )
 }
 
-function LangGroup({ label, names, className }: { label: string; names: string[]; className: string }) {
+function LangGroup({
+  label,
+  names,
+  className,
+}: {
+  label: string
+  names: string[]
+  className: string
+}) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <span className={`font-semibold shrink-0 ${className}`}>{label}:</span>
       {names.length > 0 ? (
-        <span className="text-gray-600 dark:text-gray-300">{names.join(', ')}</span>
+        <span className="text-gray-600 dark:text-gray-300">
+          {names.join(', ')}
+        </span>
       ) : (
         <span className="text-gray-400 dark:text-gray-500">none</span>
       )}
@@ -45,7 +63,10 @@ function LangGroup({ label, names, className }: { label: string; names: string[]
  * per-repo-count aggregation the single-profile dashboard uses) rather than
  * duplicating any language logic.
  */
-export default function CompareLanguages({ userA, userB }: CompareLanguagesProps) {
+export default function CompareLanguages({
+  userA,
+  userB,
+}: CompareLanguagesProps) {
   const langsA = aggregateLanguagesByCount(userA.repos)
   const langsB = aggregateLanguagesByCount(userB.repos)
 
@@ -72,7 +93,9 @@ export default function CompareLanguages({ userA, userB }: CompareLanguagesProps
           {langsA.length > 0 ? (
             <LanguageList languages={langsA.slice(0, TOP_N)} />
           ) : (
-            <p className="text-xs text-gray-400 dark:text-gray-500">No language data</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              No language data
+            </p>
           )}
         </div>
         <div>
@@ -82,13 +105,19 @@ export default function CompareLanguages({ userA, userB }: CompareLanguagesProps
           {langsB.length > 0 ? (
             <LanguageList languages={langsB.slice(0, TOP_N)} />
           ) : (
-            <p className="text-xs text-gray-400 dark:text-gray-500">No language data</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              No language data
+            </p>
           )}
         </div>
       </div>
 
       <div className="space-y-1.5 text-xs">
-        <LangGroup label="Shared" names={shared} className="text-emerald-600 dark:text-emerald-400" />
+        <LangGroup
+          label="Shared"
+          names={shared}
+          className="text-emerald-600 dark:text-emerald-400"
+        />
         <LangGroup
           label={`Only @${userA.user.login}`}
           names={uniqueA}

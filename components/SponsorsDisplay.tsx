@@ -43,7 +43,9 @@ export default function SponsorsDisplay({ username }: SponsorsDisplayProps) {
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Sponsors ({sponsors.length})
         </h2>
-        <span className="text-xs text-gray-400">{collapsed ? 'Show' : 'Hide'}</span>
+        <span className="text-xs text-gray-400">
+          {collapsed ? 'Show' : 'Hide'}
+        </span>
       </button>
 
       {!collapsed && (

@@ -38,7 +38,10 @@ export function loadHistory(): string[] {
  */
 export function recordSearch(username: string): string[] {
   const current = loadHistory()
-  const deduped = [username, ...current.filter((h) => h.toLowerCase() !== username.toLowerCase())]
+  const deduped = [
+    username,
+    ...current.filter((h) => h.toLowerCase() !== username.toLowerCase()),
+  ]
   const next = deduped.slice(0, MAX_HISTORY)
   try {
     getStorage()?.setItem(HISTORY_KEY, JSON.stringify(next))

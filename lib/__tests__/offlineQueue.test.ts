@@ -11,7 +11,11 @@ import type { ContributionDay } from '@/types/github'
 const PENDING_KEY = 'gh-analyzer-pending'
 
 function day(overrides: Partial<ContributionDay> = {}): ContributionDay {
-  return { date: '2026-01-01', count: 3, ...overrides } as unknown as ContributionDay
+  return {
+    date: '2026-01-01',
+    count: 3,
+    ...overrides,
+  } as unknown as ContributionDay
 }
 
 beforeEach(() => {

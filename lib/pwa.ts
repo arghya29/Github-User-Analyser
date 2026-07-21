@@ -13,7 +13,9 @@ export function getDeferredPrompt() {
   return deferredPrompt
 }
 
-export async function triggerInstall(): Promise<'accepted' | 'dismissed' | null> {
+export async function triggerInstall(): Promise<
+  'accepted' | 'dismissed' | null
+> {
   if (!deferredPrompt) return null
   deferredPrompt.prompt()
   const result = await deferredPrompt.userChoice

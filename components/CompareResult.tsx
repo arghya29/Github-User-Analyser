@@ -42,11 +42,15 @@ function MetricBar({ label, a, b }: MetricRowProps) {
 
   return (
     <div className="mb-5">
-      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 text-center">{label}</div>
+      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 text-center">
+        {label}
+      </div>
       <div className="flex items-center gap-3">
         <span
           className={`w-16 text-right font-semibold ${
-            aWins ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+            aWins
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 dark:text-gray-300'
           }`}
         >
           {a === null ? 'N/A' : a.toLocaleString()}
@@ -67,7 +71,9 @@ function MetricBar({ label, a, b }: MetricRowProps) {
         </div>
         <span
           className={`w-16 font-semibold ${
-            bWins ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-300'
+            bWins
+              ? 'text-purple-600 dark:text-purple-400'
+              : 'text-gray-600 dark:text-gray-300'
           }`}
         >
           {b === null ? 'N/A' : b.toLocaleString()}
@@ -80,10 +86,26 @@ function MetricBar({ label, a, b }: MetricRowProps) {
 export default function CompareResult({ userA, userB }: CompareResultProps) {
   const metrics: MetricRowProps[] = [
     { label: 'Followers', a: userA.user.followers, b: userB.user.followers },
-    { label: 'Public Repos', a: userA.user.public_repos, b: userB.user.public_repos },
-    { label: 'Total Stars', a: sumStars(userA.repos), b: sumStars(userB.repos) },
-    { label: 'Total Forks', a: sumForks(userA.repos), b: sumForks(userB.repos) },
-    { label: 'Avg Repo Health', a: avgHealthScore(userA.repos), b: avgHealthScore(userB.repos) },
+    {
+      label: 'Public Repos',
+      a: userA.user.public_repos,
+      b: userB.user.public_repos,
+    },
+    {
+      label: 'Total Stars',
+      a: sumStars(userA.repos),
+      b: sumStars(userB.repos),
+    },
+    {
+      label: 'Total Forks',
+      a: sumForks(userA.repos),
+      b: sumForks(userB.repos),
+    },
+    {
+      label: 'Avg Repo Health',
+      a: avgHealthScore(userA.repos),
+      b: avgHealthScore(userB.repos),
+    },
   ]
 
   // Contribution/productivity metrics can be null for users without server-side
@@ -129,7 +151,9 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
             @{userA.user.login}
           </span>
         </div>
-        <span className="text-gray-400 dark:text-gray-500 font-bold shrink-0">VS</span>
+        <span className="text-gray-400 dark:text-gray-500 font-bold shrink-0">
+          VS
+        </span>
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-end">
           <span className="font-semibold text-gray-900 dark:text-white truncate">
             @{userB.user.login}

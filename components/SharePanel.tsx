@@ -27,12 +27,13 @@ export default function SharePanel({ user }: SharePanelProps) {
   const btnClass =
     'flex-1 px-3 py-2 text-xs font-medium rounded-lg border transition-colors text-center'
 
-  const canShare =
-    typeof navigator !== 'undefined' && 'share' in navigator
+  const canShare = typeof navigator !== 'undefined' && 'share' in navigator
 
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 mt-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Share Profile</h3>
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+        Share Profile
+      </h3>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
         Share {user.name || user.login}&apos;s analyzed profile with others.
       </p>
@@ -84,7 +85,9 @@ export default function SharePanel({ user }: SharePanelProps) {
 
       {/* Direct link */}
       <div className="mt-4">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Profile URL:</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+          Profile URL:
+        </p>
         <code className="block text-xs bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-blue-600 dark:text-blue-400 overflow-x-auto whitespace-nowrap">
           {getShareUrl(user.login)}
         </code>

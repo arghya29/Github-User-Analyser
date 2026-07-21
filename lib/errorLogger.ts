@@ -1,4 +1,9 @@
-const LOG_QUEUE: { level: string; message: string; data?: unknown; timestamp: string }[] = []
+const LOG_QUEUE: {
+  level: string
+  message: string
+  data?: unknown
+  timestamp: string
+}[] = []
 const MAX_LOG_QUEUE = 50
 
 export function logError(context: string, error: unknown, data?: unknown) {

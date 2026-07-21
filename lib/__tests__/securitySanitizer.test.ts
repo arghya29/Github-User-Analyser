@@ -23,7 +23,9 @@ describe('sanitizeUsername', () => {
 
   it('accepts the maximum length (39 chars) and rejects 40', () => {
     expect(sanitizeUsername('a'.repeat(39))).toHaveLength(39)
-    expect(() => sanitizeUsername('a'.repeat(40))).toThrow('Invalid username parameter format.')
+    expect(() => sanitizeUsername('a'.repeat(40))).toThrow(
+      'Invalid username parameter format.'
+    )
   })
 
   it('rejects leading and trailing hyphens', () => {
@@ -53,7 +55,9 @@ describe('sanitizeRepoName', () => {
 
   it('accepts the maximum length (100 chars) and rejects 101', () => {
     expect(sanitizeRepoName('a'.repeat(100))).toHaveLength(100)
-    expect(() => sanitizeRepoName('a'.repeat(101))).toThrow('Invalid repository parameter format.')
+    expect(() => sanitizeRepoName('a'.repeat(101))).toThrow(
+      'Invalid repository parameter format.'
+    )
   })
 
   it('rejects spaces and slash-based path traversal', () => {

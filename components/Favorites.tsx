@@ -4,7 +4,11 @@ interface FavoritesProps {
   onRemove: (username: string) => void
 }
 
-export default function Favorites({ favorites, onSelect, onRemove }: FavoritesProps) {
+export default function Favorites({
+  favorites,
+  onSelect,
+  onRemove,
+}: FavoritesProps) {
   if (favorites.length === 0) return null
 
   return (
@@ -13,7 +17,9 @@ export default function Favorites({ favorites, onSelect, onRemove }: FavoritesPr
       role="region"
       aria-label="Favorite profiles"
     >
-      <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">★ Favorites:</span>
+      <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+        ★ Favorites:
+      </span>
       <ul className="flex flex-wrap gap-2" role="list">
         {favorites.map((username) => (
           <li

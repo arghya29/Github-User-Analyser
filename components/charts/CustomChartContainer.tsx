@@ -19,7 +19,9 @@ export default function CustomChartContainer({
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 h-full flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{title}</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+          {title}
+        </h3>
         {isEmpty ? (
           <div style={{ height }} className="flex items-center justify-center">
             <EmptyState type="chart" message={emptyMessage} />

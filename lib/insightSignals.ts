@@ -67,16 +67,23 @@ export function computeContributionTrend(
   if (window < 1) return null
 
   const average = (bucket: { count: number }[]) =>
-    bucket.reduce((sum, m) => sum + (Number.isFinite(m?.count) ? m.count : 0), 0) / bucket.length
+    bucket.reduce(
+      (sum, m) => sum + (Number.isFinite(m?.count) ? m.count : 0),
+      0
+    ) / bucket.length
 
   const recentAvgPerMonth = round1(average(series.slice(n - window)))
-  const previousAvgPerMonth = round1(average(series.slice(n - 2 * window, n - window)))
+  const previousAvgPerMonth = round1(
+    average(series.slice(n - 2 * window, n - window))
+  )
 
   let changePct: number | null = null
   let direction: TrendDirection
 
   if (previousAvgPerMonth > 0) {
-    changePct = round1(((recentAvgPerMonth - previousAvgPerMonth) / previousAvgPerMonth) * 100)
+    changePct = round1(
+      ((recentAvgPerMonth - previousAvgPerMonth) / previousAvgPerMonth) * 100
+    )
     direction =
       changePct >= TREND_THRESHOLD_PCT
         ? 'accelerating'
@@ -124,7 +131,10 @@ export function computeLanguageProfile(
     const detail = Array.isArray(repo.languages) ? repo.languages : []
     const named = detail
       .filter((l) => l && typeof l.name === 'string' && l.name.length > 0)
-      .map((l) => ({ name: l.name, bytes: Number.isFinite(l.bytes) ? Math.max(0, l.bytes) : 0 }))
+      .map((l) => ({
+        name: l.name,
+        bytes: Number.isFinite(l.bytes) ? Math.max(0, l.bytes) : 0,
+      }))
 
     if (named.length > 0) {
       for (const lang of named) {
@@ -134,7 +144,8 @@ export function computeLanguageProfile(
       weights.set(repo.language, (weights.get(repo.language) ?? 0) + 1)
     }
 
-    const updatedAt = typeof repo.updated_at === 'string' ? Date.parse(repo.updated_at) : NaN
+    const updatedAt =
+      typeof repo.updated_at === 'string' ? Date.parse(repo.updated_at) : NaN
     if (Number.isFinite(updatedAt) && updatedAt >= cutoff) {
       const names =
         named.length > 0
@@ -151,13 +162,17 @@ export function computeLanguageProfile(
 
   const primaryLanguage = ranked[0]?.[0] ?? null
   const primaryLanguageSharePct =
-    primaryLanguage !== null && total > 0 ? round1((ranked[0][1] / total) * 100) : null
+    primaryLanguage !== null && total > 0
+      ? round1((ranked[0][1] / total) * 100)
+      : null
 
   const secondaryLanguages =
     total > 0
       ? ranked
           .slice(1)
-          .filter(([, weight]) => (weight / total) * 100 >= SECONDARY_MIN_SHARE_PCT)
+          .filter(
+            ([, weight]) => (weight / total) * 100 >= SECONDARY_MIN_SHARE_PCT
+          )
           .map(([name]) => name)
           .slice(0, 5)
       : []
