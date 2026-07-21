@@ -29,6 +29,9 @@ jobs:
     - name: Run linter
       run: npm run lint
     
+    - name: Type check
+      run: npm run type-check
+
     - name: Run tests
       run: npm run test -- --ci
     
