@@ -9,7 +9,7 @@ import { logError, logWarn } from '@/lib/errorLogger'
 export const maxDuration = 60
 
 interface AiInsightRequestBody {
-  type: 'bio' | 'roast' | 'consistency' | 'growth' | 'learning'
+  type: 'bio' | 'roast' | 'consistency' | 'growth' | 'learning' | 'resume' | 'linkedin' | 'skill-gap'
   username: string
   bio?: string
   topLanguages: string[]
@@ -49,7 +49,10 @@ function isAiInsightRequestBody(body: unknown): body is AiInsightRequestBody {
     data.type !== 'roast' &&
     data.type !== 'consistency' &&
     data.type !== 'growth' &&
-    data.type !== 'learning'
+    data.type !== 'learning' &&
+    data.type !== 'resume' &&
+    data.type !== 'linkedin' &&
+    data.type !== 'skill-gap'
   ) {
     return false
   }
@@ -276,6 +279,70 @@ Crucial Instructions:
 ${shared}
 
 Return only the analysis text. No preamble, no markdown headers, no quotation marks around it.`
+  }
+
+  if (insightType === 'resume') {
+    const tone = typeof body.tone === 'string' ? body.tone : undefined
+    const bioLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
+    const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Professional, action-oriented, and recruiter-ready.'
+    const lengthInstruction =
+      bioLength === 'Detailed'
+        ? 'Write 4-5 high-impact bullet achievements.'
+        : 'Write 3 high-impact bullet achievements.'
+
+    return `You are an expert technical recruiter and resume writer. Based on the developer data below, generate a list of professional resume bullet points. ${lengthInstruction}
+
+Crucial Instructions:
+- Every bullet point must start with a strong, diverse action verb (e.g., "Developed", "Optimized", "Architected", "Spearheaded").
+- Focus on quantifiable achievements where possible (e.g., repository stars, code contributions, streak consistency, or technology share).
+- Highlight their expertise in primary and secondary tech stacks.
+- ${toneInstruction}
+- Return ONLY the bullet points as a list, where each bullet point starts with a "-" character. No intro, no preamble, no markdown headers, and no concluding text.
+- Do NOT invent facts or numbers.
+
+${shared}
+
+Return only the bullet points.`
+  }
+
+  if (insightType === 'linkedin') {
+    const tone = typeof body.tone === 'string' ? body.tone : undefined
+    const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Engaging, professional, and search-optimized.'
+
+    return `You are a professional branding expert. Based on the developer data below, generate a professional LinkedIn headline set and a brief summary section.
+
+Crucial Instructions:
+- Generate 3 alternative catchy, stack-oriented professional headlines (e.g. "Software Engineer | React & TypeScript specialist...").
+- Generate a two-sentence professional "About" / Summary section.
+- ${toneInstruction}
+- To allow the UI to parse these cleanly, format your response exactly as follows, replacing the placeholders with your generated text. Do NOT include any other text or markdown tags around the response:
+
+---HEADLINES---
+[Headline Option 1]
+[Headline Option 2]
+[Headline Option 3]
+---SUMMARY---
+[Your two-sentence professional summary here]
+
+${shared}`
+  }
+
+  if (insightType === 'skill-gap') {
+    const tone = typeof body.tone === 'string' ? body.tone : undefined
+    const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Instructive, growth-oriented, and objective.'
+
+    return `You are a senior tech lead and developer mentor. Based on the developer data below, perform a targeted skill gap analysis.
+
+Crucial Instructions:
+- Recommend 3-4 concrete complementary technologies, frameworks, libraries, or tools they should learn next.
+- The recommendations must be highly logical next steps based on their current language profile and top repositories (e.g., if they are heavy in React, suggest Next.js, Redux, or Tailwind; if they use Python, suggest FastAPI, Django, or Docker).
+- Present each recommendation as a list item starting with a "-" character, formatted as: "- [Technology Name]: [1-2 sentences explaining why it's a great complement and what gap it fills]".
+- ${toneInstruction}
+- Return ONLY the recommendations list. No introductory or concluding remarks, no markdown headers.
+
+${shared}
+
+Return only the recommendations.`
   }
 
   return `You are writing a short, PLAYFUL, good-natured "roast or toast" of a developer's GitHub activity, based on the data below. Keep it affectionate teasing at most, like a friend ribbing them, never genuinely insulting, never comment on their intelligence or worth as a person or professional. Base every joke only on the observable patterns below (commit timing habits, language choices, repo names, streaks). Don't invent facts. 2-4 short sentences, end on a warm note.
