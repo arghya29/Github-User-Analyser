@@ -247,7 +247,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
         </button>
       </div>
 
-      {error && <p className="text-sm text-amber-600 dark:text-amber-400">{error}</p>}
+      {error && <p role="alert" className="text-sm text-amber-600 dark:text-amber-400">{error}</p>}
 
       {text && (() => {
         if (activeType === 'resume' || activeType === 'skill-gap') {
@@ -298,6 +298,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
                     </span>
                     <button
                       onClick={() => handleCopyText(item, `item-${idx}`)}
+                      aria-label="Copy bullet point"
                       className="flex items-center justify-center p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-all opacity-80 group-hover:opacity-100"
                       title="Copy bullet point"
                     >
@@ -337,6 +338,7 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
                       </span>
                       <button
                         onClick={() => handleCopyText(hl, `headline-${idx}`)}
+                        aria-label="Copy Headline"
                         className="flex items-center justify-center p-1.5 text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-all opacity-80 group-hover:opacity-100"
                         title="Copy Headline"
                       >
@@ -374,7 +376,12 @@ export default function AiInsightPanel({ user, repos, totalContributions, produc
 
               <div className="flex justify-end pt-1">
                 <button
-                  onClick={() => handleCopyText(text, 'linkedin-full')}
+                  onClick={() =>
+                    handleCopyText(
+                      [...parsed.headlines, parsed.summary].filter(Boolean).join('\n\n'),
+                      'linkedin-full'
+                    )
+                  }
                   className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-md transition-all shadow-sm"
                 >
                   {copiedId === 'linkedin-full' ? (
