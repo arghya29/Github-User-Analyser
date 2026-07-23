@@ -1,41 +1,46 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import Head from 'next/head'
-import Link from 'next/link'
-import type { GetServerSideProps } from 'next'
-import { resolveBaseUrl } from '@/lib/siteUrl'
-import { fetchUserData } from '@/lib/github'
-import { sanitizeUsername, validateUsername } from '@/lib/validation'
-import CompareForm from '@/components/CompareForm'
-import CompareResult from '@/components/CompareResult'
-import LoadingSkeleton from '@/components/LoadingSkeleton'
-import ThemeToggle from '@/components/ThemeToggle'
-import Footer from '@/components/Footer'
-import type { UserData } from '@/types/github'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import Link from "next/link";
+import type { GetServerSideProps } from "next";
+import { resolveBaseUrl } from "@/lib/siteUrl";
+import { fetchUserData } from "@/lib/github";
+import { sanitizeUsername, validateUsername } from "@/lib/validation";
+import CompareForm from "@/components/CompareForm";
+import CompareResult from "@/components/CompareResult";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import ThemeToggle from "@/components/ThemeToggle";
+import Footer from "@/components/Footer";
+import type { UserData } from "@/types/github";
 
 interface OgMeta {
-  title: string
-  description: string
+  title: string;
+  description: string;
   /** Root-relative, and deliberately so — see getServerSideProps. */
-  canonical: string
-  url: string
-  image: string
+  canonical: string;
+  url: string;
+  image: string;
 }
 
 interface ComparePageProps {
   /** Sanitized. Never the raw query value — see getServerSideProps. */
-  user1: string
-  user2: string
+  user1: string;
+  user2: string;
   /** Set when a username in the URL is malformed, so we never fetch it. */
-  invalidReason: string | null
-  og: OgMeta
+  invalidReason: string | null;
+  og: OgMeta;
 }
 
-export default function ComparePage({ user1, user2, invalidReason, og }: ComparePageProps) {
-  const router = useRouter()
+export default function ComparePage({
+  user1,
+  user2,
+  invalidReason,
+  og,
+}: ComparePageProps) {
+  const router = useRouter();
 
-  const hasBoth = Boolean(user1 && user2)
-  const shouldFetch = hasBoth && !invalidReason
+  const hasBoth = Boolean(user1 && user2);
+  const shouldFetch = hasBoth && !invalidReason;
 
   // Results and failures are stored *with the pair they belong to*, and the render state is derived
   // from whether that pair still matches the URL. Two bugs fall out of doing it this way rather than
@@ -50,79 +55,87 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
   //    changes the props before any effect can clear the old state, so for one frame the previous
   //    result would render beneath the new query string. Tagging the data with its pair makes that
   //    impossible: it simply stops matching.
-  const [result, setResult] = useState<{ pair: string; userA: UserData; userB: UserData } | null>(
-    null
-  )
-  const [failure, setFailure] = useState<{ pair: string; message: string } | null>(null)
+  const [result, setResult] = useState<{
+    pair: string;
+    userA: UserData;
+    userB: UserData;
+  } | null>(null);
+  const [failure, setFailure] = useState<{
+    pair: string;
+    message: string;
+  } | null>(null);
 
   // Navigation is a separate concern from the fetch. `router.push` returns a promise that can
   // reject, and until it settles the new query hasn't landed — so without this the form stays live
   // during the round-trip and a second submission can be fired underneath the first.
-  const [navigating, setNavigating] = useState(false)
-  const [navError, setNavError] = useState('')
+  const [navigating, setNavigating] = useState(false);
+  const [navError, setNavError] = useState("");
 
-  const pairKey = `${user1}|${user2}`
-  const current = result?.pair === pairKey ? result : null
-  const error = failure?.pair === pairKey ? failure.message : ''
-  const isPending = shouldFetch && !current && !error
+  const pairKey = `${user1}|${user2}`;
+  const current = result?.pair === pairKey ? result : null;
+  const error = failure?.pair === pairKey ? failure.message : "";
+  const isPending = shouldFetch && !current && !error;
 
   useEffect(() => {
     // Nothing to fetch: either the URL carries no pair, or one of the names is malformed and was
     // rejected server-side. Either way we render a message, not a request.
-    if (!shouldFetch) return
+    if (!shouldFetch) return;
 
     // If someone runs a second comparison before the first resolves, the slower response must not
     // overwrite the newer one.
-    let cancelled = false
-    const pair = `${user1}|${user2}`
+    let cancelled = false;
+    const pair = `${user1}|${user2}`;
 
     Promise.all([fetchUserData(user1), fetchUserData(user2)])
       .then(([dataA, dataB]) => {
-        if (cancelled) return
+        if (cancelled) return;
 
         // `fetchUserData` resolves every status and reports the failure on `data.error`, so a bad
         // username stays attributable to *which* user it was rather than collapsing into a single
         // "something went wrong" — the behaviour the home page had, kept here.
         if (dataA.error) {
-          setFailure({ pair, message: `${user1}: ${dataA.error}` })
+          setFailure({ pair, message: `${user1}: ${dataA.error}` });
         } else if (dataB.error) {
-          setFailure({ pair, message: `${user2}: ${dataB.error}` })
+          setFailure({ pair, message: `${user2}: ${dataB.error}` });
         } else {
-          setResult({ pair, userA: dataA, userB: dataB })
+          setResult({ pair, userA: dataA, userB: dataB });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setFailure({ pair, message: 'Failed to fetch one or both profiles' })
+          setFailure({ pair, message: "Failed to fetch one or both profiles" });
         }
-      })
+      });
 
     return () => {
-      cancelled = true
-    }
+      cancelled = true;
+    };
     // Re-runs whenever the URL changes, which is what makes a refresh, a Back and a pasted link all
     // behave identically — the query string is the single source of truth for this page.
-  }, [user1, user2, shouldFetch])
+  }, [user1, user2, shouldFetch]);
 
   const handleCompare = async (rawA: string, rawB: string) => {
-    const nextA = rawA.trim()
-    const nextB = rawB.trim()
-    if (!nextA || !nextB) return
+    const nextA = rawA.trim();
+    const nextB = rawB.trim();
+    if (!nextA || !nextB) return;
 
-    setNavError('')
-    setNavigating(true)
+    setNavError("");
+    setNavigating(true);
 
     try {
       // `push`, not `replace`, so Back returns to the previous comparison rather than skipping out
       // of the page entirely. Awaited, so the form stays disabled until the new query has actually
       // landed, and a rejected navigation surfaces instead of being swallowed.
-      await router.push({ pathname: '/compare', query: { user1: nextA, user2: nextB } })
+      await router.push({
+        pathname: "/compare",
+        query: { user1: nextA, user2: nextB },
+      });
     } catch {
-      setNavError('Could not open that comparison')
+      setNavError("Could not open that comparison");
     } finally {
-      setNavigating(false)
+      setNavigating(false);
     }
-  }
+  };
 
   return (
     <>
@@ -168,7 +181,7 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
                   Compare
                 </p>
                 <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                  {hasBoth ? `${user1} vs ${user2}` : 'Compare GitHub profiles'}
+                  {hasBoth ? `${user1} vs ${user2}` : "Compare GitHub profiles"}
                 </h1>
               </div>
 
@@ -194,19 +207,28 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
                   which already does this; this page simply wasn't following the convention.
                 */}
                 {invalidReason && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {invalidReason}
                   </div>
                 )}
 
                 {navError && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {navError}
                   </div>
                 )}
 
                 {error && !invalidReason && (
-                  <div role="alert" className="text-sm text-rose-500 dark:text-rose-300">
+                  <div
+                    role="alert"
+                    className="text-sm text-rose-500 dark:text-rose-300"
+                  >
                     {error}
                   </div>
                 )}
@@ -229,22 +251,25 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
         <Footer />
       </div>
     </>
-  )
+  );
 }
 
-export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({ query, req }) => {
+export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
+  query,
+  req,
+}) => {
   // A query string is allowed to repeat a key (`?user1=a&user1=b`), which Next surfaces as an array.
   // Take the first, the same way /[username] handles its route param.
   const first = (value: string | string[] | undefined): string =>
-    (Array.isArray(value) ? value[0] : value) ?? ''
+    (Array.isArray(value) ? value[0] : value) ?? "";
 
-  const rawUser1 = first(query.user1).trim()
-  const rawUser2 = first(query.user2).trim()
+  const rawUser1 = first(query.user1).trim();
+  const rawUser2 = first(query.user2).trim();
 
   // Validate the *raw* value. Sanitizing first would quietly rewrite `torva!ds` into `torvalds` and
   // then compare a user the link never asked for — the address bar and the page must not disagree.
-  const checkedA = validateUsername(rawUser1)
-  const checkedB = validateUsername(rawUser2)
+  const checkedA = validateUsername(rawUser1);
+  const checkedB = validateUsername(rawUser2);
 
   // ...but sanitize before any of it reaches the page. `sanitizeUsername` strips everything outside
   // [a-zA-Z0-9-], so from this line down nothing is attacker-controlled: not the props, not the OG
@@ -253,18 +278,18 @@ export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
   // Validating and then passing the raw value through anyway — which is what this did before — is
   // exactly the reflected-input shape CodeQL flagged. React would have escaped it on render, but
   // relying on that is relying on a downstream accident rather than on a boundary.
-  const user1 = sanitizeUsername(rawUser1)
-  const user2 = sanitizeUsername(rawUser2)
+  const user1 = sanitizeUsername(rawUser1);
+  const user2 = sanitizeUsername(rawUser2);
 
   // The message says which field is broken and why, and deliberately does not echo the input back —
   // there is no reason for a page to repeat an attacker's string in order to reject it. Each
   // `reason` is one of three fixed strings from validateUsername.
-  let invalidReason: string | null = null
+  let invalidReason: string | null = null;
   if (rawUser1 || rawUser2) {
     if (!checkedA.valid) {
-      invalidReason = `First username: ${checkedA.reason}`
+      invalidReason = `First username: ${checkedA.reason}`;
     } else if (!checkedB.valid) {
-      invalidReason = `Second username: ${checkedB.reason}`
+      invalidReason = `Second username: ${checkedB.reason}`;
     }
   }
 
@@ -279,31 +304,33 @@ export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
   // So the resolved value is parsed rather than trusted: only a well-formed http(s) origin survives,
   // and a `javascript:` (or any other) scheme is discarded outright.
   const safeOrigin = ((): string => {
-    const candidate = resolveBaseUrl(req)
-    if (!candidate) return ''
+    const candidate = resolveBaseUrl(req);
+    if (!candidate) return "";
     try {
-      const parsed = new URL(candidate)
-      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.origin : ''
+      const parsed = new URL(candidate);
+      return parsed.protocol === "https:" || parsed.protocol === "http:"
+        ? parsed.origin
+        : "";
     } catch {
-      return ''
+      return "";
     }
-  })()
+  })();
 
-  const showPair = Boolean(user1 && user2) && !invalidReason
+  const showPair = Boolean(user1 && user2) && !invalidReason;
 
   // Derived from the query alone — no GitHub call — so the page renders with no added latency. This
   // mirrors how /[username] builds its tags from the route rather than from fetched data.
   const title = showPair
     ? `${user1} vs ${user2} · GitHub User Analyser`
-    : 'Compare · GitHub User Analyser'
+    : "Compare · GitHub User Analyser";
 
   const description = showPair
     ? `Compare @${user1} and @${user2} side by side — repositories, stars, languages and contribution activity.`
-    : 'Compare two GitHub profiles side by side.'
+    : "Compare two GitHub profiles side by side.";
 
   const path = showPair
     ? `/compare?user1=${encodeURIComponent(user1)}&user2=${encodeURIComponent(user2)}`
-    : '/compare'
+    : "/compare";
 
   const og: OgMeta = {
     title,
@@ -317,8 +344,8 @@ export const getServerSideProps: GetServerSideProps<ComparePageProps> = async ({
     // browser — and the Open Graph spec wants them absolute so the image resolves. They use the
     // parsed, protocol-checked origin above.
     url: safeOrigin ? `${safeOrigin}${path}` : path,
-    image: safeOrigin ? `${safeOrigin}/og-default.png` : '/og-default.png',
-  }
+    image: safeOrigin ? `${safeOrigin}/og-default.png` : "/og-default.png",
+  };
 
-  return { props: { user1, user2, invalidReason, og } }
-}
+  return { props: { user1, user2, invalidReason, og } };
+};

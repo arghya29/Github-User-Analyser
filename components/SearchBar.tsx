@@ -1,120 +1,135 @@
-
-import { useState, useRef, useEffect, useId, useMemo, useCallback } from 'react'
-import { loadHistory } from '@/lib/searchHistory'
-import { getFavorites } from '@/lib/favorites'
+import {
+  useState,
+  useRef,
+  useEffect,
+  useId,
+  useMemo,
+  useCallback,
+} from "react";
+import { loadHistory } from "@/lib/searchHistory";
+import { getFavorites } from "@/lib/favorites";
 
 interface SearchBarProps {
-  onSearch: (username: string) => void
-  loading: boolean
+  onSearch: (username: string) => void;
+  loading: boolean;
 }
 
-const MAX_SUGGESTIONS = 8
+const MAX_SUGGESTIONS = 8;
 
 export default function SearchBar({ onSearch, loading }: SearchBarProps) {
-  const [input, setInput] = useState('')
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const searchInputId = useId()
-  const listboxId = useId()
-  const hasLoaded = useRef(false)
+  const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputId = useId();
+  const listboxId = useId();
+  const hasLoaded = useRef(false);
 
   // 🛠️ FIX: Extracted suggestion pool logic so it can be re-run after a search
   const loadSuggestions = useCallback(() => {
-    const seen = new Set<string>()
-    const merged: string[] = []
+    const seen = new Set<string>();
+    const merged: string[] = [];
     for (const name of [...getFavorites(), ...loadHistory()]) {
-      const key = name.toLowerCase()
+      const key = name.toLowerCase();
       if (!seen.has(key)) {
-        seen.add(key)
-        merged.push(name)
+        seen.add(key);
+        merged.push(name);
       }
     }
-    setSuggestions(merged)
-  }, [])
+    setSuggestions(merged);
+  }, []);
 
   // Build the suggestion pool once on mount
   useEffect(() => {
-    loadSuggestions()
-  }, [loadSuggestions])
+    loadSuggestions();
+  }, [loadSuggestions]);
 
   // Refocus the input AND refresh history when a search finishes
   useEffect(() => {
     if (loading) {
-      hasLoaded.current = true
+      hasLoaded.current = true;
     }
     if (hasLoaded.current && !loading) {
       if (inputRef.current) {
-        inputRef.current.focus()
+        inputRef.current.focus();
       }
       // 🛠️ FIX: Re-sync local storage history into the dropdown state
-      loadSuggestions() 
+      loadSuggestions();
     }
-  }, [loading, loadSuggestions])
+  }, [loading, loadSuggestions]);
 
   const filtered = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    const pool = q ? suggestions.filter((s) => s.toLowerCase().includes(q)) : suggestions
-    return pool.slice(0, MAX_SUGGESTIONS)
-  }, [input, suggestions])
+    const q = input.trim().toLowerCase();
+    const pool = q
+      ? suggestions.filter((s) => s.toLowerCase().includes(q))
+      : suggestions;
+    return pool.slice(0, MAX_SUGGESTIONS);
+  }, [input, suggestions]);
 
-  const showDropdown = isOpen && filtered.length > 0
+  const showDropdown = isOpen && filtered.length > 0;
 
   // Reset the keyboard highlight whenever the query changes.
   useEffect(() => {
-    setActiveIndex(-1)
-  }, [input])
+    setActiveIndex(-1);
+  }, [input]);
 
   // Close the dropdown on an outside click.
   useEffect(() => {
-    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      typeof document === "undefined" ||
+      typeof document.addEventListener !== "function"
+    )
+      return;
 
     function onClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', onClickOutside)
+    document.addEventListener("mousedown", onClickOutside);
     return () => {
-      if (typeof document.removeEventListener === 'function') {
-        document.removeEventListener('mousedown', onClickOutside)
+      if (typeof document.removeEventListener === "function") {
+        document.removeEventListener("mousedown", onClickOutside);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const selectSuggestion = (username: string) => {
-    setInput(username)
-    setIsOpen(false)
-    setActiveIndex(-1)
-    onSearch(username)
-  }
+    setInput(username);
+    setIsOpen(false);
+    setActiveIndex(-1);
+    onSearch(username);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsOpen(false)
-    onSearch(input)
-  }
+    e.preventDefault();
+    setIsOpen(false);
+    onSearch(input);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showDropdown) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setActiveIndex((i) => (i + 1) % filtered.length)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setActiveIndex((i) => (i <= 0 ? filtered.length - 1 : i - 1))
-    } else if (e.key === 'Enter') {
+    if (!showDropdown) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % filtered.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? filtered.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
       if (activeIndex >= 0 && activeIndex < filtered.length) {
-        e.preventDefault()
-        selectSuggestion(filtered[activeIndex])
+        e.preventDefault();
+        selectSuggestion(filtered[activeIndex]);
       }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false)
-      setActiveIndex(-1)
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+      setActiveIndex(-1);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto" role="search">
@@ -129,8 +144,8 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
             type="text"
             value={input}
             onChange={(e) => {
-              setInput(e.target.value)
-              setIsOpen(true)
+              setInput(e.target.value);
+              setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
@@ -143,7 +158,9 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
             aria-controls={showDropdown ? listboxId : undefined}
             aria-autocomplete="list"
             aria-activedescendant={
-              activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+              activeIndex >= 0
+                ? `${listboxId}-option-${activeIndex}`
+                : undefined
             }
             className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 placeholder-gray-500 dark:placeholder-gray-400 transition-shadow"
             disabled={loading}
@@ -162,14 +179,14 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
                   role="option"
                   aria-selected={i === activeIndex}
                   onMouseDown={(e) => {
-                    e.preventDefault()
-                    selectSuggestion(s)
+                    e.preventDefault();
+                    selectSuggestion(s);
                   }}
                   onMouseEnter={() => setActiveIndex(i)}
                   className={`px-4 py-2 text-sm cursor-pointer ${
                     i === activeIndex
-                      ? 'bg-blue-50 dark:bg-slate-700 text-gray-900 dark:text-white'
-                      : 'text-gray-700 dark:text-gray-300'
+                      ? "bg-blue-50 dark:bg-slate-700 text-gray-900 dark:text-white"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {s}
@@ -180,13 +197,13 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
         </div>
         <button
           type="submit"
-          aria-label={loading ? 'Searching' : 'Search'}
+          aria-label={loading ? "Searching" : "Search"}
           disabled={loading || !input.trim()}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
         >
-          {loading ? 'Searching...' : 'Search'}
+          {loading ? "Searching..." : "Search"}
         </button>
       </div>
     </form>
-  )
+  );
 }

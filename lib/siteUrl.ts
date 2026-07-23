@@ -1,5 +1,5 @@
-import type { IncomingMessage } from 'http'
-import { env } from '@/lib/env'
+import type { IncomingMessage } from "http";
+import { env } from "@/lib/env";
 
 /**
  * Resolves the canonical base URL used to build absolute OG/Twitter URLs.
@@ -10,17 +10,21 @@ import { env } from '@/lib/env'
  * is available so callers can fall back to a root-relative path.
  */
 export function resolveBaseUrl(req: IncomingMessage): string {
-  const configuredSiteUrl = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
-  if (configuredSiteUrl) return configuredSiteUrl
+  const configuredSiteUrl = env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
+  if (configuredSiteUrl) return configuredSiteUrl;
 
-  const forwardedProto = req.headers['x-forwarded-proto']
-  const forwardedHost = req.headers['x-forwarded-host']
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const forwardedHost = req.headers["x-forwarded-host"];
   const proto =
-    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(',')[0] || 'https'
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(
+      ",",
+    )[0] || "https";
   const host =
-    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)?.split(',')[0] ||
+    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost)?.split(
+      ",",
+    )[0] ||
     req.headers.host ||
-    ''
+    "";
 
-  return host ? `${proto}://${host}` : ''
+  return host ? `${proto}://${host}` : "";
 }

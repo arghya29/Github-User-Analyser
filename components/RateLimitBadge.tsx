@@ -1,7 +1,7 @@
-import type { RateLimitInfo } from '@/types/github'
+import type { RateLimitInfo } from "@/types/github";
 
 interface RateLimitBadgeProps {
-  rateLimit?: RateLimitInfo
+  rateLimit?: RateLimitInfo;
 }
 
 /**
@@ -13,39 +13,42 @@ interface RateLimitBadgeProps {
 export default function RateLimitBadge({ rateLimit }: RateLimitBadgeProps) {
   if (
     !rateLimit ||
-    typeof rateLimit.limit !== 'number' ||
-    typeof rateLimit.remaining !== 'number' ||
+    typeof rateLimit.limit !== "number" ||
+    typeof rateLimit.remaining !== "number" ||
     rateLimit.limit <= 0
   ) {
-    return null
+    return null;
   }
 
-  const { limit, remaining, resetAt } = rateLimit
-  const low = remaining / limit < 0.1
+  const { limit, remaining, resetAt } = rateLimit;
+  const low = remaining / limit < 0.1;
 
-  let resetText: string | undefined
+  let resetText: string | undefined;
   if (resetAt) {
-    const reset = new Date(resetAt)
+    const reset = new Date(resetAt);
     if (!Number.isNaN(reset.getTime())) {
-      resetText = reset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      resetText = reset.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
   }
 
   const title = resetText
     ? `GitHub API requests remaining this hour — resets at ${resetText}`
-    : 'GitHub API requests remaining this hour'
+    : "GitHub API requests remaining this hour";
 
   return (
     <div
       title={title}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
         low
-          ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
-          : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600'
+          ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50"
+          : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600"
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full shrink-0 ${low ? 'bg-amber-500' : 'bg-green-500'}`}
+        className={`w-1.5 h-1.5 rounded-full shrink-0 ${low ? "bg-amber-500" : "bg-green-500"}`}
         aria-hidden="true"
       />
       <span className="tabular-nums">
@@ -55,12 +58,14 @@ export default function RateLimitBadge({ rateLimit }: RateLimitBadgeProps) {
         <span className="text-gray-400 dark:text-gray-500">
           {/* Screen readers hear the comma at all sizes; sighted users see the dot only on sm+ */}
           <span className="sr-only">, </span>
-          <span aria-hidden="true" className="hidden sm:inline">· </span>
-          
+          <span aria-hidden="true" className="hidden sm:inline">
+            ·{" "}
+          </span>
+
           {/* Text is available to screen readers at all times, but only visible on sm+ */}
           <span className="sr-only sm:not-sr-only">resets {resetText}</span>
         </span>
       )}
     </div>
-  )
+  );
 }

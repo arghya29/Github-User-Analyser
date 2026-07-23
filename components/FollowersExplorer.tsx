@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import Image from 'next/image'
-import { fetchFollowersOrFollowing } from '@/lib/followers'
-import type { FollowerUser } from '@/types/github'
+import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
+import { fetchFollowersOrFollowing } from "@/lib/followers";
+import type { FollowerUser } from "@/types/github";
 
 interface FollowersExplorerProps {
-  username: string
-  followersCount: number
-  followingCount: number
-  onClose: () => void
+  username: string;
+  followersCount: number;
+  followingCount: number;
+  onClose: () => void;
 }
 
 export default function FollowersExplorer({
@@ -16,47 +16,51 @@ export default function FollowersExplorer({
   followingCount,
   onClose,
 }: FollowersExplorerProps) {
-  const [tab, setTab] = useState<'followers' | 'following'>('followers')
-  const [users, setUsers] = useState<FollowerUser[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const [tab, setTab] = useState<"followers" | "following">("followers");
+  const [users, setUsers] = useState<FollowerUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const result = await fetchFollowersOrFollowing(username, tab)
-      if ('error' in result) {
-        setError((result as { error: string }).error)
+      const result = await fetchFollowersOrFollowing(username, tab);
+      if ("error" in result) {
+        setError((result as { error: string }).error);
       } else {
-        setUsers(result as FollowerUser[])
+        setUsers(result as FollowerUser[]);
       }
     } catch {
-      setError('Failed to load')
+      setError("Failed to load");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [username, tab])
+  }, [username, tab]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   useEffect(() => {
-    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      typeof document === "undefined" ||
+      typeof document.addEventListener !== "function"
+    )
+      return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    dialogRef.current?.querySelector<HTMLElement>('button')?.focus()
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    dialogRef.current?.querySelector<HTMLElement>("button")?.focus();
     return () => {
-      if (typeof document.removeEventListener === 'function') {
-        document.removeEventListener('keydown', handleKeyDown)
+      if (typeof document.removeEventListener === "function") {
+        document.removeEventListener("keydown", handleKeyDown);
       }
-    }
-  }, [onClose])
+    };
+  }, [onClose]);
 
   return (
     <div
@@ -76,22 +80,22 @@ export default function FollowersExplorer({
           <button
             type="button"
             className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              tab === 'followers'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              tab === "followers"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
-            onClick={() => setTab('followers')}
+            onClick={() => setTab("followers")}
           >
             Followers ({followersCount})
           </button>
           <button
             type="button"
             className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              tab === 'following'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              tab === "following"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
-            onClick={() => setTab('following')}
+            onClick={() => setTab("following")}
           >
             Following ({followingCount})
           </button>
@@ -102,13 +106,20 @@ export default function FollowersExplorer({
           {loading && (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"
+                />
               ))}
             </div>
           )}
-          {error && <p className="text-sm text-red-500 text-center py-4">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-500 text-center py-4">{error}</p>
+          )}
           {!loading && !error && users.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No users found.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No users found.
+            </p>
           )}
           {!loading && !error && users.length > 0 && (
             <div className="space-y-2">
@@ -128,8 +139,12 @@ export default function FollowersExplorer({
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{u.login}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{u.type}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {u.login}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {u.type}
+                    </p>
                   </div>
                 </a>
               ))}
@@ -149,5 +164,5 @@ export default function FollowersExplorer({
         </div>
       </div>
     </div>
-  )
+  );
 }

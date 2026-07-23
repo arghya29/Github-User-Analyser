@@ -1,16 +1,16 @@
-const nextJest = require('next/jest')
+const nextJest = require("next/jest");
 
-const createJestConfig = nextJest({ dir: './' })
+const createJestConfig = nextJest({ dir: "./" });
 
 /** @type {import('jest').Config} */
 const customJestConfig = {
   // Pure functions under lib/ need no DOM; a Node environment is sufficient and faster.
-  testEnvironment: 'node',
-  moduleDirectories: ['node_modules', '<rootDir>'],
+  testEnvironment: "node",
+  moduleDirectories: ["node_modules", "<rootDir>"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    "^@/(.*)$": "<rootDir>/$1",
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
-}
+  testPathIgnorePatterns: ["/node_modules/", "/.next/"],
+};
 
-module.exports = createJestConfig(customJestConfig)
+module.exports = createJestConfig(customJestConfig);

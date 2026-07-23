@@ -1,49 +1,63 @@
-import type { ReactNode, ComponentType } from 'react'
-import { Component } from 'react'
+import type { ReactNode, ComponentType } from "react";
+import { Component } from "react";
 
 interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ComponentType<{ error: Error; reset: () => void }>
-  onError?: (error: Error, errorInfo: Record<string, unknown>) => void
+  children: ReactNode;
+  fallback?: ComponentType<{ error: Error; reset: () => void }>;
+  onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
 }
 
 interface ErrorBoundaryState {
-  error: Error | null
+  error: Error | null;
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export default class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = { error: null }
+    super(props);
+    this.state = { error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { error }
+    return { error };
   }
 
   componentDidCatch(error: Error, errorInfo: Record<string, unknown>) {
     if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+      this.props.onError(error, errorInfo);
     }
   }
 
   private handleReset = () => {
-    this.setState({ error: null })
-  }
+    this.setState({ error: null });
+  };
 
   render() {
     if (this.state.error) {
       if (this.props.fallback) {
-        const Fallback = this.props.fallback
-        return <Fallback error={this.state.error} reset={this.handleReset} />
+        const Fallback = this.props.fallback;
+        return <Fallback error={this.state.error} reset={this.handleReset} />;
       }
-      return <DefaultErrorFallback error={this.state.error} reset={this.handleReset} />
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          reset={this.handleReset}
+        />
+      );
     }
-    return this.props.children
+    return this.props.children;
   }
 }
 
-function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+function DefaultErrorFallback({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-500 rounded-lg p-6 text-center">
       <svg
@@ -63,7 +77,7 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
         Something went wrong
       </h3>
       <p className="text-sm text-red-600 dark:text-red-300 mb-4">
-        {error.message || 'An unexpected error occurred'}
+        {error.message || "An unexpected error occurred"}
       </p>
       <button
         type="button"
@@ -73,5 +87,5 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
         Try Again
       </button>
     </div>
-  )
+  );
 }

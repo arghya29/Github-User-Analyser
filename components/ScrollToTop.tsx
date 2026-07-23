@@ -1,31 +1,36 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 export default function ScrollToTop() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+    if (
+      typeof window === "undefined" ||
+      typeof window.addEventListener !== "function"
+    )
+      return;
 
     const toggleVisibility = () => {
-      if (typeof window.scrollY === 'number') {
-        setVisible(window.scrollY > 300)
+      if (typeof window.scrollY === "number") {
+        setVisible(window.scrollY > 300);
       }
-    }
+    };
 
-    toggleVisibility()
+    toggleVisibility();
 
-    window.addEventListener('scroll', toggleVisibility)
+    window.addEventListener("scroll", toggleVisibility);
     return () => {
-      if (typeof window.removeEventListener === 'function') {
-        window.removeEventListener('scroll', toggleVisibility)
+      if (typeof window.removeEventListener === "function") {
+        window.removeEventListener("scroll", toggleVisibility);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const scrollToTop = () => {
-    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+    if (typeof window === "undefined" || typeof window.scrollTo !== "function")
+      return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (!visible) return null;
 

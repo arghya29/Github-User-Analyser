@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 /**
  * Centralized, validated access to environment variables.
@@ -25,9 +25,9 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   NEXT_PUBLIC_SITE_URL: z.url().optional(),
-})
+});
 
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema>;
 
 function loadEnv(): Env {
   const parsed = envSchema.safeParse({
@@ -36,16 +36,16 @@ function loadEnv(): Env {
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || undefined,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || undefined,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || undefined,
-  })
+  });
 
   if (!parsed.success) {
     const issues = parsed.error.issues
-      .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
-      .join('; ')
-    throw new Error(`Invalid environment configuration — ${issues}`)
+      .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid environment configuration — ${issues}`);
   }
 
-  return parsed.data
+  return parsed.data;
 }
 
-export const env = loadEnv()
+export const env = loadEnv();

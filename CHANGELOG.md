@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Content Security Policy (CSP) headers via Next.js middleware for XSS prevention
 - Security headers (HSTS, X-Content-Type-Options, X-Frame-Options, Permissions-Policy, Referrer-Policy)
 - Input validation library (lib/validation.ts) for sanitizing GitHub usernames and repo names
@@ -55,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated dependency updates with Dependabot
 
 ### Features
+
 - 🔍 Search GitHub users by username
 - 📊 View user profile with avatar, bio, and statistics
 - 📚 Browse user's most-starred repositories
@@ -66,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-06-10
 
 ### Initial Release
+
 - Initial project setup with Next.js and TypeScript
 - Basic GitHub user search functionality
 - User profile and repository display components

@@ -40,17 +40,20 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ## Development Setup
 
 1. Fork the repo and clone it locally:
+
 ```bash
 git clone https://github.com/YOUR-USERNAME/github-user-analyzer.git
 cd github-user-analyzer
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a new branch. Ensure branch names follow: `fix/`, `enhancement/`, `docs/`, or `refactor/` prefixes.
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
@@ -58,6 +61,7 @@ git checkout -b feature/your-feature-name
 4. Set up environment tokens following our [API Token Setup Guide](docs/API_SETUP.md).
 
 5. Start the dev server:
+
 ```bash
 npm run dev
 ```
@@ -65,11 +69,13 @@ npm run dev
 6. Make your changes and test thoroughly. Validate code formatting with `npm run lint`.
 
 7. Commit with a clear message:
+
 ```bash
 git commit -m "Add brief description of changes"
 ```
 
 8. Push to your fork:
+
 ```bash
 git push origin feature/your-feature-name
 ```

@@ -1,86 +1,97 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react'
-import type { Repository } from '@/types/github'
-import { getLanguageColorClass } from '@/lib/languageColors'
-import RepoHealthAnalysisPanel from '@/components/RepoHealthAnalysisPanel'
-import CommitActivityButton from '@/components/CommitActivityButton'
-import StarHistoryButton from '@/components/StarHistoryButton'
+import { useState, useEffect, useRef, useCallback, memo } from "react";
+import type { Repository } from "@/types/github";
+import { getLanguageColorClass } from "@/lib/languageColors";
+import RepoHealthAnalysisPanel from "@/components/RepoHealthAnalysisPanel";
+import CommitActivityButton from "@/components/CommitActivityButton";
+import StarHistoryButton from "@/components/StarHistoryButton";
 
 interface RepositoryCardProps {
-  repo: Repository
+  repo: Repository;
   /**
    * Receives the repo it was called for. Taking the repo as an argument (rather than
    * having each parent close over it in `() => onRepoClick(repo)`) is what lets callers
    * pass one stable handler reference down to every card — without that, the closure is
    * a new function on every render and `memo` below would never prevent a re-render.
    */
-  onSelect: (repo: Repository) => void
+  onSelect: (repo: Repository) => void;
 }
 
 function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
-  const [showActionBox, setShowActionBox] = useState(false)
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
+  const [showActionBox, setShowActionBox] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  const lastUpdated = new Date(repo.updated_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  const lastUpdated = new Date(repo.updated_at).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
-  const langColor = getLanguageColorClass(repo.language ?? '')
-  const descriptionText = repo.description?.trim() || 'No description provided.'
+  const langColor = getLanguageColorClass(repo.language ?? "");
+  const descriptionText =
+    repo.description?.trim() || "No description provided.";
 
   const openModal = useCallback((trigger?: HTMLElement | null) => {
-    previousFocusRef.current = trigger ?? (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null)
-    setShowActionBox(true)
-  }, [])
+    previousFocusRef.current =
+      trigger ??
+      (typeof document !== "undefined" &&
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null);
+    setShowActionBox(true);
+  }, []);
 
   const closeModal = useCallback(() => {
-    setShowActionBox(false)
+    setShowActionBox(false);
     if (previousFocusRef.current) {
-      previousFocusRef.current.focus()
+      previousFocusRef.current.focus();
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if (!showActionBox || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      !showActionBox ||
+      typeof document === "undefined" ||
+      typeof document.addEventListener !== "function"
+    )
+      return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeModal()
-        return
+      if (e.key === "Escape") {
+        closeModal();
+        return;
       }
-      if (e.key !== 'Tab') return
+      if (e.key !== "Tab") return;
 
-      const dialog = dialogRef.current
-      if (!dialog) return
+      const dialog = dialogRef.current;
+      if (!dialog) return;
       const focusable = dialog.querySelectorAll<HTMLElement>(
-        'button, a[href], [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusable.length === 0) return
+        'button, a[href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
 
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
 
       if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
+        e.preventDefault();
+        last.focus();
       } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
+        e.preventDefault();
+        first.focus();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKeyDown)
-    const firstBtn = dialogRef.current?.querySelector<HTMLElement>('button')
-    firstBtn?.focus()
+    document.addEventListener("keydown", handleKeyDown);
+    const firstBtn = dialogRef.current?.querySelector<HTMLElement>("button");
+    firstBtn?.focus();
 
     return () => {
-      if (typeof document.removeEventListener === 'function') {
-        document.removeEventListener('keydown', handleKeyDown)
+      if (typeof document.removeEventListener === "function") {
+        document.removeEventListener("keydown", handleKeyDown);
       }
-    }
-  }, [showActionBox, closeModal])
+    };
+  }, [showActionBox, closeModal]);
 
   return (
     <>
@@ -102,7 +113,9 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
         {repo.language ? (
           <div className="mb-4 flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${langColor}`} />
-            <span className="text-sm text-gray-500 dark:text-gray-400">{repo.language}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {repo.language}
+            </span>
           </div>
         ) : null}
 
@@ -119,7 +132,7 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
             </svg>
             {repo.forks_count}
           </div>
-          {typeof repo.watchers_count === 'number' && (
+          {typeof repo.watchers_count === "number" && (
             <div className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
@@ -127,7 +140,7 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
               {repo.watchers_count}
             </div>
           )}
-          {typeof repo.open_issues_count === 'number' && (
+          {typeof repo.open_issues_count === "number" && (
             <div className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-1-13h2v6h-2zm0 8h2v2h-2z" />
@@ -150,10 +163,10 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-labelledby={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
+            aria-labelledby={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, "-")}`}
           >
             <h3
-              id={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, '-')}`}
+              id={`repo-dialog-${repo.name.replace(/[^a-zA-Z0-9-]/g, "-")}`}
               className="text-lg font-bold text-gray-900 dark:text-white mb-1"
             >
               {repo.name}
@@ -167,8 +180,8 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
               <button
                 type="button"
                 onClick={() => {
-                  closeModal()
-                  onSelect(repo)
+                  closeModal();
+                  onSelect(repo);
                 }}
                 className="w-full text-sm font-medium px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
@@ -200,10 +213,9 @@ function RepositoryCard({ repo, onSelect }: RepositoryCardProps) {
         </div>
       )}
     </>
-  )
+  );
 }
 
 // Rendered once per repository in a grid, so it re-renders on every dashboard state
 // change (search box, sort, opening the readme modal) even when its own repo hasn't moved.
-export default memo(RepositoryCard)
-
+export default memo(RepositoryCard);

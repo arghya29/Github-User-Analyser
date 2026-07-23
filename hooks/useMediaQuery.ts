@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
-type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
 const BREAKPOINTS: Record<Breakpoint, number> = {
   xs: 0,
@@ -8,89 +8,96 @@ const BREAKPOINTS: Record<Breakpoint, number> = {
   md: 768,
   lg: 1024,
   xl: 1280,
-  '2xl': 1536,
-}
+  "2xl": 1536,
+};
 
 function getBreakpoint(width: number): Breakpoint {
-  const entries = Object.entries(BREAKPOINTS) as [Breakpoint, number][]
-  let result: Breakpoint = 'xs'
+  const entries = Object.entries(BREAKPOINTS) as [Breakpoint, number][];
+  let result: Breakpoint = "xs";
   for (const [bp, minWidth] of entries) {
-    if (width >= minWidth) result = bp
+    if (width >= minWidth) result = bp;
   }
-  return result
+  return result;
 }
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === "undefined") return;
 
-    const mql = typeof window.matchMedia === 'function' ? window.matchMedia(query) : null
-    setMatches(mql?.matches ?? false)
+    const mql =
+      typeof window.matchMedia === "function" ? window.matchMedia(query) : null;
+    setMatches(mql?.matches ?? false);
 
-    if (!mql || typeof mql.addEventListener !== 'function') return
+    if (!mql || typeof mql.addEventListener !== "function") return;
 
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [query])
+    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, [query]);
 
-  return matches
+  return matches;
 }
 
 // 🛠️ FIX 1: Upgraded throttle to include a trailing-edge execution
 function throttle<T extends (...args: any[]) => void>(fn: T, delay: number): T {
-  let last = 0
-  let timeout: ReturnType<typeof setTimeout> | null = null
+  let last = 0;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
   return ((...args: Parameters<T>) => {
-    const now = Date.now()
-    
+    const now = Date.now();
+
     if (now - last >= delay) {
       if (timeout) {
-        clearTimeout(timeout)
-        timeout = null
+        clearTimeout(timeout);
+        timeout = null;
       }
-      last = now
-      fn(...args)
+      last = now;
+      fn(...args);
     } else if (!timeout) {
-      timeout = setTimeout(() => {
-        last = Date.now()
-        timeout = null
-        fn(...args)
-      }, delay - (now - last))
+      timeout = setTimeout(
+        () => {
+          last = Date.now();
+          timeout = null;
+          fn(...args);
+        },
+        delay - (now - last),
+      );
     }
-  }) as unknown as T
+  }) as unknown as T;
 }
 
 export function useBreakpoint(): Breakpoint {
-  const [bp, setBp] = useState<Breakpoint>('xs')
-  
+  const [bp, setBp] = useState<Breakpoint>("xs");
+
   // 🛠️ FIX 2: Removed unused rafId reference
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const onResize = throttle(() => setBp(getBreakpoint(window.innerWidth)), 100)
-    onResize()
-    window.addEventListener('resize', onResize)
+    if (typeof window === "undefined") return;
+    const onResize = throttle(
+      () => setBp(getBreakpoint(window.innerWidth)),
+      100,
+    );
+    onResize();
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener('resize', onResize)
+      window.removeEventListener("resize", onResize);
       // 🛠️ FIX 2: Removed unused cancelAnimationFrame logic
-    }
-  }, [])
+    };
+  }, []);
 
-  return bp
+  return bp;
 }
 
 export function useIsMobile(): boolean {
-  return useMediaQuery('(max-width: 767px)')
+  return useMediaQuery("(max-width: 767px)");
 }
 
 export function useIsTablet(): boolean {
-  return useMediaQuery('(min-width: 768px) and (max-width: 1023px)')
+  return useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
 }
 
 export function useIsDesktop(): boolean {
-  return useMediaQuery('(min-width: 1024px)')
+  return useMediaQuery("(min-width: 1024px)");
 }

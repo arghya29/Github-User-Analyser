@@ -1,22 +1,22 @@
-import { useState, useRef, useEffect } from 'react'
-import type { SortOption } from '@/types/github'
-import { getLanguageColor } from '@/lib/languageColors'
+import { useState, useRef, useEffect } from "react";
+import type { SortOption } from "@/types/github";
+import { getLanguageColor } from "@/lib/languageColors";
 
 interface SortFilterBarProps {
-  sortBy: SortOption
-  onSortChange: (sort: SortOption) => void
-  languages: { name: string; count: number }[]
-  activeLanguages: string[]
-  onLanguagesChange: (languages: string[]) => void
-  repoQuery: string
-  onRepoQueryChange: (query: string) => void
+  sortBy: SortOption;
+  onSortChange: (sort: SortOption) => void;
+  languages: { name: string; count: number }[];
+  activeLanguages: string[];
+  onLanguagesChange: (languages: string[]) => void;
+  repoQuery: string;
+  onRepoQueryChange: (query: string) => void;
 }
 
 const SORT_LABELS: Record<SortOption, string> = {
-  stars: 'Most Stars',
-  updated: 'Recently Updated',
-  forks: 'Most Forks',
-}
+  stars: "Most Stars",
+  updated: "Recently Updated",
+  forks: "Most Forks",
+};
 
 export default function SortFilterBar({
   sortBy,
@@ -27,53 +27,62 @@ export default function SortFilterBar({
   repoQuery,
   onRepoQueryChange,
 }: SortFilterBarProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return
+    if (
+      typeof document === "undefined" ||
+      typeof document.addEventListener !== "function"
+    )
+      return;
 
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setIsOpen(false)
+      if (event.key === "Escape") {
+        setIsOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      if (typeof document.removeEventListener === 'function') {
-        document.removeEventListener('mousedown', handleClickOutside)
-        document.removeEventListener('keydown', handleKeyDown)
+      if (typeof document.removeEventListener === "function") {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleKeyDown);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const toggleLanguage = (name: string) => {
     const next = activeLanguages.includes(name)
       ? activeLanguages.filter((l) => l !== name)
-      : [...activeLanguages, name]
-    onLanguagesChange(next)
-  }
+      : [...activeLanguages, name];
+    onLanguagesChange(next);
+  };
 
   const getButtonLabel = () => {
-    if (activeLanguages.length === 0) return 'Choose Techstack'
-    if (activeLanguages.length === 1) return activeLanguages[0]
-    if (activeLanguages.length === 2) return activeLanguages.join(', ')
-    return `${activeLanguages.length} Techstacks`
-  }
+    if (activeLanguages.length === 0) return "Choose Techstack";
+    if (activeLanguages.length === 1) return activeLanguages[0];
+    if (activeLanguages.length === 2) return activeLanguages.join(", ");
+    return `${activeLanguages.length} Techstacks`;
+  };
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label htmlFor="repo-search" className="sr-only">Search repositories by name</label>
+          <label htmlFor="repo-search" className="sr-only">
+            Search repositories by name
+          </label>
           <div className="relative w-full sm:w-auto">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
@@ -82,7 +91,12 @@ export default function SortFilterBar({
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+              />
             </svg>
             <input
               id="repo-search"
@@ -96,19 +110,32 @@ export default function SortFilterBar({
             {repoQuery && (
               <button
                 type="button"
-                onClick={() => onRepoQueryChange('')}
+                onClick={() => onRepoQueryChange("")}
                 aria-label="Clear repository search"
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
           </div>
         </div>
         <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-          <label htmlFor="sort-select" className="sr-only">Sort repositories</label>
+          <label htmlFor="sort-select" className="sr-only">
+            Sort repositories
+          </label>
           <select
             id="sort-select"
             value={sortBy}
@@ -135,32 +162,34 @@ export default function SortFilterBar({
               aria-controls="language-filter-popup"
               className={`flex items-center justify-between gap-3 px-4 py-2.5 sm:py-2 text-sm rounded-lg border transition-all w-full sm:w-auto min-w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 isOpen || activeLanguages.length > 0
-                  ? 'bg-white dark:bg-slate-700 border-blue-500 text-gray-900 dark:text-white shadow-sm ring-1 ring-blue-500'
-                  : 'bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500'
+                  ? "bg-white dark:bg-slate-700 border-blue-500 text-gray-900 dark:text-white shadow-sm ring-1 ring-blue-500"
+                  : "bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500"
               }`}
             >
-              <span
-                id="language-filter-value"
-                className="truncate font-medium"
-              >
+              <span id="language-filter-value" className="truncate font-medium">
                 {getButtonLabel()}
               </span>
               <svg
-                className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
 
             {isOpen && (
               <fieldset
-                  id="language-filter-popup"
-                  className="absolute left-0 mt-2 w-full sm:w-64 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-2 max-h-72 overflow-y-auto"
-                >
+                id="language-filter-popup"
+                className="absolute left-0 mt-2 w-full sm:w-64 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-2 max-h-72 overflow-y-auto"
+              >
                 <legend className="px-4 py-1.5 mb-1 border-b border-gray-100 dark:border-slate-700 w-full">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-500">
                     Filter by Language
@@ -213,11 +242,16 @@ export default function SortFilterBar({
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
           Clear Filters
         </button>
       )}
     </div>
-  )
+  );
 }
