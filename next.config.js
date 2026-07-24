@@ -47,6 +47,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   generateEtags: true,
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
