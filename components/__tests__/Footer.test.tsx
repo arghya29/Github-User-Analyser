@@ -19,7 +19,9 @@ describe('Footer', () => {
     })
 
     try {
-      expect(() => fireEvent.click(screen.getByRole('button', { name: /install app/i }))).not.toThrow()
+      expect(() =>
+        fireEvent.click(screen.getByRole('button', { name: /install app/i })),
+      ).not.toThrow()
     } finally {
       Object.defineProperty(window, 'dispatchEvent', {
         configurable: true,

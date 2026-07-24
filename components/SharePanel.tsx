@@ -27,8 +27,7 @@ export default function SharePanel({ user }: SharePanelProps) {
   const btnClass =
     'flex-1 px-3 py-2 text-xs font-medium rounded-lg border transition-colors text-center'
 
-  const canShare =
-    typeof navigator !== 'undefined' && 'share' in navigator
+  const canShare = typeof navigator !== 'undefined' && 'share' in navigator
 
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 mt-6">

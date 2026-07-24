@@ -12,7 +12,13 @@ import SearchBar from '@/components/SearchBar'
 const HISTORY_KEY = 'github-analyzer-history'
 const FAVORITES_KEY = 'github-analyzer-favorites'
 
-function seedStorage({ history = [], favorites = [] }: { history?: string[]; favorites?: string[] }) {
+function seedStorage({
+  history = [],
+  favorites = [],
+}: {
+  history?: string[]
+  favorites?: string[]
+}) {
   window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
   window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
 }
@@ -129,7 +135,7 @@ describe('SearchBar suggestions', () => {
     expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(8)
   })
 
-  it('surfaces at most 5 history entries, per loadHistory()\'s own cap', () => {
+  it("surfaces at most 5 history entries, per loadHistory()'s own cap", () => {
     seedStorage({ history: Array.from({ length: 20 }, (_, i) => `user${i}`) })
     render(<SearchBar onSearch={jest.fn()} loading={false} />)
 

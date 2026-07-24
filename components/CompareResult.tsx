@@ -96,22 +96,22 @@ export default function CompareResult({ userA, userB }: CompareResultProps) {
   addMetric(
     'Contributions (last year)',
     userA.contributions?.totalContributions ?? null,
-    userB.contributions?.totalContributions ?? null
+    userB.contributions?.totalContributions ?? null,
   )
   addMetric(
     'Current Streak (days)',
     userA.productivity?.currentStreak ?? null,
-    userB.productivity?.currentStreak ?? null
+    userB.productivity?.currentStreak ?? null,
   )
   addMetric(
     'Longest Streak (days)',
     userA.productivity?.longestStreak ?? null,
-    userB.productivity?.longestStreak ?? null
+    userB.productivity?.longestStreak ?? null,
   )
   addMetric(
     'Most Productive Day',
     userA.productivity?.mostProductiveDay?.count ?? null,
-    userB.productivity?.mostProductiveDay?.count ?? null
+    userB.productivity?.mostProductiveDay?.count ?? null,
   )
 
   return (

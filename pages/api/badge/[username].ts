@@ -24,7 +24,7 @@ interface BadgeData {
 
 async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3+json',
+    Accept: 'application/vnd.github.v3+json',
   }
   if (env.GITHUB_TOKEN) {
     headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
@@ -57,20 +57,20 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     `
     const response = await axios.post(
       'https://api.github.com/graphql',
-      { 
-        query, 
-        variables: { 
+      {
+        query,
+        variables: {
           username,
           from: fromDate.toISOString(),
-          to: toDate.toISOString()
-        } 
+          to: toDate.toISOString(),
+        },
       },
       {
         headers: {
           Authorization: `Bearer ${env.GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
 
     const user = response.data?.data?.user
@@ -81,7 +81,7 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
     // streak helper (which skips a zero-count today instead of resetting to 0).
     const days = calendar.weeks.flatMap(
       (w: { contributionDays: { contributionCount: number; date: string }[] }) =>
-        w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
+        w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount })),
     )
 
     const currentStreak = computeCurrentStreak(days)
@@ -99,7 +99,7 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   try {
     const userRes = await axios.get(
       `https://api.github.com/users/${encodeURIComponent(username)}`,
-      { headers, timeout: 5000 }
+      { headers, timeout: 5000 },
     )
     return {
       name: userRes.data.name || userRes.data.login,
@@ -116,8 +116,9 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
 
 function buildSvg(data: BadgeData): string {
   const { name, totalContributions, currentStreak } = data
-  const safeName = name.replace(/[<>&"]/g, (c) =>
-    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c] || c)
+  const safeName = name.replace(
+    /[<>&"]/g,
+    (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c] || c,
   )
 
   return `<svg width="420" height="130" viewBox="0 0 420 130" xmlns="http://www.w3.org/2000/svg">
@@ -176,13 +177,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const cacheKey = `badge:${username.toLowerCase()}`
   const notFoundKey = `badge:404:${username.toLowerCase()}`
-  
+
   let data = await getCached<BadgeData>(cacheKey)
 
   if (!data) {
     // Short-circuit known-missing usernames so repeated requests for the same
     // invalid user don't keep hitting GitHub.
-    
+
     // FIXED: Added await here
     if (await getCached<boolean>(notFoundKey)) {
       return res.status(404).send('User not found')
@@ -195,7 +196,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).send('User not found')
       }
       data = fetched
-      
+
       // Added await so the cache write completes before the serverless function exits.
       await setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
     } catch (error) {

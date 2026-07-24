@@ -6,11 +6,11 @@ This guide explains how developer metrics and achievements are calculated within
 
 We track three primary statistics to award gamified achievement tiers:
 
-| Achievement Track | Milestone Milestones | Formula |
-| :--- | :--- | :--- |
+| Achievement Track       | Milestone Milestones                  | Formula                                                                                     |
+| :---------------------- | :------------------------------------ | :------------------------------------------------------------------------------------------ |
 | **Total Contributions** | `[100, 500, 1000, 2500, 5000, 10000]` | Total sum of all commits, issue requests, PRs, and review submissions in the last 365 days. |
-| **Current Streak** | `[7, 30, 100, 365]` | Total number of consecutive days with at least one contribution. |
-| **Pull Requests** | `[1, 10, 50, 100, 250]` | Total PR count submitted to public repositories. |
+| **Current Streak**      | `[7, 30, 100, 365]`                   | Total number of consecutive days with at least one contribution.                            |
+| **Pull Requests**       | `[1, 10, 50, 100, 250]`               | Total PR count submitted to public repositories.                                            |
 
 ## 2. Productivity Index
 

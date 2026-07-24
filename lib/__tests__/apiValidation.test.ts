@@ -16,7 +16,9 @@ describe('exportUserDataSchema', () => {
   })
 
   it('rejects non-array repos', () => {
-    expect(exportUserDataSchema.safeParse({ user: { login: 'x' }, repos: 'nope' }).success).toBe(false)
+    expect(exportUserDataSchema.safeParse({ user: { login: 'x' }, repos: 'nope' }).success).toBe(
+      false,
+    )
   })
 
   it('rejects a null or empty body', () => {

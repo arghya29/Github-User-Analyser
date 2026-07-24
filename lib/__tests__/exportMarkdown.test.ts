@@ -70,7 +70,7 @@ describe('formatAsMarkdown', () => {
             html_url: 'https://github.com/octocat/weird',
           },
         ],
-      })
+      }),
     )
     expect(md).toContain('has \\| a pipe')
     expect(md).not.toContain('has | a pipe')
@@ -90,7 +90,7 @@ describe('formatAsMarkdown', () => {
             html_url: 'https://github.com/octocat/weird',
           },
         ],
-      })
+      }),
     )
     // Backslash is escaped first (\ -> \\), then the pipe (| -> \|), giving three
     // backslashes before the pipe. The pipe is therefore preceded by an even number

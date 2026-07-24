@@ -159,7 +159,7 @@ function backoffDelayMs(
   attempt: number,
   baseDelayMs: number,
   maxDelayMs: number,
-  random: () => number
+  random: () => number,
 ): number {
   const exp = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1))
   return Math.round(exp / 2 + random() * (exp / 2))

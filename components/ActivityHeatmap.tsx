@@ -35,7 +35,7 @@ function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const max = Math.max(
     0,
     // FIXED 1: Changed day.contributionCount to day.count
-    ...weeks.flatMap((week) => week.contributionDays.map((day) => day.count))
+    ...weeks.flatMap((week) => week.contributionDays.map((day) => day.count)),
   )
 
   // Show month label only on first week that contains a day from that month

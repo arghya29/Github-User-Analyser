@@ -51,7 +51,7 @@ export default function ComparePage({ user1, user2, invalidReason, og }: Compare
   //    result would render beneath the new query string. Tagging the data with its pair makes that
   //    impossible: it simply stops matching.
   const [result, setResult] = useState<{ pair: string; userA: UserData; userB: UserData } | null>(
-    null
+    null,
   )
   const [failure, setFailure] = useState<{ pair: string; message: string } | null>(null)
 

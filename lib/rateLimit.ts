@@ -23,9 +23,7 @@ export function getClientIp(req: NextApiRequest): string {
   }
 
   const forwarded = req.headers['x-forwarded-for']
-  const forwardedValue = Array.isArray(forwarded)
-    ? forwarded[forwarded.length - 1]
-    : forwarded
+  const forwardedValue = Array.isArray(forwarded) ? forwarded[forwarded.length - 1] : forwarded
   if (typeof forwardedValue === 'string' && forwardedValue.length > 0) {
     const hops = forwardedValue
       .split(',')

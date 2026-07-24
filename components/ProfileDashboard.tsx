@@ -109,8 +109,8 @@ export default function ProfileDashboard({ data }: ProfileDashboardProps) {
           ) : (
             <div className="mt-6 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 text-center">
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Engagement, productivity, and achievement stats require server-side GraphQL access (a
-                configured GITHUB_TOKEN) or are temporarily unavailable.
+                Engagement, productivity, and achievement stats require server-side GraphQL access
+                (a configured GITHUB_TOKEN) or are temporarily unavailable.
               </p>
             </div>
           )}

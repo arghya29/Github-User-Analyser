@@ -86,7 +86,8 @@ function UserCard({ user }: UserCardProps) {
               )}
               {user.location && (
                 <p>
-                  <span className="text-gray-500 dark:text-gray-500">Location:</span> {user.location}
+                  <span className="text-gray-500 dark:text-gray-500">Location:</span>{' '}
+                  {user.location}
                 </p>
               )}
               {user.blog && (

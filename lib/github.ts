@@ -13,7 +13,7 @@ export async function fetchUserData(username: string): Promise<UserData> {
   // — this is what lets compare mode surface per-user error messages.
   const response = await axios.get<UserData>(
     `/api/github?username=${encodeURIComponent(username)}`,
-    { validateStatus: () => true }
+    { validateStatus: () => true },
   )
   return response.data
 }

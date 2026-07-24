@@ -70,7 +70,7 @@ describe('classifyError', () => {
       httpError(403, {
         'x-ratelimit-remaining': '0',
         'x-ratelimit-reset': String(resetInFiveSeconds),
-      })
+      }),
     )
     expect(result.retryable).toBe(true)
     expect(result.retryAfterMs).toBeGreaterThan(3000)
@@ -83,7 +83,7 @@ describe('classifyError', () => {
       httpError(429, {
         'x-ratelimit-remaining': '0',
         'x-ratelimit-reset': String(resetInThePast),
-      })
+      }),
     )
     expect(result.retryable).toBe(false)
   })
@@ -98,10 +98,7 @@ describe('withRetry', () => {
 
   it('retries a transient failure and then succeeds', async () => {
     const { sleep, delays } = fakeSleeper()
-    const fn = jest
-      .fn()
-      .mockRejectedValueOnce(httpError(503))
-      .mockResolvedValue('recovered')
+    const fn = jest.fn().mockRejectedValueOnce(httpError(503)).mockResolvedValue('recovered')
 
     await expect(withRetry(fn, { sleep, random: noJitter })).resolves.toBe('recovered')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -147,7 +144,7 @@ describe('withRetry', () => {
         maxAttempts: 4,
         baseDelayMs: 100,
         maxDelayMs: 250,
-      })
+      }),
     ).rejects.toBeDefined()
 
     // base=100 → 100, 200, then capped at 250 (not 400).
@@ -165,7 +162,7 @@ describe('withRetry', () => {
         random: () => 0, // bottom of the window
         maxAttempts: 2,
         baseDelayMs: 400,
-      })
+      }),
     ).rejects.toBeDefined()
 
     // Even at random()=0 we still wait half the window — never ~0ms.

@@ -12,10 +12,7 @@ interface ReadmeResponse {
 
 const README_CACHE_TTL_MS = 10 * 60 * 1000 // READMEs change rarely, cache longer than profile data
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ReadmeResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ReadmeResponse>) {
   const { owner: rawOwner, repo: rawRepo } = req.query
 
   if (!rawOwner || !rawRepo || typeof rawOwner !== 'string' || typeof rawRepo !== 'string') {
@@ -28,7 +25,9 @@ export default async function handler(
     owner = sanitizeUsername(rawOwner)
     repo = sanitizeRepoName(rawRepo)
   } catch {
-    return res.status(400).json({ content: null, error: 'Invalid owner or repository name query format.' })
+    return res
+      .status(400)
+      .json({ content: null, error: 'Invalid owner or repository name query format.' })
   }
 
   const cacheKey = `readme:${owner}/${repo}`
@@ -46,9 +45,12 @@ export default async function handler(
   }
 
   try {
-    const response = await axios.get(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`, {
-      headers,
-    })
+    const response = await axios.get(
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`,
+      {
+        headers,
+      },
+    )
 
     const base64Content = response.data.content as string
     const decoded = Buffer.from(base64Content, 'base64').toString('utf-8')
@@ -71,7 +73,9 @@ export default async function handler(
     const rateLimitStatus = error.response?.status
     if (rateLimitStatus === 403 || rateLimitStatus === 429) {
       logWarn('api/readme', 'GitHub rate limit reached', { owner, repo, status: rateLimitStatus })
-      return res.status(rateLimitStatus).json({ content: null, error: 'GitHub API rate limit reached' })
+      return res
+        .status(rateLimitStatus)
+        .json({ content: null, error: 'GitHub API rate limit reached' })
     }
     logError('api/readme', error, { owner, repo, status: error.response?.status })
     return res.status(500).json({ content: null, error: 'Failed to fetch README' })

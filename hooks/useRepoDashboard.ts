@@ -51,7 +51,7 @@ export function useRepoDashboard(data: UserData) {
 
   const displayedRepos = useMemo(
     () => filterAndSortRepos(repos, sortBy, languageFilter, debouncedQuery),
-    [repos, sortBy, languageFilter, debouncedQuery]
+    [repos, sortBy, languageFilter, debouncedQuery],
   )
 
   return {

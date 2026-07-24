@@ -2,11 +2,7 @@ import type { UserData } from '@/types/github'
 
 /** Selectable sections of a profile export. */
 export type ExportSection =
-  | 'profile'
-  | 'repositories'
-  | 'contributions'
-  | 'engagement'
-  | 'productivity'
+  'profile' | 'repositories' | 'contributions' | 'engagement' | 'productivity'
 
 /** All sections, in the canonical output order. */
 export const ALL_EXPORT_SECTIONS: ExportSection[] = [
@@ -24,7 +20,7 @@ export const ALL_EXPORT_SECTIONS: ExportSection[] = [
  */
 export function formatAsJSON(
   userData: UserData,
-  sections: ExportSection[] = ALL_EXPORT_SECTIONS
+  sections: ExportSection[] = ALL_EXPORT_SECTIONS,
 ): string {
   const include = new Set(sections)
   const out: Record<string, unknown> = {}
@@ -64,11 +60,7 @@ export function formatAsJSON(
 /** Escapes a value for use inside a Markdown table cell: pipes are escaped and
  *  newlines collapsed so a value can never break the table row. */
 function escapeMarkdownCell(value: string | null | undefined): string {
-  return (value ?? '')
-    .replace(/\\/g, '\\\\')
-    .replace(/\|/g, '\\|')
-    .replace(/\r?\n/g, ' ')
-    .trim()
+  return (value ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ').trim()
 }
 
 /**
@@ -89,7 +81,7 @@ export function formatAsMarkdown(userData: UserData): string {
 
   const totalStars = (userData.repos || []).reduce(
     (sum, repo) => sum + (repo.stargazers_count || 0),
-    0
+    0,
   )
 
   lines.push('## Stats')
@@ -116,7 +108,7 @@ export function formatAsMarkdown(userData: UserData): string {
       const name = escapeMarkdownCell(repo.name)
       const linked = repo.html_url ? `[${name}](${repo.html_url})` : name
       lines.push(
-        `| ${linked} | ${repo.stargazers_count || 0} | ${escapeMarkdownCell(repo.language) || '—'} | ${escapeMarkdownCell(repo.description) || '—'} |`
+        `| ${linked} | ${repo.stargazers_count || 0} | ${escapeMarkdownCell(repo.language) || '—'} | ${escapeMarkdownCell(repo.description) || '—'} |`,
       )
     }
     lines.push('')

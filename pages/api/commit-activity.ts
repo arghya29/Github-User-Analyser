@@ -11,7 +11,7 @@ interface ErrorResponse {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<CodeFrequency[] | ErrorResponse>
+  res: NextApiResponse<CodeFrequency[] | ErrorResponse>,
 ) {
   const { owner, repo } = req.query
 
@@ -29,7 +29,7 @@ export default async function handler(
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     )
 
     if (response.status === 404) {
@@ -42,7 +42,9 @@ export default async function handler(
       return res.status(200).json([])
     }
     if (response.status !== 200 || !Array.isArray(response.data)) {
-      return res.status(500).json({ error: 'Failed to fetch commit activity', errorType: 'unknown' })
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch commit activity', errorType: 'unknown' })
     }
 
     const raw = response.data as [number, number, number][]

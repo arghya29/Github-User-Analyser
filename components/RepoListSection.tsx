@@ -65,11 +65,7 @@ export default function RepoListSection({
             {displayedRepos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayedRepos.map((repo) => (
-                  <RepositoryCard
-                    key={repo.name}
-                    repo={repo}
-                    onSelect={onRepoClick}
-                  />
+                  <RepositoryCard key={repo.name} repo={repo} onSelect={onRepoClick} />
                 ))}
               </div>
             ) : (

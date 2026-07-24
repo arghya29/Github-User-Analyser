@@ -40,7 +40,8 @@ export default function AchievementsPanel({
       value: totalContributions,
       milestones: [100, 500, 1000, 2500, 5000, 10000],
       unit: 'contributions',
-      description: 'Your cumulative volume of commits, issues, and reviews submitted across public projects.',
+      description:
+        'Your cumulative volume of commits, issues, and reviews submitted across public projects.',
       color: 'from-blue-500 to-indigo-600 text-white',
       icon: '🏆',
     },
@@ -49,7 +50,8 @@ export default function AchievementsPanel({
       value: currentStreak,
       milestones: [7, 30, 100, 365],
       unit: 'days',
-      description: 'Consecutive days of project activity. Consistency is the hallmark of great developers!',
+      description:
+        'Consecutive days of project activity. Consistency is the hallmark of great developers!',
       color: 'from-orange-500 to-red-600 text-white',
       icon: '🔥',
     },
@@ -58,7 +60,8 @@ export default function AchievementsPanel({
       value: totalPullRequests,
       milestones: [1, 10, 50, 100, 250],
       unit: 'PRs',
-      description: 'Merge request submissions. Building bridges, fixing bugs, and writing collaborative code.',
+      description:
+        'Merge request submissions. Building bridges, fixing bugs, and writing collaborative code.',
       color: 'from-emerald-500 to-teal-600 text-white',
       icon: '🚀',
     },
@@ -69,7 +72,10 @@ export default function AchievementsPanel({
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Achievements</h3>
       <div className="space-y-5">
         {achievements.map((item) => {
-          const { completedCount, totalCount, next, progress } = getMilestoneProgress(item.value, item.milestones)
+          const { completedCount, totalCount, next, progress } = getMilestoneProgress(
+            item.value,
+            item.milestones,
+          )
           const level = completedCount
           return (
             <div
@@ -79,11 +85,15 @@ export default function AchievementsPanel({
             >
               <div className="flex justify-between items-center mb-1.5">
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base bg-gradient-to-br ${item.color} shadow-sm group-hover:scale-110 transition-transform`}>
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-base bg-gradient-to-br ${item.color} shadow-sm group-hover:scale-110 transition-transform`}
+                  >
                     <span>{item.icon}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{item.label}</span>
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {item.label}
+                    </span>
                     <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                       Lvl {level}
                     </span>
@@ -93,13 +103,22 @@ export default function AchievementsPanel({
                   {completedCount}/{totalCount}
                 </span>
               </div>
-              
+
               <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-slate-600 overflow-hidden mb-1">
-                <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                <div
+                  className="bg-blue-500 h-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
               <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                <span>{item.value.toLocaleString()} {item.unit}</span>
-                {next !== null && <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400 text-[10px] font-medium">Click to details →</span>}
+                <span>
+                  {item.value.toLocaleString()} {item.unit}
+                </span>
+                {next !== null && (
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400 text-[10px] font-medium">
+                    Click to details →
+                  </span>
+                )}
               </div>
             </div>
           )
@@ -107,8 +126,11 @@ export default function AchievementsPanel({
       </div>
 
       {activeAchievement && (
-        <AchievementsCardDetail achievement={activeAchievement} onClose={() => setActiveAchievement(null)} />
+        <AchievementsCardDetail
+          achievement={activeAchievement}
+          onClose={() => setActiveAchievement(null)}
+        />
       )}
     </div>
   )
-}
+}

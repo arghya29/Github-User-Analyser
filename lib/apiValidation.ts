@@ -24,7 +24,7 @@ export function respondInvalid(res: NextApiResponse, error: z.ZodError): void {
 export function validateRequest<T>(
   res: NextApiResponse,
   schema: z.ZodType<T>,
-  data: unknown
+  data: unknown,
 ): T | null {
   const result = schema.safeParse(data)
   if (!result.success) {

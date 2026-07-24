@@ -37,13 +37,10 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
     return summaries.reduce((a, b) => (a.score < b.score ? a : b))
   }, [summaries])
 
-  const missingLicense = useMemo(
-    () => summaries.filter((s) => !s.hasLicense).length,
-    [summaries]
-  )
+  const missingLicense = useMemo(() => summaries.filter((s) => !s.hasLicense).length, [summaries])
   const missingDescription = useMemo(
     () => summaries.filter((s) => !s.hasDescription).length,
-    [summaries]
+    [summaries],
   )
 
   const [filterLanguage, setFilterLanguage] = useState<string>('')
@@ -87,7 +84,9 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between mb-4"
       >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Repository Health Dashboard</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          Repository Health Dashboard
+        </h2>
         <span className="text-xs text-gray-400">{collapsed ? 'Expand' : 'Collapse'}</span>
       </button>
 
@@ -100,15 +99,21 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Average Health</div>
             </div>
             <div className="bg-gray-100 dark:bg-slate-600/50 rounded-lg p-4 flex-1 min-w-[120px] text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{distribution.excellent}</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {distribution.excellent}
+              </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Excellent</div>
             </div>
             <div className="bg-gray-100 dark:bg-slate-600/50 rounded-lg p-4 flex-1 min-w-[120px] text-center">
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{missingLicense}</div>
+              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                {missingLicense}
+              </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Missing License</div>
             </div>
             <div className="bg-gray-100 dark:bg-slate-600/50 rounded-lg p-4 flex-1 min-w-[120px] text-center">
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{missingDescription}</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {missingDescription}
+              </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">No Description</div>
             </div>
           </div>
@@ -149,7 +154,9 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {best && (
               <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase mb-1">Best</p>
+                <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase mb-1">
+                  Best
+                </p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{best.repoName}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Score: {best.score}/100 — {best.label}
@@ -158,8 +165,12 @@ export default function RepoHealthDashboard({ repos }: RepoHealthDashboardProps)
             )}
             {worst && worst.repoName !== best?.repoName && (
               <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase mb-1">Needs Attention</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{worst.repoName}</p>
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase mb-1">
+                  Needs Attention
+                </p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {worst.repoName}
+                </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Score: {worst.score}/100 — {worst.label}
                 </p>

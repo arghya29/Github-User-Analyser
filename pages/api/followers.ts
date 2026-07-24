@@ -11,7 +11,7 @@ interface ErrorResponse {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<FollowerUser[] | ErrorResponse>
+  res: NextApiResponse<FollowerUser[] | ErrorResponse>,
 ) {
   const { username, type } = req.query
 
@@ -32,7 +32,7 @@ export default async function handler(
         },
         params: { per_page: 100 },
         validateStatus: () => true,
-      }
+      },
     )
 
     if (response.status === 404) {

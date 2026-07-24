@@ -114,7 +114,9 @@ describe('computeHealthScore — license and documentation', () => {
   })
 
   it('awards 15 for documentation when a non-empty description is present', () => {
-    expect(computeHealthScore(makeRepo({ description: 'A useful tool' })).breakdown.documentation).toBe(15)
+    expect(
+      computeHealthScore(makeRepo({ description: 'A useful tool' })).breakdown.documentation,
+    ).toBe(15)
   })
 
   it('awards 0 for documentation when the description is empty', () => {

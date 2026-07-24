@@ -19,7 +19,11 @@ function resolveImageSrc(src: string | undefined, owner: string, repoName: strin
   return `https://raw.githubusercontent.com/${owner}/${repoName}/HEAD/${cleanPath}`
 }
 
-function resolveLinkHref(href: string | undefined, owner: string, repoName: string): string | undefined {
+function resolveLinkHref(
+  href: string | undefined,
+  owner: string,
+  repoName: string,
+): string | undefined {
   if (!href) return href
   // Leave absolute URLs (any scheme: http(s), mailto:, tel:, …), protocol-relative
   // URLs, and in-page anchors (#section) untouched. Everything else is a relative
@@ -56,19 +60,34 @@ function createComponents(owner: string, repoName: string): Components {
       />
     ),
     ul: ({ ...props }) => (
-      <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-3 space-y-1" {...props} />
+      <ul
+        className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-3 space-y-1"
+        {...props}
+      />
     ),
     ol: ({ ...props }) => (
-      <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 mb-3 space-y-1" {...props} />
+      <ol
+        className="list-decimal list-inside text-gray-700 dark:text-gray-300 mb-3 space-y-1"
+        {...props}
+      />
     ),
     code: ({ ...props }) => (
-      <code className="bg-gray-100 dark:bg-slate-700 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded text-sm" {...props} />
+      <code
+        className="bg-gray-100 dark:bg-slate-700 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded text-sm"
+        {...props}
+      />
     ),
     pre: ({ ...props }) => (
-      <pre className="bg-gray-100 dark:bg-slate-700 rounded p-4 overflow-x-auto mb-3 text-sm" {...props} />
+      <pre
+        className="bg-gray-100 dark:bg-slate-700 rounded p-4 overflow-x-auto mb-3 text-sm"
+        {...props}
+      />
     ),
     blockquote: ({ ...props }) => (
-      <blockquote className="border-l-4 border-gray-300 dark:border-slate-600 pl-4 italic text-gray-600 dark:text-gray-400 mb-3" {...props} />
+      <blockquote
+        className="border-l-4 border-gray-300 dark:border-slate-600 pl-4 italic text-gray-600 dark:text-gray-400 mb-3"
+        {...props}
+      />
     ),
     strong: ({ ...props }) => (
       <strong className="font-semibold text-gray-900 dark:text-white" {...props} />
@@ -90,13 +109,22 @@ function createComponents(owner: string, repoName: string): Components {
       )
     },
     table: ({ ...props }) => (
-      <table className="w-full text-sm border border-gray-200 dark:border-slate-600 mb-3" {...props} />
+      <table
+        className="w-full text-sm border border-gray-200 dark:border-slate-600 mb-3"
+        {...props}
+      />
     ),
     th: ({ ...props }) => (
-      <th className="border border-gray-200 dark:border-slate-600 bg-gray-100 dark:bg-slate-700 px-2 py-1 text-left text-gray-900 dark:text-white" {...props} />
+      <th
+        className="border border-gray-200 dark:border-slate-600 bg-gray-100 dark:bg-slate-700 px-2 py-1 text-left text-gray-900 dark:text-white"
+        {...props}
+      />
     ),
     td: ({ ...props }) => (
-      <td className="border border-gray-200 dark:border-slate-600 px-2 py-1 text-gray-700 dark:text-gray-300" {...props} />
+      <td
+        className="border border-gray-200 dark:border-slate-600 px-2 py-1 text-gray-700 dark:text-gray-300"
+        {...props}
+      />
     ),
   }
 }

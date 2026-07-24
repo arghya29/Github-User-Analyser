@@ -60,8 +60,8 @@ describe('formatAsJSON', () => {
           contributions: null,
           engagement: null,
           productivity: null,
-        })
-      )
+        }),
+      ),
     )
     expect(parsed.totalContributions).toBe(0)
     expect(parsed.engagement).toBeNull()

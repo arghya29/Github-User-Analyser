@@ -54,13 +54,12 @@ const round1 = (n: number) => Math.round(n * 10) / 10
  */
 export function computeContributionTrend(
   monthlyTotals: ProductivityStats['monthlyTotals'] | undefined,
-  options: { excludeCurrentMonth?: boolean } = {}
+  options: { excludeCurrentMonth?: boolean } = {},
 ): ContributionTrend | null {
   const { excludeCurrentMonth = true } = options
   const totals = Array.isArray(monthlyTotals) ? monthlyTotals : []
 
-  const series =
-    excludeCurrentMonth && totals.length >= 4 ? totals.slice(0, -1) : totals
+  const series = excludeCurrentMonth && totals.length >= 4 ? totals.slice(0, -1) : totals
 
   const n = series.length
   const window = Math.min(MAX_TREND_WINDOW, Math.floor(n / 2))
@@ -109,7 +108,7 @@ export function computeContributionTrend(
  */
 export function computeLanguageProfile(
   repos: Repository[] | undefined,
-  options: { now?: Date; recentDays?: number } = {}
+  options: { now?: Date; recentDays?: number } = {},
 ): LanguageProfile {
   const now = options.now ?? new Date()
   const recentDays = options.recentDays ?? RECENT_REPO_DAYS

@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import type { UserData } from '@/types/github'
-import { formatAsJSON, formatAsMarkdown, ALL_EXPORT_SECTIONS, type ExportSection } from '@/lib/exportDataFormatter'
+import {
+  formatAsJSON,
+  formatAsMarkdown,
+  ALL_EXPORT_SECTIONS,
+  type ExportSection,
+} from '@/lib/exportDataFormatter'
 
 const SECTION_LABELS: Record<ExportSection, string> = {
   profile: 'Profile',
@@ -22,12 +27,11 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
   const [csvError, setCsvError] = useState('')
   const [jsonError, setJsonError] = useState('')
   const [mdError, setMdError] = useState('')
-  const [selectedSections, setSelectedSections] =
-    useState<ExportSection[]>(ALL_EXPORT_SECTIONS)
+  const [selectedSections, setSelectedSections] = useState<ExportSection[]>(ALL_EXPORT_SECTIONS)
 
   const toggleSection = (section: ExportSection) => {
     setSelectedSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section],
     )
   }
   const [showBadge, setShowBadge] = useState(false)
@@ -193,7 +197,8 @@ export default function ExportPanel({ userData }: ExportButtonProps) {
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6">
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Export & Share</h3>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-        Download a resume PDF of this profile, export repository lists as CSV, or obtain complete JSON metadata.
+        Download a resume PDF of this profile, export repository lists as CSV, or obtain complete
+        JSON metadata.
       </p>
 
       <div className="flex flex-wrap items-start gap-3">

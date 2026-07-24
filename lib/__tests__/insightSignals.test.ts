@@ -101,7 +101,7 @@ describe('computeLanguageProfile', () => {
           ],
         }),
       ],
-      { now }
+      { now },
     )
     expect(profile.primaryLanguage).toBe('TypeScript')
     expect(profile.primaryLanguageSharePct).toBe(80)
@@ -120,7 +120,7 @@ describe('computeLanguageProfile', () => {
           ],
         }),
       ],
-      { now }
+      { now },
     )
     expect(profile.primaryLanguage).toBe('Go')
     expect(profile.secondaryLanguages).not.toContain('Makefile')
@@ -132,7 +132,7 @@ describe('computeLanguageProfile', () => {
         repo({ updated_at: recently, languages: [{ name: 'Rust', bytes: 100 }] }),
         repo({ updated_at: longAgo, languages: [{ name: 'PHP', bytes: 100 }] }),
       ],
-      { now }
+      { now },
     )
     expect(profile.recentLanguages).toContain('Rust')
     expect(profile.recentLanguages).not.toContain('PHP')
@@ -147,7 +147,7 @@ describe('computeLanguageProfile', () => {
         repo({ language: 'Python', updated_at: longAgo, languages: undefined }),
         repo({ language: 'Ruby', updated_at: longAgo, languages: undefined }),
       ],
-      { now }
+      { now },
     )
     expect(profile.primaryLanguage).toBe('Python')
     expect(profile.languageCount).toBe(2)
@@ -157,7 +157,7 @@ describe('computeLanguageProfile', () => {
   it('ignores repos with no language information', () => {
     const profile = computeLanguageProfile(
       [repo({ language: '', updated_at: recently, languages: [] })],
-      { now }
+      { now },
     )
     expect(profile.languageCount).toBe(0)
     expect(profile.primaryLanguage).toBeNull()

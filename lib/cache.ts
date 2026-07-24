@@ -14,7 +14,7 @@ const redis =
 
 export async function getCached<T>(key: string): Promise<T | null> {
   if (!redis) return null
-  
+
   try {
     return await redis.get<T>(key)
   } catch (error) {
@@ -26,7 +26,7 @@ export async function getCached<T>(key: string): Promise<T | null> {
 
 export async function setCached<T>(key: string, value: T, ttlMs: number): Promise<void> {
   if (!redis) return
-  
+
   try {
     // 'px' tells Redis to expire the key after ttlMs (milliseconds)
     await redis.set(key, value, { px: ttlMs })
@@ -83,11 +83,10 @@ export async function invalidatePrefix(prefix: string): Promise<number> {
   return deleted
 }
 
-
 export async function getCachedWithFallback<T>(
   key: string,
   ttlMs: number,
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
 ): Promise<T> {
   // 1. Try hitting the Redis cache first
   const cached = await getCached<T>(key)
@@ -95,11 +94,11 @@ export async function getCachedWithFallback<T>(
 
   // 2. Cache miss: fetch the fresh data from the source
   const fresh = await fetcher()
-  
+
   // 3. Fire-and-forget the cache update in the background
   // We don't await this so it doesn't block returning the response to the user
   setCached(key, fresh, ttlMs)
-  
+
   return fresh
 }
 
@@ -121,7 +120,7 @@ interface SwrEnvelope<T> {
 export async function getCachedSWR<T>(
   key: string,
   opts: { staleMs: number; revalidateMs?: number },
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
 ): Promise<T> {
   const revalidateMs = opts.revalidateMs ?? opts.staleMs
   const totalTtlMs = opts.staleMs + revalidateMs

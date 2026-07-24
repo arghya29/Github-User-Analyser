@@ -45,7 +45,9 @@ export function computeLanguageDashboardStats(repos: Repository[]): LanguageDash
 export function getRepoLanguageBreakdown(repo: Repository): LanguageRepoEntry['languages'] {
   if (!repo.languages || repo.languages.length === 0) {
     if (repo.language) {
-      return [{ name: repo.language, bytes: 0, percentage: 100, color: getLanguageColor(repo.language) }]
+      return [
+        { name: repo.language, bytes: 0, percentage: 100, color: getLanguageColor(repo.language) },
+      ]
     }
     return []
   }

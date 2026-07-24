@@ -27,7 +27,7 @@ export default function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  if (!visible) return null;
+  if (!visible) return null
 
   return (
     <button
@@ -49,5 +49,5 @@ export default function ScrollToTop() {
         />
       </svg>
     </button>
-  );
+  )
 }

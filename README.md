@@ -66,17 +66,20 @@ A full-stack GitHub analytics dashboard. Search any GitHub user to see their pro
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd github-user-analyzer
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables (see below), then run the development server:
+
 ```bash
 npm run dev
 ```
@@ -92,8 +95,8 @@ GITHUB_TOKEN=your_github_personal_access_token
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-- **`GITHUB_TOKEN`** *(recommended)* — a free [GitHub personal access token](https://github.com/settings/tokens) (classic, no scopes needed) raises your rate limit from 60 to 5,000 requests/hour and unlocks the GraphQL-powered features: engagement stats, productivity panel, achievements, activity heatmap, and byte-accurate language distribution. Without it, the app still works with basic profile and repo data.
-- **`GEMINI_API_KEY`** *(optional)* — a free key from [Google AI Studio](https://aistudio.google.com/app/apikey), needed only for the AI Insights (bio generator / Roast or Toast) feature.
+- **`GITHUB_TOKEN`** _(recommended)_ — a free [GitHub personal access token](https://github.com/settings/tokens) (classic, no scopes needed) raises your rate limit from 60 to 5,000 requests/hour and unlocks the GraphQL-powered features: engagement stats, productivity panel, achievements, activity heatmap, and byte-accurate language distribution. Without it, the app still works with basic profile and repo data.
+- **`GEMINI_API_KEY`** _(optional)_ — a free key from [Google AI Studio](https://aistudio.google.com/app/apikey), needed only for the AI Insights (bio generator / Roast or Toast) feature.
 
 ## Documentation & Guides
 
@@ -174,10 +177,20 @@ github-user-analyzer/
 Fetches a user's profile, repositories, contribution calendar, engagement stats, and productivity stats. Uses GitHub's GraphQL API when `GITHUB_TOKEN` is set (richer data, single round trip), falling back to REST otherwise.
 
 **Response:**
+
 ```json
 {
-  "user": { "login": "...", "name": "...", "followers": 100, "..." : "..." },
-  "repos": [{ "name": "...", "stargazers_count": 10, "watchers_count": 3, "open_issues_count": 1, "license": "MIT", "languages": [{ "name": "TypeScript", "bytes": 1200 }] }],
+  "user": { "login": "...", "name": "...", "followers": 100, "...": "..." },
+  "repos": [
+    {
+      "name": "...",
+      "stargazers_count": 10,
+      "watchers_count": 3,
+      "open_issues_count": 1,
+      "license": "MIT",
+      "languages": [{ "name": "TypeScript", "bytes": 1200 }]
+    }
+  ],
   "contributions": { "totalContributions": 928, "weeks": [/* ... */] },
   "engagement": { "totalCommitContributions": 77, "totalPullRequestContributions": 18 },
   "productivity": { "currentStreak": 11, "longestStreak": 13, "monthlyTotals": [/* ... */] }

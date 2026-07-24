@@ -10,7 +10,7 @@ export function filterAndSortRepos(
   repos: Repository[],
   sortBy: SortOption,
   languageFilter: string[],
-  repoQuery: string
+  repoQuery: string,
 ): Repository[] {
   let filtered = repos
   if (languageFilter.length > 0) {

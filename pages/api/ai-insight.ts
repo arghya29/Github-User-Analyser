@@ -64,7 +64,10 @@ function isAiInsightRequestBody(body: unknown): body is AiInsightRequestBody {
   if (data.bio !== undefined && typeof data.bio !== 'string') {
     return false
   }
-  if (!Array.isArray(data.topLanguages) || !data.topLanguages.every((item) => typeof item === 'string')) {
+  if (
+    !Array.isArray(data.topLanguages) ||
+    !data.topLanguages.every((item) => typeof item === 'string')
+  ) {
     return false
   }
   if (
@@ -75,7 +78,7 @@ function isAiInsightRequestBody(body: unknown): body is AiInsightRequestBody {
         typeof repo === 'object' &&
         typeof (repo as Record<string, unknown>).name === 'string' &&
         typeof (repo as Record<string, unknown>).description === 'string' &&
-        typeof (repo as Record<string, unknown>).stars === 'number'
+        typeof (repo as Record<string, unknown>).stars === 'number',
     )
   ) {
     return false
@@ -165,9 +168,18 @@ export function buildPrompt(body: AiInsightRequestBody): string {
       ? body.topRepos
           .map((r) => {
             const repo = r as Record<string, unknown>
-            const name = typeof repo['name'] === 'string' ? (repo['name'] as string) : String(repo['name'] ?? 'unknown')
-            const stars = typeof repo['stars'] === 'number' ? (repo['stars'] as number) : Number(repo['stars'] as unknown) || 0
-            const desc = typeof repo['description'] === 'string' ? (repo['description'] as string) : String(repo['description'] ?? 'no description')
+            const name =
+              typeof repo['name'] === 'string'
+                ? (repo['name'] as string)
+                : String(repo['name'] ?? 'unknown')
+            const stars =
+              typeof repo['stars'] === 'number'
+                ? (repo['stars'] as number)
+                : Number(repo['stars'] as unknown) || 0
+            const desc =
+              typeof repo['description'] === 'string'
+                ? (repo['description'] as string)
+                : String(repo['description'] ?? 'no description')
             return `- ${name} (${stars} stars): ${desc}`
           })
           .join('\n')
@@ -232,9 +244,10 @@ Language profile: ${languageLine}
     const tone = typeof body.tone === 'string' ? body.tone : undefined
     const bioLength = body.length === 'Detailed' ? 'Detailed' : 'Short'
     const toneInstruction = tone ? `Tone: ${tone}.` : 'Tone: Confident, engaging, and professional.'
-    const lengthInstruction = bioLength === 'Detailed'
-      ? 'Write a rich, detailed 4-6 sentence paragraph'
-      : 'Write 3-4 impactful sentences'
+    const lengthInstruction =
+      bioLength === 'Detailed'
+        ? 'Write a rich, detailed 4-6 sentence paragraph'
+        : 'Write 3-4 impactful sentences'
 
     return `You are an expert tech recruiter and developer advocate writing a highly personalized bio for a developer's GitHub README. Based on the data below, ${lengthInstruction.toLowerCase()} that captures the true depth of their profile.
 
@@ -342,7 +355,7 @@ const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AiInsightResponse>
+  res: NextApiResponse<AiInsightResponse>,
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ text: null, error: 'Method not allowed' })
@@ -351,7 +364,10 @@ export default async function handler(
   if (!env.GEMINI_API_KEY) {
     return res
       .status(503)
-      .json({ text: null, error: 'AI insights are not configured on this server (missing GEMINI_API_KEY)' })
+      .json({
+        text: null,
+        error: 'AI insights are not configured on this server (missing GEMINI_API_KEY)',
+      })
   }
 
   const clientIp = getClientIp(req)
@@ -392,29 +408,47 @@ export default async function handler(
       username: sanitizedUsername,
       bio: typeof rawBody.bio === 'string' ? rawBody.bio : undefined,
       topLanguages: Array.isArray(rawBody.topLanguages)
-        ? rawBody.topLanguages.filter((l) => typeof l === 'string') as string[]
+        ? (rawBody.topLanguages.filter((l) => typeof l === 'string') as string[])
         : [],
       topRepos: Array.isArray(rawBody.topRepos)
         ? rawBody.topRepos.map((r) => {
             const repo = r as Record<string, unknown>
             return {
-              name: typeof repo.name === 'string' ? (repo.name as string) : String(repo.name ?? 'unknown'),
-              description: typeof repo.description === 'string' ? (repo.description as string) : String(repo.description ?? ''),
-              stars: typeof repo.stars === 'number' ? (repo.stars as number) : Number(repo.stars as unknown) || 0,
+              name:
+                typeof repo.name === 'string'
+                  ? (repo.name as string)
+                  : String(repo.name ?? 'unknown'),
+              description:
+                typeof repo.description === 'string'
+                  ? (repo.description as string)
+                  : String(repo.description ?? ''),
+              stars:
+                typeof repo.stars === 'number'
+                  ? (repo.stars as number)
+                  : Number(repo.stars as unknown) || 0,
             }
           })
         : [],
-      totalContributions: typeof rawBody.totalContributions === 'number' ? rawBody.totalContributions : undefined,
+      totalContributions:
+        typeof rawBody.totalContributions === 'number' ? rawBody.totalContributions : undefined,
       currentStreak: typeof rawBody.currentStreak === 'number' ? rawBody.currentStreak : undefined,
       longestStreak: typeof rawBody.longestStreak === 'number' ? rawBody.longestStreak : undefined,
       weekdayPct: typeof rawBody.weekdayPct === 'number' ? rawBody.weekdayPct : undefined,
       weekendPct: typeof rawBody.weekendPct === 'number' ? rawBody.weekendPct : undefined,
-      mostProductiveDay: typeof rawBody.mostProductiveDay === 'string' ? rawBody.mostProductiveDay : undefined,
+      mostProductiveDay:
+        typeof rawBody.mostProductiveDay === 'string' ? rawBody.mostProductiveDay : undefined,
       tone:
-        typeof rawBody.tone === 'string' && (rawBody.tone === 'Professional' || rawBody.tone === 'Casual' || rawBody.tone === 'Tech-Heavy')
+        typeof rawBody.tone === 'string' &&
+        (rawBody.tone === 'Professional' ||
+          rawBody.tone === 'Casual' ||
+          rawBody.tone === 'Tech-Heavy')
           ? rawBody.tone
           : undefined,
-      length: typeof rawBody.length === 'string' && (rawBody.length === 'Short' || rawBody.length === 'Detailed') ? rawBody.length : undefined,
+      length:
+        typeof rawBody.length === 'string' &&
+        (rawBody.length === 'Short' || rawBody.length === 'Detailed')
+          ? rawBody.length
+          : undefined,
     }
   } catch {
     return res.status(400).json({ text: null, error: 'Invalid username format' })
@@ -423,9 +457,9 @@ export default async function handler(
   try {
     const prompt = buildPrompt(body)
 
-    let response;
-    let attempt = 0;
-    const MAX_RETRIES = 2;
+    let response
+    let attempt = 0
+    const MAX_RETRIES = 2
 
     // Retry loop to handle intermittent Gemini 503/500 errors
     while (attempt <= MAX_RETRIES) {
@@ -447,13 +481,13 @@ export default async function handler(
               'Content-Type': 'application/json',
               'x-goog-api-key': env.GEMINI_API_KEY,
             },
-          }
+          },
         )
-        break; // Success! Break out of the retry loop
+        break // Success! Break out of the retry loop
       } catch (err: unknown) {
         const axiosErr = err as AxiosError
         const status = axiosErr.response?.status
-        
+
         // If the AI provider is overloaded, wait and try again
         if ((status === 503 || status === 500) && attempt < MAX_RETRIES) {
           attempt++
@@ -461,7 +495,7 @@ export default async function handler(
           await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
           continue
         }
-        
+
         // If we ran out of retries or hit a different error (like 429), throw it
         throw err
       }
@@ -476,7 +510,8 @@ export default async function handler(
     if (finishReason === 'MAX_TOKENS') {
       return res.status(500).json({
         text: null,
-        error: 'AI response was truncated because it reached the maximum token limit. Please try again.',
+        error:
+          'AI response was truncated because it reached the maximum token limit. Please try again.',
       })
     }
 
@@ -489,13 +524,17 @@ export default async function handler(
     const error = err as AxiosError
     const status = error.response?.status
     if (status === 429) {
-      return res.status(429).json({ text: null, error: 'AI quota reached for now — try again in a minute' })
+      return res
+        .status(429)
+        .json({ text: null, error: 'AI quota reached for now — try again in a minute' })
     }
     if (status === 503) {
       // 429 and 503 are the provider telling us to back off. They're expected, already surfaced
       // to the user, and logging them would let a burst of traffic flush the 50-entry queue.
       logWarn('api/ai-insight', 'AI provider is overloaded', { status })
-      return res.status(503).json({ text: null, error: 'AI service is temporarily overloaded — try again in a moment' })
+      return res
+        .status(503)
+        .json({ text: null, error: 'AI service is temporarily overloaded — try again in a moment' })
     }
     logError('api/ai-insight', error, { status })
     return res.status(500).json({ text: null, error: 'Failed to generate AI insight' })

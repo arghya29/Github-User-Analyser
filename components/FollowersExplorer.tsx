@@ -102,13 +102,18 @@ export default function FollowersExplorer({
           {loading && (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"
+                />
               ))}
             </div>
           )}
           {error && <p className="text-sm text-red-500 text-center py-4">{error}</p>}
           {!loading && !error && users.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No users found.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No users found.
+            </p>
           )}
           {!loading && !error && users.length > 0 && (
             <div className="space-y-2">

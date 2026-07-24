@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 
-language: "en-US"
+language: 'en-US'
 early_access: false
 
 reviews:
-  profile: "assertive"
+  profile: 'assertive'
   request_changes_workflow: true
   high_level_summary: true
   review_status: true
@@ -29,14 +29,14 @@ reviews:
     drafts: false
 
   path_filters:
-    - "!package-lock.json"
-    - "!node_modules/**"
-    - "!.next/**"
-    - "!out/**"
-    - "!*.lock"
+    - '!package-lock.json'
+    - '!node_modules/**'
+    - '!.next/**'
+    - '!out/**'
+    - '!*.lock'
 
   path_instructions:
-    - path: "pages/api/**"
+    - path: 'pages/api/**'
       instructions: |
         This is a Next.js API route project that uses the GitHub REST and GraphQL APIs.
         Review these files carefully for:
@@ -47,7 +47,7 @@ reviews:
         - Cache TTL values that are appropriate for the data type (profile data shorter, README/badge longer)
         - Input validation on all query parameters before use
 
-    - path: "pages/api/ai-insight.ts"
+    - path: 'pages/api/ai-insight.ts'
       instructions: |
         This route calls the Gemini API for AI-generated bio and roast content.
         Check that:
@@ -56,7 +56,7 @@ reviews:
         - Rate limit errors (429) from Gemini are returned with a friendly message
         - maxOutputTokens is kept reasonable to avoid cost overruns
 
-    - path: "lib/**"
+    - path: 'lib/**'
       instructions: |
         These are pure utility/helper files (stats computation, color maps, cache, theme context).
         Check for:
@@ -64,7 +64,7 @@ reviews:
         - Edge cases: empty arrays, zero contributions, repos with no language, missing optional fields
         - The in-memory cache (lib/cache.ts) correctly handling TTL expiry and not growing unboundedly
 
-    - path: "components/**"
+    - path: 'components/**'
       instructions: |
         This is a Next.js + TypeScript + Tailwind CSS project.
         Review component files for:
@@ -75,18 +75,18 @@ reviews:
         - No prop drilling more than 2 levels deep without considering a context alternative
         - Loading and error states handled for any async operations
 
-    - path: "types/**"
+    - path: 'types/**'
       instructions: |
         Shared TypeScript type definitions used across the entire codebase.
         Ensure all fields that may be absent from the GitHub API response are typed as optional (?) or null,
         not assumed to always be present.
 
 base_branches:
-  - "dev"
-  - "main"
- 
+  - 'dev'
+  - 'main'
+
 anti_slop:
   enabled: true
- 
+
 chat:
   auto_reply: true

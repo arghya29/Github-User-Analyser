@@ -15,7 +15,7 @@ interface ErrorResponse {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StarEntry[] | ErrorResponse>
+  res: NextApiResponse<StarEntry[] | ErrorResponse>,
 ) {
   const { owner, repo } = req.query
 
@@ -35,7 +35,7 @@ export default async function handler(
         },
         params: { per_page: 100 },
         validateStatus: () => true,
-      }
+      },
     )
 
     if (response.status === 404) {

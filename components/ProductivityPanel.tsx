@@ -27,8 +27,14 @@ function ProductivityPanel({ data }: ProductivityPanelProps) {
   const tickColor = theme === 'dark' ? '#94a3b8' : '#64748b'
   const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0'
 
-  const { currentStreak, longestStreak, mostProductiveDay, weekdayCount, weekendCount, monthlyTotals } =
-    data
+  const {
+    currentStreak,
+    longestStreak,
+    mostProductiveDay,
+    weekdayCount,
+    weekendCount,
+    monthlyTotals,
+  } = data
 
   const total = weekdayCount + weekendCount
   const weekdayPct = total > 0 ? Math.round((weekdayCount / total) * 100) : 0
@@ -72,7 +78,11 @@ function ProductivityPanel({ data }: ProductivityPanelProps) {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={monthlyTotals} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-            <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: tickColor, fontSize: 11 }}
+              axisLine={{ stroke: gridColor }}
+            />
             <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} />
             <Tooltip
               content={({ active, payload, label }: ProductivityTooltipProps) => {

@@ -120,11 +120,7 @@ describe('computeProductivityStats', () => {
   })
 
   it('produces monthlyTotals in chronological order across month boundaries', () => {
-    const days = [
-      day('2026-04-20', 2),
-      day('2026-05-05', 3),
-      day('2026-06-01', 4),
-    ]
+    const days = [day('2026-04-20', 2), day('2026-05-05', 3), day('2026-06-01', 4)]
     const stats = computeProductivityStats([weekOf(days)])
     expect(stats.monthlyTotals.map((m) => m.count)).toEqual([2, 3, 4])
     // Months should be ascending (Apr, May, Jun)

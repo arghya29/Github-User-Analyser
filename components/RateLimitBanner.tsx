@@ -48,7 +48,11 @@ export default function RateLimitBanner({ resetAt, onRetry }: RateLimitBannerPro
               API Quota Limit Exhausted
             </h4>
             <p className="text-sm opacity-90 leading-relaxed mt-1">
-              GitHub restricts anonymous API requests. To prevent this, configure a <code className="bg-amber-100 dark:bg-slate-700 px-1 py-0.5 rounded text-xs font-mono font-semibold">GITHUB_TOKEN</code> in your environment.
+              GitHub restricts anonymous API requests. To prevent this, configure a{' '}
+              <code className="bg-amber-100 dark:bg-slate-700 px-1 py-0.5 rounded text-xs font-mono font-semibold">
+                GITHUB_TOKEN
+              </code>{' '}
+              in your environment.
             </p>
             {resetAt && (
               <span className="inline-block mt-2 px-2.5 py-1 text-xs font-bold bg-amber-200/60 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 rounded-md">

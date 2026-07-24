@@ -31,7 +31,7 @@ query($login: String!) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SponsorInfo[] | ErrorResponse>
+  res: NextApiResponse<SponsorInfo[] | ErrorResponse>,
 ) {
   const { username } = req.query
 
@@ -55,7 +55,7 @@ export default async function handler(
           'Content-Type': 'application/json',
         },
         validateStatus: () => true,
-      }
+      },
     )
 
     if (response.status === 403) {

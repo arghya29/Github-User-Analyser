@@ -14,11 +14,13 @@ This is a full-stack Next.js application for analyzing GitHub users.
 ## Setup Instructions
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Run development server:
+
    ```bash
    npm run dev
    ```

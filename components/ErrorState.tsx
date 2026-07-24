@@ -17,10 +17,16 @@ export default function ErrorState({ errorType, message, onRetry }: ErrorStatePr
   const { icon, title } = errorConfig[errorType] ?? errorConfig.unknown
 
   return (
-    <div role="alert" className="max-w-2xl mx-auto mt-8 p-6 bg-gradient-to-br from-red-50 to-rose-100/50 dark:from-slate-800 dark:to-slate-800/80 border border-red-300 dark:border-red-700/80 rounded-2xl shadow-md text-red-900 dark:text-red-200">
+    <div
+      role="alert"
+      className="max-w-2xl mx-auto mt-8 p-6 bg-gradient-to-br from-red-50 to-rose-100/50 dark:from-slate-800 dark:to-slate-800/80 border border-red-300 dark:border-red-700/80 rounded-2xl shadow-md text-red-900 dark:text-red-200"
+    >
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-3">
-          <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl text-2xl shrink-0" aria-hidden="true">
+          <div
+            className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl text-2xl shrink-0"
+            aria-hidden="true"
+          >
             {icon}
           </div>
           <div>

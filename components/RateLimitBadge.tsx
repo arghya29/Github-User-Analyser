@@ -55,8 +55,10 @@ export default function RateLimitBadge({ rateLimit }: RateLimitBadgeProps) {
         <span className="text-gray-400 dark:text-gray-500">
           {/* Screen readers hear the comma at all sizes; sighted users see the dot only on sm+ */}
           <span className="sr-only">, </span>
-          <span aria-hidden="true" className="hidden sm:inline">· </span>
-          
+          <span aria-hidden="true" className="hidden sm:inline">
+            ·{' '}
+          </span>
+
           {/* Text is available to screen readers at all times, but only visible on sm+ */}
           <span className="sr-only sm:not-sr-only">resets {resetText}</span>
         </span>

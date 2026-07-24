@@ -1,7 +1,4 @@
-import {
-  computeLanguageDashboardStats,
-  getRepoLanguageBreakdown,
-} from '@/lib/languageDashboard'
+import { computeLanguageDashboardStats, getRepoLanguageBreakdown } from '@/lib/languageDashboard'
 import type { Repository } from '@/types/github'
 
 function repo(overrides: Partial<Repository> = {}): Repository {
@@ -74,7 +71,7 @@ describe('getRepoLanguageBreakdown', () => {
           { name: 'CSS', bytes: 200 },
           { name: 'TypeScript', bytes: 800 },
         ],
-      })
+      }),
     )
     expect(breakdown.map((l) => [l.name, l.percentage])).toEqual([
       ['TypeScript', 80],

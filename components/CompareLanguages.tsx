@@ -18,7 +18,9 @@ function LanguageList({ languages }: { languages: { name: string; count: number 
             className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: getLanguageColor(lang.name) }}
           />
-          <span className="text-xs text-gray-700 dark:text-gray-200 truncate flex-1">{lang.name}</span>
+          <span className="text-xs text-gray-700 dark:text-gray-200 truncate flex-1">
+            {lang.name}
+          </span>
           <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{lang.count}</span>
         </li>
       ))}
@@ -26,7 +28,15 @@ function LanguageList({ languages }: { languages: { name: string; count: number 
   )
 }
 
-function LangGroup({ label, names, className }: { label: string; names: string[]; className: string }) {
+function LangGroup({
+  label,
+  names,
+  className,
+}: {
+  label: string
+  names: string[]
+  className: string
+}) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <span className={`font-semibold shrink-0 ${className}`}>{label}:</span>
@@ -88,7 +98,11 @@ export default function CompareLanguages({ userA, userB }: CompareLanguagesProps
       </div>
 
       <div className="space-y-1.5 text-xs">
-        <LangGroup label="Shared" names={shared} className="text-emerald-600 dark:text-emerald-400" />
+        <LangGroup
+          label="Shared"
+          names={shared}
+          className="text-emerald-600 dark:text-emerald-400"
+        />
         <LangGroup
           label={`Only @${userA.user.login}`}
           names={uniqueA}

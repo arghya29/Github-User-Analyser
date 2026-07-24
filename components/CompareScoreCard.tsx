@@ -35,11 +35,7 @@ export default function CompareScoreCard({ userA, userB }: CompareScoreCardProps
 
   const compatibility = Math.min(
     100,
-    Math.round(
-      100 -
-        Math.abs(scoreA - scoreB) * 10 -
-        Math.abs(followersA - followersB) * 0.05
-    )
+    Math.round(100 - Math.abs(scoreA - scoreB) * 10 - Math.abs(followersA - followersB) * 0.05),
   )
 
   const displayCompatibility = compatibility < 20 ? 25 : compatibility

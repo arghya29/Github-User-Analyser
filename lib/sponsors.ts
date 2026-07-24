@@ -4,7 +4,7 @@ import type { SponsorInfo } from '@/types/github'
 export async function fetchSponsors(username: string): Promise<SponsorInfo[]> {
   const response = await axios.get<SponsorInfo[]>(
     `/api/sponsors?username=${encodeURIComponent(username)}`,
-    { validateStatus: () => true }
+    { validateStatus: () => true },
   )
   return response.data
 }

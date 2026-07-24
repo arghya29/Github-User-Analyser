@@ -73,9 +73,7 @@ describe('sanitizeRepoName', () => {
 
 describe('escapeHtml', () => {
   it('escapes all five HTML-sensitive characters', () => {
-    expect(escapeHtml('<script>alert(1)</script>')).toBe(
-      '&lt;script&gt;alert(1)&lt;/script&gt;'
-    )
+    expect(escapeHtml('<script>alert(1)</script>')).toBe('&lt;script&gt;alert(1)&lt;/script&gt;')
     expect(escapeHtml(`"'&`)).toBe('&quot;&#x27;&amp;')
   })
 

@@ -14,9 +14,27 @@ function repo(overrides: Partial<Repository> = {}): Repository {
 }
 
 const sample: Repository[] = [
-  repo({ name: 'alpha', language: 'TypeScript', stargazers_count: 10, forks_count: 1, updated_at: '2026-01-03T00:00:00Z' }),
-  repo({ name: 'Beta', language: 'Go', stargazers_count: 50, forks_count: 9, updated_at: '2026-01-01T00:00:00Z' }),
-  repo({ name: 'gamma', language: 'TypeScript', stargazers_count: 30, forks_count: 3, updated_at: '2026-01-05T00:00:00Z' }),
+  repo({
+    name: 'alpha',
+    language: 'TypeScript',
+    stargazers_count: 10,
+    forks_count: 1,
+    updated_at: '2026-01-03T00:00:00Z',
+  }),
+  repo({
+    name: 'Beta',
+    language: 'Go',
+    stargazers_count: 50,
+    forks_count: 9,
+    updated_at: '2026-01-01T00:00:00Z',
+  }),
+  repo({
+    name: 'gamma',
+    language: 'TypeScript',
+    stargazers_count: 30,
+    forks_count: 3,
+    updated_at: '2026-01-05T00:00:00Z',
+  }),
 ]
 
 const NO_FILTER: string[] = []

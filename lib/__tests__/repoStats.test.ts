@@ -20,7 +20,12 @@ function repo(overrides: Partial<Repository> = {}): Repository {
 describe('aggregateLanguagesByBytes', () => {
   it('aggregates byte totals across repos and returns percentages summing sensibly', () => {
     const repos = [
-      repo({ languages: [{ name: 'TypeScript', bytes: 750 }, { name: 'CSS', bytes: 250 }] }),
+      repo({
+        languages: [
+          { name: 'TypeScript', bytes: 750 },
+          { name: 'CSS', bytes: 250 },
+        ],
+      }),
     ]
     const result = aggregateLanguagesByBytes(repos)
     expect(result).toEqual([
@@ -32,7 +37,12 @@ describe('aggregateLanguagesByBytes', () => {
   it('combines the same language across multiple repos', () => {
     const repos = [
       repo({ languages: [{ name: 'Go', bytes: 300 }] }),
-      repo({ languages: [{ name: 'Go', bytes: 100 }, { name: 'Python', bytes: 100 }] }),
+      repo({
+        languages: [
+          { name: 'Go', bytes: 100 },
+          { name: 'Python', bytes: 100 },
+        ],
+      }),
     ]
     const result = aggregateLanguagesByBytes(repos)
     // Go 400 / 500 = 80%, Python 100 / 500 = 20%
@@ -44,7 +54,12 @@ describe('aggregateLanguagesByBytes', () => {
 
   it('rounds percentages to one decimal place', () => {
     const repos = [
-      repo({ languages: [{ name: 'A', bytes: 1 }, { name: 'B', bytes: 2 }] }),
+      repo({
+        languages: [
+          { name: 'A', bytes: 1 },
+          { name: 'B', bytes: 2 },
+        ],
+      }),
     ]
     const result = aggregateLanguagesByBytes(repos)
     // A = 1/3 = 33.333...% → 33.3 ; B = 2/3 = 66.666...% → 66.7
@@ -56,7 +71,12 @@ describe('aggregateLanguagesByBytes', () => {
 
   it('sorts descending by percentage', () => {
     const repos = [
-      repo({ languages: [{ name: 'Small', bytes: 100 }, { name: 'Big', bytes: 900 }] }),
+      repo({
+        languages: [
+          { name: 'Small', bytes: 100 },
+          { name: 'Big', bytes: 900 },
+        ],
+      }),
     ]
     const result = aggregateLanguagesByBytes(repos)
     expect(result[0].name).toBe('Big')
@@ -101,7 +121,9 @@ describe('aggregateLanguagesByCount', () => {
 
 describe('hasByteLanguageData', () => {
   it('returns true when at least one repo has non-empty languages', () => {
-    expect(hasByteLanguageData([repo({}), repo({ languages: [{ name: 'C', bytes: 10 }] })])).toBe(true)
+    expect(hasByteLanguageData([repo({}), repo({ languages: [{ name: 'C', bytes: 10 }] })])).toBe(
+      true,
+    )
   })
 
   it('returns false when no repo has language byte data', () => {

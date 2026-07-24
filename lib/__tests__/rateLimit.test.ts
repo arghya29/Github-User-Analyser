@@ -3,7 +3,7 @@ import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
 
 function mockReq(
   headers: Record<string, string | string[] | undefined>,
-  remoteAddress = '10.0.0.1'
+  remoteAddress = '10.0.0.1',
 ): NextApiRequest {
   return { headers, socket: { remoteAddress } } as unknown as NextApiRequest
 }

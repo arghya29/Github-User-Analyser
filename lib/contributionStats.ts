@@ -35,8 +35,7 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
   const MS_PER_DAY = 24 * 60 * 60 * 1000
   const todayUtcMs = Date.parse(new Date().toISOString().slice(0, 10))
   const lastDayMs = Date.parse(lastDay.date)
-  const isCurrentDay =
-    Number.isFinite(lastDayMs) && Math.abs(todayUtcMs - lastDayMs) <= MS_PER_DAY
+  const isCurrentDay = Number.isFinite(lastDayMs) && Math.abs(todayUtcMs - lastDayMs) <= MS_PER_DAY
 
   let startIndex = days.length - 1
   if (lastDay.count === 0 && isCurrentDay) {
@@ -65,9 +64,7 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
  * match GitHub's contribution dates.
  */
 export function computeProductivityStats(weeks: ContributionWeek[]): ProductivityStats {
-  const days = weeks
-    .flatMap((w) => w.contributionDays)
-    .sort((a, b) => a.date.localeCompare(b.date))
+  const days = weeks.flatMap((w) => w.contributionDays).sort((a, b) => a.date.localeCompare(b.date))
 
   const currentStreak = computeCurrentStreak(days)
 

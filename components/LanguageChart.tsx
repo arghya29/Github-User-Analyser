@@ -10,7 +10,10 @@ interface LanguageChartProps {
 
 type LanguageTooltipProps = {
   active?: boolean
-  payload?: Array<{ name?: string | number; value?: number | string | readonly (string | number)[] }>
+  payload?: Array<{
+    name?: string | number
+    value?: number | string | readonly (string | number)[]
+  }>
   mode?: 'bytes' | 'count'
 }
 
@@ -39,7 +42,11 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
 
   if (data.length === 0) {
     return (
-      <CustomChartContainer title="Language Distribution" isEmpty={true} emptyMessage="No language data available.">
+      <CustomChartContainer
+        title="Language Distribution"
+        isEmpty={true}
+        emptyMessage="No language data available."
+      >
         <div />
       </CustomChartContainer>
     )
@@ -79,7 +86,9 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
               ))}
             </Pie>
             <Tooltip
-              content={(props) => <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />}
+              content={(props) => (
+                <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -116,7 +125,10 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
 
       {/* Expanded box */}
       {showAll && overflowCount > 0 && (
-        <div id={panelId} className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
+        <div
+          id={panelId}
+          className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto"
+        >
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {sorted.map((entry) => (
               <div
@@ -128,7 +140,9 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
                   style={{ backgroundColor: getLanguageColor(entry.name) }}
                 />
                 <span className="font-medium text-gray-700 dark:text-gray-200">{entry.name}</span>
-                <span className="text-gray-400 dark:text-gray-500">{valueLabel(entry.value, mode)}</span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  {valueLabel(entry.value, mode)}
+                </span>
               </div>
             ))}
           </div>

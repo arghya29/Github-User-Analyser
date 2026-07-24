@@ -16,7 +16,7 @@ export function shareViaTwitter(username: string, name?: string): void {
   window.open(
     `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
     '_blank',
-    'noopener,noreferrer'
+    'noopener,noreferrer',
   )
 }
 
@@ -27,7 +27,7 @@ export function shareViaLinkedIn(username: string): void {
   window.open(
     `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     '_blank',
-    'noopener,noreferrer'
+    'noopener,noreferrer',
   )
 }
 
@@ -39,16 +39,13 @@ export function shareViaWhatsApp(username: string, name?: string): void {
   window.open(
     `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
     '_blank',
-    'noopener,noreferrer'
+    'noopener,noreferrer',
   )
 }
 
 export async function copyProfileLink(username: string): Promise<boolean> {
   try {
-    if (
-      typeof navigator === 'undefined' ||
-      typeof navigator.clipboard?.writeText !== 'function'
-    ) {
+    if (typeof navigator === 'undefined' || typeof navigator.clipboard?.writeText !== 'function') {
       return false
     }
     await navigator.clipboard.writeText(getShareUrl(username))

@@ -31,7 +31,7 @@ describe('computeHealthScore', () => {
         open_issues_count: 0,
         stargazers_count: 42,
         forks_count: 7,
-      })
+      }),
     )
     // 50 +20(recent) +10(desc) +10(license) +10(0 issues) +5(stars) +5(forks) = clamped to 100
     expect(score).toBe(100)
@@ -46,7 +46,7 @@ describe('computeHealthScore', () => {
         open_issues_count: 30,
         stargazers_count: 0,
         forks_count: 0,
-      })
+      }),
     )
     // 50 -15(>365 days) -10(>20 issues) = 25
     expect(score).toBe(25)
@@ -86,7 +86,13 @@ describe('getHealthLabel / Color / Bg boundaries', () => {
 describe('summarizeReposHealth', () => {
   it('summarizes each repo with the expected shape', () => {
     const summaries = summarizeReposHealth([
-      repo({ name: 'alpha', updated_at: daysAgo(5), description: 'd', license: 'MIT', open_issues_count: 2 }),
+      repo({
+        name: 'alpha',
+        updated_at: daysAgo(5),
+        description: 'd',
+        license: 'MIT',
+        open_issues_count: 2,
+      }),
       repo({ name: 'beta', updated_at: daysAgo(400), open_issues_count: 0 }),
     ])
     expect(summaries).toHaveLength(2)
