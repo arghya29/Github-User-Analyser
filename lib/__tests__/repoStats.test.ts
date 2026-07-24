@@ -111,4 +111,8 @@ describe('hasByteLanguageData', () => {
   it('returns false for an empty repo list', () => {
     expect(hasByteLanguageData([])).toBe(false)
   })
+
+  it('handles repositories with undefined languages safely', () => {
+    expect(hasByteLanguageData([repo({ languages: undefined })])).toBe(false)
+  })
 })
