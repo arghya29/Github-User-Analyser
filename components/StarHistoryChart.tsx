@@ -13,6 +13,13 @@ import type { StarEntry } from '@/types/github'
 interface StarHistoryChartProps {
   data: StarEntry[]
   repoName: string
+  /**
+   * Set when the API stopped at its page cap and more stargazers exist. The
+   * chart must say so: a truncated series covers only the repository's earliest
+   * period, so its slope reflects early adoption rather than current momentum —
+   * misleading about the trend, not just the total.
+   */
+  truncated?: boolean
 }
 
 function formatDate(dateStr: string): string {
@@ -20,7 +27,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
 }
 
-function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
+function StarHistoryChart({ data, repoName, truncated = false }: StarHistoryChartProps) {
   const chartData = useMemo(() => {
     if (data.length > 50) {
       const sampled: StarEntry[] = []
@@ -42,6 +49,11 @@ function StarHistoryChart({ data, repoName }: StarHistoryChartProps) {
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-4 mt-3">
       <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
         ⭐ Star History — {repoName}
+        {truncated && (
+          <span className="ml-1 font-normal text-gray-500 dark:text-gray-400">
+            (first {data[data.length - 1]?.count.toLocaleString()} stargazers)
+          </span>
+        )}
       </h4>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={chartData}>

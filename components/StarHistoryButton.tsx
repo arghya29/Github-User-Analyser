@@ -23,6 +23,7 @@ export default function StarHistoryButton({ repo }: StarHistoryButtonProps) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<StarEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [truncated, setTruncated] = useState(false)
 
   const load = useCallback(async () => {
     if (data) {
@@ -35,9 +36,10 @@ export default function StarHistoryButton({ repo }: StarHistoryButtonProps) {
       const owner = repo.owner_login || repo.html_url.split('/')[3]
       const result = await fetchStarHistory(owner, repo.name)
       if ('error' in result) {
-        setError((result as { error: string }).error)
+        setError(result.error)
       } else {
-        setData(result as StarEntry[])
+        setData(result.timeline)
+        setTruncated(result.truncated)
       }
     } catch {
       setError('Failed to load star history')
@@ -62,7 +64,7 @@ export default function StarHistoryButton({ repo }: StarHistoryButtonProps) {
         // render — which the try/catch around the data fetch above cannot catch. Guard it
         // with the same boundary TechStackSection already uses for its chart.
         <ErrorBoundary fallback={ErrorFallback}>
-          <StarHistoryChart data={data} repoName={repo.name} />
+          <StarHistoryChart data={data} repoName={repo.name} truncated={truncated} />
         </ErrorBoundary>
       )}
     </div>
