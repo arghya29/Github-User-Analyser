@@ -1,21 +1,21 @@
-import SortFilterBar from '@/components/SortFilterBar'
-import RepositoryCard from '@/components/RepositoryCard'
-import PinnedRepos from '@/components/PinnedRepos'
-import EmptyState from '@/components/EmptyState'
-import type { Repository, SortOption } from '@/types/github'
+import SortFilterBar from "@/components/SortFilterBar";
+import RepositoryCard from "@/components/RepositoryCard";
+import PinnedRepos from "@/components/PinnedRepos";
+import EmptyState from "@/components/EmptyState";
+import type { Repository, SortOption } from "@/types/github";
 
 interface RepoListSectionProps {
-  repos: Repository[]
-  pinnedRepos?: Repository[]
-  displayedRepos: Repository[]
-  languageCounts: { name: string; count: number }[]
-  sortBy: SortOption
-  onSortChange: (sort: SortOption) => void
-  languageFilter: string[]
-  onLanguagesChange: (languages: string[]) => void
-  repoQuery: string
-  onRepoQueryChange: (query: string) => void
-  onRepoClick: (repo: Repository) => void
+  repos: Repository[];
+  pinnedRepos?: Repository[];
+  displayedRepos: Repository[];
+  languageCounts: { name: string; count: number }[];
+  sortBy: SortOption;
+  onSortChange: (sort: SortOption) => void;
+  languageFilter: string[];
+  onLanguagesChange: (languages: string[]) => void;
+  repoQuery: string;
+  onRepoQueryChange: (query: string) => void;
+  onRepoClick: (repo: Repository) => void;
 }
 
 /**
@@ -39,7 +39,9 @@ export default function RepoListSection({
   return (
     <section id="repositories" className="scroll-mt-24">
       <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Repositories</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Repositories
+        </h2>
       </div>
 
       {pinnedRepos && (
@@ -49,7 +51,9 @@ export default function RepoListSection({
       )}
 
       <div className="mt-12">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Repositories</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          Top Repositories
+        </h3>
 
         {repos.length > 0 ? (
           <>
@@ -88,5 +92,5 @@ export default function RepoListSection({
         )}
       </div>
     </section>
-  )
+  );
 }

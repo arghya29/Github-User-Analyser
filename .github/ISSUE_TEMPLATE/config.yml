@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: GitHub Discussions
-    url: https://github.com/YOUR-USERNAME/github-user-analyzer/discussions
+    url: https://github.com/arghya29/Github-User-Analyser/discussions
     about: Ask questions and discuss ideas
   - name: Documentation
-    url: https://github.com/YOUR-USERNAME/github-user-analyzer#readme
+    url: https://github.com/arghya29/Github-User-Analyser#readme
     about: Check out our documentation

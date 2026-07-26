@@ -1,37 +1,37 @@
-import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import { fetchSponsors } from '@/lib/sponsors'
-import type { SponsorInfo } from '@/types/github'
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import { fetchSponsors } from "@/lib/sponsors";
+import type { SponsorInfo } from "@/types/github";
 
 interface SponsorsDisplayProps {
-  username: string
+  username: string;
 }
 
 export default function SponsorsDisplay({ username }: SponsorsDisplayProps) {
-  const [sponsors, setSponsors] = useState<SponsorInfo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [collapsed, setCollapsed] = useState(true)
+  const [sponsors, setSponsors] = useState<SponsorInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(true);
 
   const load = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await fetchSponsors(username)
+      const result = await fetchSponsors(username);
       if (Array.isArray(result)) {
-        setSponsors(result)
+        setSponsors(result);
       }
     } catch {
       // silently fail
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [username])
+  }, [username]);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
-  if (loading) return null
-  if (sponsors.length === 0) return null
+  if (loading) return null;
+  if (sponsors.length === 0) return null;
 
   return (
     <div className="bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg p-6 mt-6">
@@ -43,7 +43,9 @@ export default function SponsorsDisplay({ username }: SponsorsDisplayProps) {
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Sponsors ({sponsors.length})
         </h2>
-        <span className="text-xs text-gray-400">{collapsed ? 'Show' : 'Hide'}</span>
+        <span className="text-xs text-gray-400">
+          {collapsed ? "Show" : "Hide"}
+        </span>
       </button>
 
       {!collapsed && (
@@ -78,5 +80,5 @@ export default function SponsorsDisplay({ username }: SponsorsDisplayProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

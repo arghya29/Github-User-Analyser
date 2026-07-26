@@ -1,28 +1,28 @@
-import { useEffect, useState } from 'react'
-import { isFavorite, addFavorite, removeFavorite } from '@/lib/favorites'
+import { useEffect, useState } from "react";
+import { isFavorite, addFavorite, removeFavorite } from "@/lib/favorites";
 
 interface FavoriteButtonProps {
-  username: string
+  username: string;
 }
 
 export default function FavoriteButton({ username }: FavoriteButtonProps) {
   // Start false and sync on mount: localStorage is not available during SSR, so
   // reading it during render would cause a hydration mismatch.
-  const [favorited, setFavorited] = useState(false)
+  const [favorited, setFavorited] = useState(false);
 
   useEffect(() => {
-    setFavorited(isFavorite(username))
-  }, [username])
+    setFavorited(isFavorite(username));
+  }, [username]);
 
   const toggle = () => {
     if (favorited) {
-      removeFavorite(username)
-      setFavorited(false)
+      removeFavorite(username);
+      setFavorited(false);
     } else {
-      addFavorite(username)
-      setFavorited(true)
+      addFavorite(username);
+      setFavorited(true);
     }
-  }
+  };
 
   return (
     <button
@@ -30,19 +30,21 @@ export default function FavoriteButton({ username }: FavoriteButtonProps) {
       onClick={toggle}
       aria-pressed={favorited}
       aria-label={
-        favorited ? `Remove @${username} from favorites` : `Add @${username} to favorites`
+        favorited
+          ? `Remove @${username} from favorites`
+          : `Add @${username} to favorites`
       }
-      title={favorited ? 'Remove from favorites' : 'Add to favorites'}
+      title={favorited ? "Remove from favorites" : "Add to favorites"}
       className={`inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
         favorited
-          ? 'border-amber-300 dark:border-amber-500/40 text-amber-500 bg-amber-50 dark:bg-amber-900/20'
-          : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500 hover:text-amber-500 hover:border-amber-300'
+          ? "border-amber-300 dark:border-amber-500/40 text-amber-500 bg-amber-50 dark:bg-amber-900/20"
+          : "border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500 hover:text-amber-500 hover:border-amber-300"
       }`}
     >
       <svg
         className="w-5 h-5"
         viewBox="0 0 24 24"
-        fill={favorited ? 'currentColor' : 'none'}
+        fill={favorited ? "currentColor" : "none"}
         stroke="currentColor"
         strokeWidth={2}
         aria-hidden="true"
@@ -54,5 +56,5 @@ export default function FavoriteButton({ username }: FavoriteButtonProps) {
         />
       </svg>
     </button>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 interface ErrorFallbackProps {
-  error: Error
-  reset: () => void
+  error: Error;
+  reset: () => void;
 }
 
 export default function ErrorFallback({ error, reset }: ErrorFallbackProps) {
@@ -22,7 +22,7 @@ export default function ErrorFallback({ error, reset }: ErrorFallbackProps) {
         </svg>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-            {error.message || 'Failed to load this section'}
+            {error.message || "Failed to load this section"}
           </p>
           <button
             onClick={reset}
@@ -33,5 +33,5 @@ export default function ErrorFallback({ error, reset }: ErrorFallbackProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

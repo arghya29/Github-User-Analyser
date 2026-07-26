@@ -1,93 +1,105 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { GetServerSideProps } from 'next'
-import { resolveBaseUrl } from '@/lib/siteUrl'
-import { useRouter } from 'next/router'
-import Head from 'next/head'
-import Link from 'next/link'
-import type { AxiosError } from 'axios'
-import ThemeToggle from '@/components/ThemeToggle'
-import LoadingSkeleton from '@/components/LoadingSkeleton'
-import Footer from '@/components/Footer'
-import MobileNav from '@/components/MobileNav'
-import ProfileDashboard from '@/components/ProfileDashboard'
-import RateLimitBanner from '@/components/RateLimitBanner'
-import ErrorState, { type ErrorType } from '@/components/ErrorState'
-import { fetchUserData } from '@/lib/github'
-import { recordSearch } from '@/lib/searchHistory'
-import type { UserData } from '@/types/github'
+import { useCallback, useEffect, useState } from "react";
+import type { GetServerSideProps } from "next";
+import { resolveBaseUrl } from "@/lib/siteUrl";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import Link from "next/link";
+import type { AxiosError } from "axios";
+import ThemeToggle from "@/components/ThemeToggle";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import Footer from "@/components/Footer";
+import MobileNav from "@/components/MobileNav";
+import ProfileDashboard from "@/components/ProfileDashboard";
+import RateLimitBanner from "@/components/RateLimitBanner";
+import ErrorState, { type ErrorType } from "@/components/ErrorState";
+import { fetchUserData } from "@/lib/github";
+import { recordSearch } from "@/lib/searchHistory";
+import type { UserData } from "@/types/github";
 
 interface OgMeta {
-  title: string
-  description: string
-  url: string
-  image: string
+  title: string;
+  description: string;
+  url: string;
+  image: string;
 }
 
 interface UserProfilePageProps {
-  og: OgMeta
-  jsonLd: string
+  og: OgMeta;
+  jsonLd: string;
 }
 
 export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
-  const router = useRouter()
-  const usernameParam = router.query.username
-  const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam
+  const router = useRouter();
+  const usernameParam = router.query.username;
+  const username = Array.isArray(usernameParam)
+    ? usernameParam[0]
+    : usernameParam;
 
-  const [data, setData] = useState<UserData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [errorType, setErrorType] = useState<ErrorType>('unknown')
-  const [retryCount, setRetryCount] = useState(0)
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [data, setData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [errorType, setErrorType] = useState<ErrorType>("unknown");
+  const [retryCount, setRetryCount] = useState(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
-    if (!router.isReady) return
-    if (!username) {
-      setLoading(false)
-      setError('No username provided')
-      setErrorType('not_found')
-      return
+    if (!router.isReady) return;
+
+    // 🛠️ FIX: Explicitly block the literal string 'undefined'
+    if (!username || username === "undefined") {
+      setLoading(false);
+      setError("No username provided");
+      setErrorType("not_found");
+      return;
     }
 
-    let cancelled = false
-    setLoading(true)
-    setError('')
-    setData(null)
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    setData(null);
 
     fetchUserData(username)
       .then((result) => {
-        if (cancelled) return
+        if (cancelled) return;
         if (result.error) {
-          setError(result.error)
-          setErrorType(result.errorType || 'unknown')
+          setError(result.error);
+          setErrorType(result.errorType || "unknown");
         } else {
-          setData(result)
-          recordSearch(username)
+          setData(result);
+          recordSearch(username);
         }
       })
       .catch((err: unknown) => {
-        if (cancelled) return
-        const axiosError = err as AxiosError<{ error: string; errorType?: ErrorType }>
+        if (cancelled) return;
+        const axiosError = err as AxiosError<{
+          error: string;
+          errorType?: ErrorType;
+        }>;
         if (axiosError.response) {
-          // The server responded with an error payload.
-          setError(axiosError.response.data?.error || 'Failed to fetch user data')
-          setErrorType(axiosError.response.data?.errorType || 'unknown')
+          setError(
+            axiosError.response.data?.error || "Failed to fetch user data",
+          );
+          setErrorType(axiosError.response.data?.errorType || "unknown");
         } else {
-          // No response at all → a connectivity/network failure.
-          setError('We couldn’t reach GitHub. Check your internet connection and try again.')
-          setErrorType('network')
+          setError(
+            "We couldn’t reach GitHub. Check your internet connection and try again.",
+          );
+          setErrorType("network");
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [router.isReady, username, retryCount])
+      cancelled = true;
+    };
+  }, [router.isReady, username, retryCount]);
 
-  const handleRetry = useCallback(() => setRetryCount((count) => count + 1), [])
+  const handleRetry = useCallback(
+    () => setRetryCount((count) => count + 1),
+    [],
+  );
 
   return (
     <>
@@ -116,7 +128,6 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
         {jsonLd ? (
           <script
             type="application/ld+json"
-            // Server-serialized + `<`-escaped in getServerSideProps; safe to embed.
             dangerouslySetInnerHTML={{ __html: jsonLd }}
           />
         ) : null}
@@ -135,8 +146,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                     className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
                     aria-label="Open navigation menu"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     </svg>
                   </button>
                   <div className="flex items-center gap-3 min-w-0">
@@ -145,8 +166,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                       className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors md:hidden"
                       aria-label="Home"
                     >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z"
+                        />
                       </svg>
                     </Link>
                     <Link
@@ -159,8 +190,18 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                       href="/"
                       className="hidden md:inline-flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-semibold text-gray-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 9.75L12 3l9 6.75V20a1 1 0 01-1 1h-5.25a.75.75 0 01-.75-.75V15.5a.75.75 0 00-.75-.75H10.5a.75.75 0 00-.75.75v5.75a.75.75 0 01-.75.75H3a1 1 0 01-1-1V9.75z"
+                        />
                       </svg>
                       Home
                     </Link>
@@ -168,19 +209,34 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                 </div>
 
                 <nav className="hidden md:flex flex-wrap items-center gap-4 text-base font-semibold text-gray-700 dark:text-gray-300">
-                  <a href="#profile" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#profile"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Profile
                   </a>
-                  <a href="#activity" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#activity"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Activity
                   </a>
-                  <a href="#techstack" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#techstack"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Techstack
                   </a>
-                  <a href="#repo-health" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#repo-health"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Repo Health
                   </a>
-                  <a href="#repositories" className="hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="#repositories"
+                    className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Repositories
                   </a>
                 </nav>
@@ -189,7 +245,10 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
               </div>
             </div>
 
-            <MobileNav isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+            <MobileNav
+              isOpen={mobileNavOpen}
+              onClose={() => setMobileNavOpen(false)}
+            />
 
             {loading && (
               <div className="mt-12">
@@ -197,8 +256,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
               </div>
             )}
 
-            {!loading && error && (
-              errorType === 'rate_limited' ? (
+            {!loading &&
+              error &&
+              (errorType === "rate_limited" ? (
                 <RateLimitBanner
                   resetAt={data?.rateLimit?.resetAt}
                   onRetry={handleRetry}
@@ -207,10 +267,9 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
                 <ErrorState
                   errorType={errorType}
                   message={error}
-                  onRetry={errorType === 'not_found' ? undefined : handleRetry}
+                  onRetry={errorType === "not_found" ? undefined : handleRetry}
                 />
-              )
-            )}
+              ))}
 
             {!loading && data && <ProfileDashboard data={data} />}
           </div>
@@ -219,52 +278,52 @@ export default function UserProfilePage({ og, jsonLd }: UserProfilePageProps) {
         <Footer />
       </div>
     </>
-  )
+  );
 }
 
-export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = async ({
-  params,
-  req,
-}) => {
-  const raw = params?.username
-  const username = (Array.isArray(raw) ? raw[0] : raw) ?? ''
+export const getServerSideProps: GetServerSideProps<
+  UserProfilePageProps
+> = async ({ params, req }) => {
+  const raw = params?.username;
+  const username = (Array.isArray(raw) ? raw[0] : raw) ?? "";
 
-  const baseUrl = resolveBaseUrl(req)
+  // 🛠️ FIX: Only treat the username as valid if it's not the string 'undefined'
+  const isValidUser = username && username !== "undefined";
 
-  // Per-profile tags are derived from the login (already in the route), so the
-  // page renders with no extra latency. The static default image is shared.
-  const title = username ? `${username} · GitHub User Analyser` : 'GitHub User Analyser'
-  const description = username
+  const baseUrl = resolveBaseUrl(req);
+
+  const title = isValidUser
+    ? `${username} · GitHub User Analyser`
+    : "GitHub User Analyser";
+  const description = isValidUser
     ? `Explore @${username}'s repositories, top languages, and contribution activity on GitHub User Analyser.`
-    : 'Analyze GitHub users and view their repositories'
+    : "Analyze GitHub users and view their repositories";
 
   const og: OgMeta = {
     title,
     description,
-    url: baseUrl ? `${baseUrl}/${encodeURIComponent(username)}` : `/${username}`,
+    url: baseUrl
+      ? `${baseUrl}/${encodeURIComponent(username)}`
+      : `/${username}`,
     image: baseUrl
       ? `${baseUrl}/api/og/${encodeURIComponent(username)}`
       : `/api/og/${encodeURIComponent(username)}`,
-  }
+  };
 
-  // schema.org Person markup for richer search results. Built server-side from
-  // the login already in the route (no extra GitHub call). `<` is escaped to
-  // `\u003c` so the serialized JSON can never break out of the <script> tag it
-  // is embedded in, even if a value contained the sequence "</script>".
-  const personLd = username
+  const personLd = isValidUser
     ? {
-        '@context': 'https://schema.org',
-        '@type': 'Person',
+        "@context": "https://schema.org",
+        "@type": "Person",
         name: username,
         alternateName: username,
         url: og.url,
-        image: `${baseUrl || ''}/api/og/${encodeURIComponent(username)}`,
+        image: `${baseUrl || ""}/api/og/${encodeURIComponent(username)}`,
         sameAs: [`https://github.com/${encodeURIComponent(username)}`],
       }
-    : null
+    : null;
   const jsonLd = personLd
-    ? JSON.stringify(personLd).replace(/</g, '\\u003c')
-    : ''
+    ? JSON.stringify(personLd).replace(/</g, "\\u003c")
+    : "";
 
-  return { props: { og, jsonLd } }
-}
+  return { props: { og, jsonLd } };
+};

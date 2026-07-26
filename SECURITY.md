@@ -9,6 +9,7 @@ If you discover a security vulnerability in GitHub User Analyzer, please email u
 ### How to Report
 
 Please include:
+
 - A description of the vulnerability
 - Steps to reproduce
 - The potential impact

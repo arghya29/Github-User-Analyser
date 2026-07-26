@@ -1,5 +1,5 @@
-import { Redis } from '@upstash/redis'
-import { env } from '@/lib/env'
+import { Redis } from "@upstash/redis";
+import { env } from "@/lib/env";
 
 // Initialize the Redis client from validated env values. Gating on both the URL
 // and the token means a half-configured setup (URL set, token missing) resolves
@@ -10,29 +10,33 @@ const redis =
         url: env.UPSTASH_REDIS_REST_URL,
         token: env.UPSTASH_REDIS_REST_TOKEN,
       })
-    : null
+    : null;
 
 export async function getCached<T>(key: string): Promise<T | null> {
-  if (!redis) return null
-  
+  if (!redis) return null;
+
   try {
-    return await redis.get<T>(key)
+    return await redis.get<T>(key);
   } catch (error) {
     // FIXED: Separated the string from the variable to resolve the CodeQL alert
-    console.error('Failed to fetch from Redis for key:', key, error)
-    return null
+    console.error("Failed to fetch from Redis for key:", key, error);
+    return null;
   }
 }
 
-export async function setCached<T>(key: string, value: T, ttlMs: number): Promise<void> {
-  if (!redis) return
-  
+export async function setCached<T>(
+  key: string,
+  value: T,
+  ttlMs: number,
+): Promise<void> {
+  if (!redis) return;
+
   try {
     // 'px' tells Redis to expire the key after ttlMs (milliseconds)
-    await redis.set(key, value, { px: ttlMs })
+    await redis.set(key, value, { px: ttlMs });
   } catch (error) {
     // FIXED: Separated the string from the variable to resolve the CodeQL alert
-    console.error('Failed to set Redis cache for key:', key, error)
+    console.error("Failed to set Redis cache for key:", key, error);
   }
 }
 
@@ -44,12 +48,12 @@ export async function setCached<T>(key: string, value: T, ttlMs: number): Promis
  * not configured, mirroring the rest of this module.
  */
 export async function invalidate(key: string): Promise<void> {
-  if (!redis) return
+  if (!redis) return;
 
   try {
-    await redis.del(key)
+    await redis.del(key);
   } catch (error) {
-    console.error('Failed to invalidate Redis cache for key:', key, error)
+    console.error("Failed to invalidate Redis cache for key:", key, error);
   }
 }
 
@@ -61,46 +65,49 @@ export async function invalidate(key: string): Promise<void> {
  * not configured.
  */
 export async function invalidatePrefix(prefix: string): Promise<number> {
-  if (!redis) return 0
+  if (!redis) return 0;
 
-  let deleted = 0
+  let deleted = 0;
   try {
-    let cursor = '0'
+    let cursor = "0";
     do {
       const [next, keys] = await redis.scan(cursor, {
         match: `${prefix}*`,
         count: 100,
-      })
-      cursor = next
+      });
+      cursor = next;
       if (keys.length > 0) {
-        await redis.del(...keys)
-        deleted += keys.length
+        await redis.del(...keys);
+        deleted += keys.length;
       }
-    } while (cursor !== '0')
+    } while (cursor !== "0");
   } catch (error) {
-    console.error('Failed to invalidate Redis cache for prefix:', prefix, error)
+    console.error(
+      "Failed to invalidate Redis cache for prefix:",
+      prefix,
+      error,
+    );
   }
-  return deleted
+  return deleted;
 }
-
 
 export async function getCachedWithFallback<T>(
   key: string,
   ttlMs: number,
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
 ): Promise<T> {
   // 1. Try hitting the Redis cache first
-  const cached = await getCached<T>(key)
-  if (cached !== null) return cached
+  const cached = await getCached<T>(key);
+  if (cached !== null) return cached;
 
   // 2. Cache miss: fetch the fresh data from the source
-  const fresh = await fetcher()
-  
+  const fresh = await fetcher();
+
   // 3. Fire-and-forget the cache update in the background
   // We don't await this so it doesn't block returning the response to the user
-  setCached(key, fresh, ttlMs)
-  
-  return fresh
+  setCached(key, fresh, ttlMs);
+
+  return fresh;
 }
 
 /**
@@ -114,44 +121,44 @@ export async function getCachedWithFallback<T>(
  * place. Falls back to a plain blocking fetch when Redis is not configured.
  */
 interface SwrEnvelope<T> {
-  value: T
-  storedAt: number
+  value: T;
+  storedAt: number;
 }
 
 export async function getCachedSWR<T>(
   key: string,
   opts: { staleMs: number; revalidateMs?: number },
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
 ): Promise<T> {
-  const revalidateMs = opts.revalidateMs ?? opts.staleMs
-  const totalTtlMs = opts.staleMs + revalidateMs
+  const revalidateMs = opts.revalidateMs ?? opts.staleMs;
+  const totalTtlMs = opts.staleMs + revalidateMs;
 
   const store = async (value: T) => {
-    const envelope: SwrEnvelope<T> = { value, storedAt: Date.now() }
-    await setCached(key, envelope, totalTtlMs)
-  }
+    const envelope: SwrEnvelope<T> = { value, storedAt: Date.now() };
+    await setCached(key, envelope, totalTtlMs);
+  };
 
-  const envelope = await getCached<SwrEnvelope<T>>(key)
+  const envelope = await getCached<SwrEnvelope<T>>(key);
 
   // Cold miss (or Redis disabled): fetch synchronously and populate.
-  if (!envelope || typeof envelope.storedAt !== 'number') {
-    const fresh = await fetcher()
-    store(fresh)
-    return fresh
+  if (!envelope || typeof envelope.storedAt !== "number") {
+    const fresh = await fetcher();
+    store(fresh);
+    return fresh;
   }
 
-  const isStale = Date.now() - envelope.storedAt > opts.staleMs
+  const isStale = Date.now() - envelope.storedAt > opts.staleMs;
   if (isStale) {
     // Serve stale immediately, refresh behind it. Errors in the background
     // refresh must not surface to the caller who already has a usable value.
     void (async () => {
       try {
-        store(await fetcher())
+        store(await fetcher());
       } catch (error) {
-        console.error('SWR background refresh failed for key:', key, error)
+        console.error("SWR background refresh failed for key:", key, error);
       }
-    })()
+    })();
   }
 
-  return envelope.value
+  return envelope.value;
 }

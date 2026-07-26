@@ -1,40 +1,40 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import axios from 'axios'
-import { getCached, setCached } from '@/lib/cache'
-import { computeCurrentStreak } from '@/lib/contributionStats'
-import { getClientIp, createRateLimiter } from '@/lib/rateLimit'
-import { env } from '@/lib/env'
-import { logError } from '@/lib/errorLogger'
+import type { NextApiRequest, NextApiResponse } from "next";
+import axios from "axios";
+import { getCached, setCached } from "@/lib/cache";
+import { computeCurrentStreak } from "@/lib/contributionStats";
+import { getClientIp, createRateLimiter } from "@/lib/rateLimit";
+import { env } from "@/lib/env";
+import { logError } from "@/lib/errorLogger";
 
-const BADGE_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour — badges are embedded in READMEs so cache aggressively
-const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 min — don't re-hit GitHub for known-missing usernames
+const BADGE_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — badges are embedded in READMEs so cache aggressively
+const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — don't re-hit GitHub for known-missing usernames
 
 // Badges are embedded in READMEs and are the most automation-exposed route, so a
 // per-IP limiter (shared with the other metered routes) protects the single
 // app-wide GitHub token from being exhausted by a script hitting many usernames.
-const RATE_LIMIT_WINDOW_MS = 60_000
-const RATE_LIMIT_MAX = 60
-const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 60;
+const rateLimiter = createRateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX);
 
 interface BadgeData {
-  name: string
-  totalContributions: number
-  currentStreak: number
+  name: string;
+  totalContributions: number;
+  currentStreak: number;
 }
 
 async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3+json',
-  }
+    Accept: "application/vnd.github.v3+json",
+  };
   if (env.GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`
+    headers["Authorization"] = `Bearer ${env.GITHUB_TOKEN}`;
   }
 
   if (env.GITHUB_TOKEN) {
     // FIX: Calculate a strict 1-year UTC window to prevent timezone drifting on the badge
-    const toDate = new Date()
-    const fromDate = new Date()
-    fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1)
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setUTCFullYear(toDate.getUTCFullYear() - 1);
 
     const query = `
       query($username: String!, $from: DateTime!, $to: DateTime!) {
@@ -54,43 +54,48 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
           }
         }
       }
-    `
+    `;
     const response = await axios.post(
-      'https://api.github.com/graphql',
-      { 
-        query, 
-        variables: { 
+      "https://api.github.com/graphql",
+      {
+        query,
+        variables: {
           username,
           from: fromDate.toISOString(),
-          to: toDate.toISOString()
-        } 
+          to: toDate.toISOString(),
+        },
       },
       {
         headers: {
           Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      }
-    )
+      },
+    );
 
-    const user = response.data?.data?.user
-    if (!user) return null
+    const user = response.data?.data?.user;
+    if (!user) return null;
 
-    const calendar = user.contributionsCollection.contributionCalendar
+    const calendar = user.contributionsCollection.contributionCalendar;
     // Flatten to chronological { date, count } days so we can reuse the shared
     // streak helper (which skips a zero-count today instead of resetting to 0).
     const days = calendar.weeks.flatMap(
-      (w: { contributionDays: { contributionCount: number; date: string }[] }) =>
-        w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
-    )
+      (w: {
+        contributionDays: { contributionCount: number; date: string }[];
+      }) =>
+        w.contributionDays.map((d) => ({
+          date: d.date,
+          count: d.contributionCount,
+        })),
+    );
 
-    const currentStreak = computeCurrentStreak(days)
+    const currentStreak = computeCurrentStreak(days);
 
     return {
       name: user.name || user.login,
       totalContributions: calendar.totalContributions,
       currentStreak,
-    }
+    };
   }
 
   // REST fallback — no streak without GraphQL, just return profile basics.
@@ -99,26 +104,27 @@ async function fetchBadgeData(username: string): Promise<BadgeData | null> {
   try {
     const userRes = await axios.get(
       `https://api.github.com/users/${encodeURIComponent(username)}`,
-      { headers, timeout: 5000 }
-    )
+      { headers, timeout: 5000 },
+    );
     return {
       name: userRes.data.name || userRes.data.login,
       totalContributions: 0,
       currentStreak: 0,
-    }
+    };
   } catch (err) {
     if (axios.isAxiosError(err) && err.response?.status === 404) {
-      return null
+      return null;
     }
-    throw err
+    throw err;
   }
 }
 
 function buildSvg(data: BadgeData): string {
-  const { name, totalContributions, currentStreak } = data
-  const safeName = name.replace(/[<>&"]/g, (c) =>
-    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c] || c)
-  )
+  const { name, totalContributions, currentStreak } = data;
+  const safeName = name.replace(
+    /[<>&"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c] || c,
+  );
 
   return `<svg width="420" height="130" viewBox="0 0 420 130" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -160,51 +166,58 @@ function buildSvg(data: BadgeData): string {
   <polygon points="238,89 239.8,93.6 244.7,93.8 240.9,96.9 242.1,101.7 238,99 233.9,101.7 235.1,96.9 231.3,93.8 236.2,93.6" fill="#eab308"/>
   <text x="252" y="94" font-family="system-ui,-apple-system,sans-serif" font-size="18" fill="#f1f5f9" font-weight="700">${totalContributions.toLocaleString()}</text>
   <text x="252" y="109" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#64748b">contributions this year</text>
-</svg>`
+</svg>`;
 }
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { username } = req.query
-  if (!username || typeof username !== 'string') {
-    return res.status(400).send('username is required')
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  const { username } = req.query;
+  if (!username || typeof username !== "string") {
+    return res.status(400).send("username is required");
   }
 
-  const retryAfter = rateLimiter.check(getClientIp(req))
+  const retryAfter = rateLimiter.check(getClientIp(req));
   if (retryAfter !== null) {
-    res.setHeader('Retry-After', String(retryAfter))
-    return res.status(429).send(`Too many requests \u2014 please wait ${retryAfter}s and try again`)
+    res.setHeader("Retry-After", String(retryAfter));
+    return res
+      .status(429)
+      .send(
+        `Too many requests \u2014 please wait ${retryAfter}s and try again`,
+      );
   }
 
-  const cacheKey = `badge:${username.toLowerCase()}`
-  const notFoundKey = `badge:404:${username.toLowerCase()}`
-  
-  let data = await getCached<BadgeData>(cacheKey)
+  const cacheKey = `badge:${username.toLowerCase()}`;
+  const notFoundKey = `badge:404:${username.toLowerCase()}`;
+
+  let data = await getCached<BadgeData>(cacheKey);
 
   if (!data) {
     // Short-circuit known-missing usernames so repeated requests for the same
     // invalid user don't keep hitting GitHub.
-    
+
     // FIXED: Added await here
     if (await getCached<boolean>(notFoundKey)) {
-      return res.status(404).send('User not found')
+      return res.status(404).send("User not found");
     }
     try {
-      const fetched = await fetchBadgeData(username)
+      const fetched = await fetchBadgeData(username);
       if (!fetched) {
         // FIXED: Added await here to ensure Redis finishes writing
-        await setCached(notFoundKey, true, NEGATIVE_CACHE_TTL_MS)
-        return res.status(404).send('User not found')
+        await setCached(notFoundKey, true, NEGATIVE_CACHE_TTL_MS);
+        return res.status(404).send("User not found");
       }
-      data = fetched
-      
+      data = fetched;
+
       // Added await so the cache write completes before the serverless function exits.
-      await setCached(cacheKey, data, BADGE_CACHE_TTL_MS)
+      await setCached(cacheKey, data, BADGE_CACHE_TTL_MS);
     } catch (error) {
-      logError('api/badge', error, { username })
-      return res.status(500).send('Failed to fetch GitHub data')
+      logError("api/badge", error, { username });
+      return res.status(500).send("Failed to fetch GitHub data");
     }
   }
 
-  res.setHeader('Content-Type', 'image/svg+xml')
-  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-  res.status(200).send(buildSvg(data))
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
+  res.status(200).send(buildSvg(data));
 }

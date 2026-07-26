@@ -1,53 +1,61 @@
-import { useState, useId, memo } from 'react'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { getLanguageColor } from '@/lib/languageColors'
-import CustomChartContainer from './charts/CustomChartContainer'
+import { useState, useId, memo } from "react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { getLanguageColor } from "@/lib/languageColors";
+import CustomChartContainer from "./charts/CustomChartContainer";
 
 interface LanguageChartProps {
-  data: { name: string; value: number }[]
-  mode?: 'bytes' | 'count'
+  data: { name: string; value: number }[];
+  mode?: "bytes" | "count";
 }
 
 type LanguageTooltipProps = {
-  active?: boolean
-  payload?: Array<{ name?: string | number; value?: number | string | readonly (string | number)[] }>
-  mode?: 'bytes' | 'count'
-}
+  active?: boolean;
+  payload?: Array<{
+    name?: string | number;
+    value?: number | string | readonly (string | number)[];
+  }>;
+  mode?: "bytes" | "count";
+};
 
-const MAX_INLINE_LANGUAGES = 4
+const MAX_INLINE_LANGUAGES = 4;
 
 function ChartTooltip({ active, payload, mode }: LanguageTooltipProps) {
-  if (!active || !payload || !payload.length) return null
-  const entry = payload[0]
-  const suffix = mode === 'bytes' ? '% of code' : entry.value === 1 ? ' repo' : ' repos'
+  if (!active || !payload || !payload.length) return null;
+  const entry = payload[0];
+  const suffix =
+    mode === "bytes" ? "% of code" : entry.value === 1 ? " repo" : " repos";
   return (
     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white shadow-lg">
       <span className="font-semibold">{entry.name}</span>: {entry.value}
       {suffix}
     </div>
-  )
+  );
 }
 
-function valueLabel(value: number, mode: 'bytes' | 'count'): string {
-  if (mode === 'bytes') return `${value}%`
-  return value === 1 ? '1 repo' : `${value} repos`
+function valueLabel(value: number, mode: "bytes" | "count"): string {
+  if (mode === "bytes") return `${value}%`;
+  return value === 1 ? "1 repo" : `${value} repos`;
 }
 
-function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
-  const [showAll, setShowAll] = useState(false)
-  const panelId = useId()
+function LanguageChart({ data, mode = "count" }: LanguageChartProps) {
+  const [showAll, setShowAll] = useState(false);
+  const panelId = useId();
 
   if (data.length === 0) {
     return (
-      <CustomChartContainer title="Language Distribution" isEmpty={true} emptyMessage="No language data available.">
+      <CustomChartContainer
+        title="Language Distribution"
+        isEmpty={true}
+        emptyMessage="No language data available."
+      >
         <div />
       </CustomChartContainer>
-    )
+    );
   }
 
-  const sorted = [...data].sort((a, b) => b.value - a.value)
-  const inline = sorted.slice(0, MAX_INLINE_LANGUAGES)
-  const overflowCount = sorted.length - inline.length
+  const sorted = [...data].sort((a, b) => b.value - a.value);
+  const inline = sorted.slice(0, MAX_INLINE_LANGUAGES);
+  const overflowCount = sorted.length - inline.length;
 
   return (
     <CustomChartContainer title="Language Distribution" height="auto">
@@ -55,11 +63,11 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
         className="h-64"
         role="img"
         aria-label={`Language distribution across ${sorted.length} language${
-          sorted.length === 1 ? '' : 's'
+          sorted.length === 1 ? "" : "s"
         }. Most used: ${sorted
           .slice(0, 3)
           .map((d) => d.name)
-          .join(', ')}.`}
+          .join(", ")}.`}
       >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -79,7 +87,12 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
               ))}
             </Pie>
             <Tooltip
-              content={(props) => <ChartTooltip {...(props as unknown as LanguageTooltipProps)} mode={mode} />}
+              content={(props) => (
+                <ChartTooltip
+                  {...(props as unknown as LanguageTooltipProps)}
+                  mode={mode}
+                />
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -109,14 +122,17 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
             aria-controls={panelId}
             className="shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {showAll ? 'See less' : `+${overflowCount} more`}
+            {showAll ? "See less" : `+${overflowCount} more`}
           </button>
         )}
       </div>
 
       {/* Expanded box */}
       {showAll && overflowCount > 0 && (
-        <div id={panelId} className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto">
+        <div
+          id={panelId}
+          className="mt-3 border border-gray-200 dark:border-slate-600 rounded-lg p-3 max-h-48 overflow-y-auto"
+        >
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {sorted.map((entry) => (
               <div
@@ -127,17 +143,21 @@ function LanguageChart({ data, mode = 'count' }: LanguageChartProps) {
                   className="w-2.5 h-2.5 rounded-full inline-block"
                   style={{ backgroundColor: getLanguageColor(entry.name) }}
                 />
-                <span className="font-medium text-gray-700 dark:text-gray-200">{entry.name}</span>
-                <span className="text-gray-400 dark:text-gray-500">{valueLabel(entry.value, mode)}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-200">
+                  {entry.name}
+                </span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  {valueLabel(entry.value, mode)}
+                </span>
               </div>
             ))}
           </div>
         </div>
       )}
     </CustomChartContainer>
-  )
+  );
 }
 
 // recharts pie; re-rendered by every dashboard state change (search, sort, modal)
 // even though its aggregated language data is unchanged.
-export default memo(LanguageChart)
+export default memo(LanguageChart);

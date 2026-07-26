@@ -84,9 +84,9 @@ reviews:
 base_branches:
   - "dev"
   - "main"
- 
+
 anti_slop:
   enabled: true
- 
+
 chat:
   auto_reply: true

@@ -1,5 +1,5 @@
 function ShimmerBlock({ className }: { className: string }) {
-  return <div className={`shimmer rounded ${className}`} />
+  return <div className={`shimmer rounded ${className}`} />;
 }
 
 export function UserCardSkeleton() {
@@ -21,7 +21,7 @@ export function UserCardSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function RepoCardSkeleton() {
@@ -35,7 +35,7 @@ export function RepoCardSkeleton() {
         <ShimmerBlock className="h-4 w-10" />
       </div>
     </div>
-  )
+  );
 }
 
 export function ChartSkeleton() {
@@ -44,7 +44,7 @@ export function ChartSkeleton() {
       <ShimmerBlock className="h-5 w-40 mb-4" />
       <ShimmerBlock className="h-56 w-full" />
     </div>
-  )
+  );
 }
 
 export default function LoadingSkeleton() {
@@ -61,5 +61,5 @@ export default function LoadingSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }

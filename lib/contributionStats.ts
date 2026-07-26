@@ -1,4 +1,8 @@
-import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/types/github'
+import type {
+  ContributionDay,
+  ContributionWeek,
+  ProductivityStats,
+} from "@/types/github";
 
 /**
  * Computes the current contribution streak from a chronologically-ordered
@@ -17,9 +21,9 @@ import type { ContributionDay, ContributionWeek, ProductivityStats } from '@/typ
  *   day, skipping a zero-count current (in-progress) day.
  */
 export function computeCurrentStreak(days: ContributionDay[]): number {
-  if (days.length === 0) return 0
+  if (days.length === 0) return 0;
 
-  const lastDay = days[days.length - 1]
+  const lastDay = days[days.length - 1];
 
   // Decide whether the final day is "today's" in-progress day. GitHub's
   // contributionCalendar is timezone-aware but returns bare YYYY-MM-DD dates
@@ -32,26 +36,27 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
   // contributions yet. A trailing zero more than a day in the past is a genuine
   // gap (e.g. stale/historical data) and is NOT skipped — that would report a
   // streak that has actually ended.
-  const MS_PER_DAY = 24 * 60 * 60 * 1000
-  const todayUtcMs = Date.parse(new Date().toISOString().slice(0, 10))
-  const lastDayMs = Date.parse(lastDay.date)
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const todayUtcMs = Date.parse(new Date().toISOString().slice(0, 10));
+  const lastDayMs = Date.parse(lastDay.date);
   const isCurrentDay =
-    Number.isFinite(lastDayMs) && Math.abs(todayUtcMs - lastDayMs) <= MS_PER_DAY
+    Number.isFinite(lastDayMs) &&
+    Math.abs(todayUtcMs - lastDayMs) <= MS_PER_DAY;
 
-  let startIndex = days.length - 1
+  let startIndex = days.length - 1;
   if (lastDay.count === 0 && isCurrentDay) {
-    startIndex--
+    startIndex--;
   }
 
-  let streak = 0
+  let streak = 0;
   for (let i = startIndex; i >= 0; i--) {
     if (days[i].count > 0) {
-      streak++
+      streak++;
     } else {
-      break
+      break;
     }
   }
-  return streak
+  return streak;
 }
 
 /**
@@ -64,54 +69,64 @@ export function computeCurrentStreak(days: ContributionDay[]): number {
  * `monthlyTotals` — rely on that single sort. All date math is done in UTC to
  * match GitHub's contribution dates.
  */
-export function computeProductivityStats(weeks: ContributionWeek[]): ProductivityStats {
+export function computeProductivityStats(
+  weeks: ContributionWeek[],
+): ProductivityStats {
   const days = weeks
     .flatMap((w) => w.contributionDays)
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-  const currentStreak = computeCurrentStreak(days)
+  const currentStreak = computeCurrentStreak(days);
 
-  let longestStreak = 0
-  let running = 0
+  let longestStreak = 0;
+  let running = 0;
   for (const day of days) {
     if (day.count > 0) {
-      running++
-      longestStreak = Math.max(longestStreak, running)
+      running++;
+      longestStreak = Math.max(longestStreak, running);
     } else {
-      running = 0
+      running = 0;
     }
   }
 
-  let mostProductiveDay: { date: string; count: number } | null = null
-  let weekdayCount = 0
-  let weekendCount = 0
-  const monthlyMap = new Map<string, number>()
+  let mostProductiveDay: { date: string; count: number } | null = null;
+  let weekdayCount = 0;
+  let weekendCount = 0;
+  const monthlyMap = new Map<string, number>();
 
   for (const day of days) {
-    if (day.count > 0 && (!mostProductiveDay || day.count > mostProductiveDay.count)) {
-      mostProductiveDay = { date: day.date, count: day.count }
+    if (
+      day.count > 0 &&
+      (!mostProductiveDay || day.count > mostProductiveDay.count)
+    ) {
+      mostProductiveDay = { date: day.date, count: day.count };
     }
 
-    const dayOfWeek = new Date(`${day.date}T00:00:00Z`).getUTCDay()
+    const dayOfWeek = new Date(`${day.date}T00:00:00Z`).getUTCDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-      weekendCount += day.count
+      weekendCount += day.count;
     } else {
-      weekdayCount += day.count
+      weekdayCount += day.count;
     }
 
-    const monthKey = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-US', {
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    })
-    monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + day.count)
+    const monthKey = new Date(`${day.date}T00:00:00Z`).toLocaleDateString(
+      "en-US",
+      {
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      },
+    );
+    monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + day.count);
   }
 
   // `days` is already chronologically sorted, so Map insertion order is chronological too
-  const monthlyTotals = Array.from(monthlyMap.entries()).map(([month, count]) => ({
-    month,
-    count,
-  }))
+  const monthlyTotals = Array.from(monthlyMap.entries()).map(
+    ([month, count]) => ({
+      month,
+      count,
+    }),
+  );
 
   return {
     currentStreak,
@@ -120,5 +135,5 @@ export function computeProductivityStats(weeks: ContributionWeek[]): Productivit
     weekdayCount,
     weekendCount,
     monthlyTotals,
-  }
+  };
 }

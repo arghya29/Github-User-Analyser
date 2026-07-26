@@ -13,5 +13,5 @@ export default function ChartSkeleton() {
         <div className="h-3 bg-slate-200 dark:bg-slate-600 rounded w-1/4" />
       </div>
     </div>
-  )
+  );
 }

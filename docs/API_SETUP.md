@@ -23,8 +23,11 @@ To unlock the full features of GitHub User Analyzer (such as Achievements, Produ
    ```
 
 ## Step 3: Run locally
+
 Restart your dev server:
+
 ```bash
 npm run dev
 ```
+
 The application will now fetch profile data using the GraphQL gateway.

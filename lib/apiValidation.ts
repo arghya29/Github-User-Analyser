@@ -1,5 +1,5 @@
-import type { NextApiResponse } from 'next'
-import { z } from 'zod'
+import type { NextApiResponse } from "next";
+import { z } from "zod";
 
 /**
  * Sends the standard 400 response for a request that fails schema validation.
@@ -8,12 +8,12 @@ import { z } from 'zod'
  */
 export function respondInvalid(res: NextApiResponse, error: z.ZodError): void {
   res.status(400).json({
-    error: 'Invalid request body',
+    error: "Invalid request body",
     details: error.issues.map((issue) => ({
-      path: issue.path.join('.'),
+      path: issue.path.join("."),
       message: issue.message,
     })),
-  })
+  });
 }
 
 /**
@@ -24,14 +24,14 @@ export function respondInvalid(res: NextApiResponse, error: z.ZodError): void {
 export function validateRequest<T>(
   res: NextApiResponse,
   schema: z.ZodType<T>,
-  data: unknown
+  data: unknown,
 ): T | null {
-  const result = schema.safeParse(data)
+  const result = schema.safeParse(data);
   if (!result.success) {
-    respondInvalid(res, result.error)
-    return null
+    respondInvalid(res, result.error);
+    return null;
   }
-  return result.data
+  return result.data;
 }
 
 /**
@@ -43,4 +43,4 @@ export function validateRequest<T>(
 export const exportUserDataSchema = z.object({
   user: z.object({ login: z.string() }),
   repos: z.array(z.unknown()),
-})
+});

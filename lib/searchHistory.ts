@@ -1,9 +1,9 @@
-const HISTORY_KEY = 'github-analyzer-history'
-const MAX_HISTORY = 5
+const HISTORY_KEY = "github-analyzer-history";
+const MAX_HISTORY = 5;
 
 function getStorage(): Storage | null {
-  if (typeof window === 'undefined' || !window.localStorage) return null
-  return window.localStorage
+  if (typeof window === "undefined" || !window.localStorage) return null;
+  return window.localStorage;
 }
 
 /**
@@ -13,23 +13,23 @@ function getStorage(): Storage | null {
  */
 export function loadHistory(): string[] {
   try {
-    const storage = getStorage()
-    const saved = storage?.getItem(HISTORY_KEY)
+    const storage = getStorage();
+    const saved = storage?.getItem(HISTORY_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved)
+      const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
         // Keep only strings (a corrupt value like [42] would otherwise crash
         // recordSearch()'s .toLowerCase()) and re-apply the MAX_HISTORY cap so a
         // user-edited, overlong stored value can't leak an oversized list to the UI.
         return parsed
-          .filter((item): item is string => typeof item === 'string')
-          .slice(0, MAX_HISTORY)
+          .filter((item): item is string => typeof item === "string")
+          .slice(0, MAX_HISTORY);
       }
     }
   } catch {
     // localStorage unavailable or corrupt — just skip history
   }
-  return []
+  return [];
 }
 
 /**
@@ -37,23 +37,26 @@ export function loadHistory(): string[] {
  * (case-insensitively), caps the list, persists it, and returns the new list.
  */
 export function recordSearch(username: string): string[] {
-  const current = loadHistory()
-  const deduped = [username, ...current.filter((h) => h.toLowerCase() !== username.toLowerCase())]
-  const next = deduped.slice(0, MAX_HISTORY)
+  const current = loadHistory();
+  const deduped = [
+    username,
+    ...current.filter((h) => h.toLowerCase() !== username.toLowerCase()),
+  ];
+  const next = deduped.slice(0, MAX_HISTORY);
   try {
-    getStorage()?.setItem(HISTORY_KEY, JSON.stringify(next))
+    getStorage()?.setItem(HISTORY_KEY, JSON.stringify(next));
   } catch {
     // ignore write failures
   }
-  return next
+  return next;
 }
 
 /** Clears the stored history and returns the new (empty) list. */
 export function clearHistory(): string[] {
   try {
-    getStorage()?.setItem(HISTORY_KEY, JSON.stringify([]))
+    getStorage()?.setItem(HISTORY_KEY, JSON.stringify([]));
   } catch {
     // ignore write failures
   }
-  return []
+  return [];
 }
