@@ -15,7 +15,7 @@ const TEXT_COLORS: Record<string, string> = {
 
 export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
   const [showBreakdown, setShowBreakdown] = useState(false)
-  const { score, label, breakdown } = computeHealthScore(repo)
+  const { score, label, breakdown, issueHealthKnown } = computeHealthScore(repo)
 
   return (
     <div className="relative flex-1">
@@ -56,7 +56,16 @@ export default function HealthScoreBadge({ repo }: HealthScoreBadgeProps) {
               </div>
               <div className="flex justify-between">
                 <span>Issue resolution</span>
-                <span>{breakdown.issueHealth}/30</span>
+                {issueHealthKnown ? (
+                  <span>{breakdown.issueHealth}/30</span>
+                ) : (
+                  <span
+                    className="text-gray-400 dark:text-gray-500"
+                    title="Closed-issue counts are unavailable, so this component is an estimate"
+                  >
+                    unavailable
+                  </span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span>License</span>

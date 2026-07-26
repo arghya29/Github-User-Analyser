@@ -97,6 +97,70 @@ describe('computeHealthScore — issue health', () => {
     expect(result.breakdown.issueHealth).toBe(21)
   })
 
+  it('does not treat an unavailable closed count as zero closed issues', () => {
+    // Without a GITHUB_TOKEN the app falls back to GitHub's REST API, which has
+    // no closed-issues field. Counting undefined as zero made the ratio
+    // 0/open, scoring an actively maintained repository at zero.
+    const result = computeHealthScore(
+      makeRepo({ open_issues_count: 5, closed_issues_count: undefined })
+    )
+    expect(result.breakdown.issueHealth).toBe(24)
+    expect(result.issueHealthKnown).toBe(false)
+  })
+
+  it('no longer ranks an abandoned repository above a maintained one', () => {
+    // The inversion this fixes: with closed counts unavailable, a project with
+    // many open issues scored 0 while a dead one with none scored 24.
+    const maintained = computeHealthScore(
+      makeRepo({ open_issues_count: 5, closed_issues_count: undefined })
+    )
+    const abandoned = computeHealthScore(
+      makeRepo({ open_issues_count: 0, closed_issues_count: undefined })
+    )
+    expect(maintained.breakdown.issueHealth).toBeGreaterThanOrEqual(
+      abandoned.breakdown.issueHealth
+    )
+  })
+
+  it('still distinguishes a measured zero from an unavailable count', () => {
+    // A repository genuinely having closed nothing is real information and must
+    // keep scoring 0 — the fix must not flatten that into the neutral value.
+    const measured = computeHealthScore(
+      makeRepo({ open_issues_count: 10, closed_issues_count: 0 })
+    )
+    expect(measured.breakdown.issueHealth).toBe(0)
+    expect(measured.issueHealthKnown).toBe(true)
+  })
+
+  it('reports the component as known whenever the data is present', () => {
+    for (const closed of [0, 1, 500]) {
+      const result = computeHealthScore(
+        makeRepo({ open_issues_count: 5, closed_issues_count: closed })
+      )
+      expect(result.issueHealthKnown).toBe(true)
+    }
+  })
+
+  it('reports the component as unknown when counts are entirely absent', () => {
+    const result = computeHealthScore(
+      makeRepo({ open_issues_count: undefined, closed_issues_count: undefined })
+    )
+    expect(result.breakdown.issueHealth).toBe(24)
+    expect(result.issueHealthKnown).toBe(false)
+  })
+
+  it('does not drop the total score by 30 points purely for missing a token', () => {
+    // The user-visible consequence: the same repository scored 30 points lower
+    // on a deployment without a token than with one.
+    const withToken = computeHealthScore(
+      makeRepo({ open_issues_count: 5, closed_issues_count: 95 })
+    )
+    const withoutToken = computeHealthScore(
+      makeRepo({ open_issues_count: 5, closed_issues_count: undefined })
+    )
+    expect(withToken.score - withoutToken.score).toBeLessThan(30)
+  })
+
   it('rounds a fractional ratio (1 of 3 closed → round(10) = 10)', () => {
     // closedRatio = 1/3 → round(10) = 10
     const result = computeHealthScore(makeRepo({ open_issues_count: 2, closed_issues_count: 1 }))

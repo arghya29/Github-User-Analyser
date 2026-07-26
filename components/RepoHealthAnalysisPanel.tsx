@@ -6,13 +6,16 @@ interface RepoHealthAnalysisPanelProps {
 }
 
 export default function RepoHealthAnalysisPanel({ repo }: RepoHealthAnalysisPanelProps) {
-  const { score, label, breakdown } = computeHealthScore(repo)
+  const { score, label, breakdown, issueHealthKnown } = computeHealthScore(repo)
 
   const tips = []
   if (breakdown.recency < 40) {
     tips.push('Repository has not been updated recently. Consider commit releases.')
   }
-  if (breakdown.issueHealth < 30 && (repo.open_issues_count ?? 0) > 0) {
+  // Only advise on issues when the closed count was actually available.
+  // Without it the score is a neutral placeholder, and telling an owner to
+  // "resolve outstanding issues" on that basis is advice from no evidence.
+  if (issueHealthKnown && breakdown.issueHealth < 30 && (repo.open_issues_count ?? 0) > 0) {
     tips.push('Higher open issues count. Try resolving outstanding issues.')
   }
   if (breakdown.license === 0) {
