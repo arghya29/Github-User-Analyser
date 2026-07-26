@@ -93,6 +93,14 @@ describe('a repository that fits in one page', () => {
     expect(timeline[timeline.length - 1].count).toBe(40)
   })
 
+  it('bounds every page request with a timeout', async () => {
+    // With up to ten sequential calls, one hung page would otherwise occupy the
+    // handler indefinitely.
+    mockedAxios.get.mockResolvedValueOnce(page(1, false))
+    await run()
+    expect(mockedAxios.get.mock.calls[0][1]?.timeout).toBe(10_000)
+  })
+
   it('accepts every status so errors are branched on, not thrown', async () => {
     // The route inspects response.status itself; without this axios would
     // reject on 404 and the tailored error bodies would never be reached.
@@ -202,6 +210,24 @@ describe('error paths behave as before', () => {
     const { status, body } = await run()
     expect(status).toBe(403)
     expect(body).toMatchObject({ errorType: 'rate_limited' })
+  })
+
+  it('surfaces a secondary rate limit as 429, not a server error', async () => {
+    // GitHub uses 403 for the primary rate limit and 429 for the secondary.
+    // Letting 429 fall through to the generic branch would report rate
+    // limiting as a 500, and the client could not tell the two apart.
+    mockedAxios.get.mockResolvedValueOnce({ status: 429, data: {}, headers: {} })
+    const { status, body } = await run()
+    expect(status).toBe(429)
+    expect(body).toMatchObject({ errorType: 'rate_limited' })
+  })
+
+  it('propagates the original rate-limit status rather than normalising it', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ status: 403, data: {}, headers: {} })
+    expect((await run()).status).toBe(403)
+    jest.clearAllMocks()
+    mockedAxios.get.mockResolvedValueOnce({ status: 429, data: {}, headers: {} })
+    expect((await run()).status).toBe(429)
   })
 
   it('surfaces an unexpected status', async () => {

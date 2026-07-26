@@ -89,6 +89,11 @@ export interface StarEntry {
   count: number
 }
 
+export interface StarHistoryErrorResponse {
+  error: string
+  errorType: 'not_found' | 'rate_limited' | 'unknown'
+}
+
 export interface StarHistoryResponse {
   timeline: StarEntry[]
   /** True when the page cap was reached and more stargazers exist. */

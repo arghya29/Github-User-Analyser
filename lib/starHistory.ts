@@ -1,11 +1,11 @@
 import axios from 'axios'
-import type { StarHistoryResponse } from '@/types/github'
+import type { StarHistoryResponse, StarHistoryErrorResponse } from '@/types/github'
 
 export async function fetchStarHistory(
   owner: string,
   repo: string
-): Promise<StarHistoryResponse> {
-  const response = await axios.get<StarHistoryResponse>(
+): Promise<StarHistoryResponse | StarHistoryErrorResponse> {
+  const response = await axios.get<StarHistoryResponse | StarHistoryErrorResponse>(
     `/api/star-history?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`,
     { validateStatus: () => true }
   )

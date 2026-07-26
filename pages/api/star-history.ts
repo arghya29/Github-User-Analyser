@@ -2,24 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { env } from '@/lib/env'
 import { logError } from '@/lib/errorLogger'
+import type {
+  StarEntry,
+  StarHistoryResponse,
+  StarHistoryErrorResponse,
+} from '@/types/github'
 
-interface StarEntry {
-  date: string
-  count: number
-}
-
-interface ErrorResponse {
-  error: string
-  errorType: 'not_found' | 'rate_limited' | 'unknown'
-}
-
-interface StarHistoryResponse {
-  timeline: StarEntry[]
-  /** True when the page cap was reached and more stargazers exist. */
-  truncated: boolean
-  /** How many stargazer records the timeline was built from. */
-  sampleSize: number
-}
 
 /**
  * GitHub returns stargazers oldest-first, 100 per page, so a single request only
@@ -36,6 +24,15 @@ const MAX_PAGES = 10
 const PER_PAGE = 100
 
 /**
+ * Per-request timeout.
+ *
+ * This matters more since pagination: without it a single hung page blocks the
+ * whole handler, and with up to ten sequential calls there is no bound at all
+ * on how long the route can occupy a serverless invocation.
+ */
+const REQUEST_TIMEOUT_MS = 10_000
+
+/**
  * Extracts the `rel="next"` URL from a Link header.
  *
  * Its absence is what tells us the history is complete, which is the difference
@@ -48,7 +45,7 @@ function hasNextPage(linkHeader: unknown): boolean {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StarHistoryResponse | ErrorResponse>
+  res: NextApiResponse<StarHistoryResponse | StarHistoryErrorResponse>
 ) {
   const { owner, repo } = req.query
 
@@ -72,6 +69,7 @@ export default async function handler(
           },
           params: { per_page: PER_PAGE, page },
           validateStatus: () => true,
+          timeout: REQUEST_TIMEOUT_MS,
         }
       )
 
@@ -81,8 +79,13 @@ export default async function handler(
       if (response.status === 404) {
         return res.status(404).json({ error: 'Repository not found', errorType: 'not_found' })
       }
-      if (response.status === 403) {
-        return res.status(403).json({ error: 'Rate limited', errorType: 'rate_limited' })
+      // GitHub signals its primary rate limit with 403 and its secondary with
+      // 429. Both are rate limiting, and the original status is propagated so
+      // the client can tell them apart rather than seeing a generic 500.
+      if (response.status === 403 || response.status === 429) {
+        return res
+          .status(response.status)
+          .json({ error: 'Rate limited', errorType: 'rate_limited' })
       }
       if (response.status !== 200) {
         return res.status(500).json({ error: 'Failed to fetch star history', errorType: 'unknown' })

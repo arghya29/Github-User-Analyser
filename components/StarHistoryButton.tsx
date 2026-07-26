@@ -36,7 +36,7 @@ export default function StarHistoryButton({ repo }: StarHistoryButtonProps) {
       const owner = repo.owner_login || repo.html_url.split('/')[3]
       const result = await fetchStarHistory(owner, repo.name)
       if ('error' in result) {
-        setError((result as unknown as { error: string }).error)
+        setError(result.error)
       } else {
         setData(result.timeline)
         setTruncated(result.truncated)
